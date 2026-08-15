@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MSE Builder · Alembic</title>
 <meta name="description" content="A free tool for composing a mental state examination from a curated clinical vocabulary. Runs entirely in your browser; nothing is stored or sent anywhere.">
 <meta name="theme-color" content="#141714">
@@ -21,7 +21,7 @@
   --serif:'Fraunces',Georgia,serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg)}
 body{font-family:var(--font); color:var(--ink); font-size:14px; line-height:1.5; min-height:100vh}
 a{color:var(--accent-text)}
@@ -56,6 +56,7 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
   min-height:32px;
 }
 .row:hover{background:rgba(255,255,255,0.055)}
+.row:active{background:rgba(255,255,255,0.09)}
 .row.open{background:var(--panel3); color:var(--ink)}
 .row .dot{width:8px; height:8px; border-radius:50%; background:transparent; border:1px solid var(--border-strong); flex:none; margin-top:5px}
 .row .dot.on{background:var(--accent); border-color:var(--accent)}
@@ -130,9 +131,16 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 /* ------- phone drill-down ------- */
 .crumbs{display:none}
 .sheet-scrim{display:none}
+/* iOS zooms into any focused control under 16px; keep form controls at 16 on touch layouts */
+@media(max-width:699px), (pointer:coarse){
+  .explain textarea, select{font-size:16px !important}
+  .b{min-height:44px; display:inline-flex; align-items:center}
+  .seg button{min-height:44px}
+  .copy{min-height:44px}
+}
 @media(max-width:559px){
   body{font-size:15px}
-  .page{padding:16px 14px 140px}
+  .page{padding:16px 14px 200px}
   .cols,.cols.three{display:block}
   .col{border-right:none; padding:6px}
   .col-label{display:none}
@@ -147,7 +155,7 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
   .out-controls{gap:8px; justify-content:space-between}
   .seg button{padding:8px 12px; font-size:12px}
   .output{gap:8px}
-  .copy-row .copy{padding:10px 20px; min-height:40px}
+  .copy-row .copy{padding:10px 20px; min-height:44px}
   .sheet-scrim{display:block; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:60; opacity:0; pointer-events:none; transition:opacity .25s ease}
   .sheet-scrim.open{opacity:1; pointer-events:auto}
   .sheet{position:fixed; left:0; right:0; bottom:0; z-index:61; background:var(--panel2);
@@ -370,6 +378,15 @@ function render(){
   $('copyBtn').disabled = !out
   renderSeg()
   if (mode === 'wide') sizeColumns()
+  /* the fixed bottom bar must never hide content: measure it and pad the page to match */
+  requestAnimationFrame(() => {
+    const page = document.querySelector('.page'), foot = document.querySelector('.foot')
+    if (mode === 'phone'){
+      const h = document.querySelector('.output').offsetHeight + 24
+      page.style.paddingBottom = h + 'px'
+      foot.style.paddingBottom = h + 'px'
+    } else { page.style.paddingBottom = ''; foot.style.paddingBottom = '' }
+  })
 }
 
 function renderWide(d, s){

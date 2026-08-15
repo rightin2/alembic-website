@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Alembic · Practice software that keeps client records on your machine</title>
 <meta name="description" content="Alembic is a clinical workspace for Australian psychologists. Every client record lives on your computer as plain files you own. No cloud, no database, no vendor holding your data.">
 <meta name="theme-color" content="#141715">
@@ -27,18 +27,22 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
-  font-family:var(--sans); color:var(--ink); background:var(--page);
+  font-family:var(--sans); color:var(--ink); background:#141715;
   line-height:1.7; font-size:17px; overflow-x:hidden; min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+/* The atmosphere lives on a fixed layer, not background-attachment (which iOS ignores). */
+#bgfx{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
   background:
     radial-gradient(ellipse 900px 640px at 12% 6%, rgba(143,178,138,0.16), transparent 62%),
     radial-gradient(ellipse 800px 620px at 88% 30%, rgba(201,164,92,0.10), transparent 60%),
     radial-gradient(ellipse 760px 600px at 24% 78%, rgba(143,178,138,0.10), transparent 60%),
     radial-gradient(ellipse 900px 700px at 85% 96%, rgba(216,154,94,0.08), transparent 62%),
     linear-gradient(180deg, #171a17 0%, #141715 55%, #101310 100%);
-  background-attachment:fixed;
 }
-body::before{
-  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+#bgfx::after{
+  content:""; position:absolute; inset:0;
   background-image:
     radial-gradient(circle at 25% 25%, rgba(236,232,224,0.035) 0%, transparent 40%),
     radial-gradient(circle at 75% 75%, rgba(201,164,92,0.05) 0%, transparent 40%);
@@ -87,6 +91,7 @@ a{color:var(--green);}
 
 /* ---------- pill header ---------- */
 .site-header{position:sticky; top:16px; z-index:9000; margin:16px 24px 0}
+body.menu-open .site-header{z-index:9600}
 .header-inner{
   max-width:var(--full-w,1080px); margin:0 auto;
   display:flex; align-items:center; justify-content:space-between; gap:24px;
@@ -133,10 +138,46 @@ nav.main-nav a.cta:hover{transform:translateY(-1px)}
   .site-header.scrolled .header-inner:hover .brand span{max-width:160px; opacity:1}
   .site-header.scrolled .header-inner:hover .header-dots{width:0; opacity:0}
 }
+.menu-btn{display:none; background:transparent; border:none; cursor:pointer; -webkit-appearance:none; appearance:none}
 @media(max-width:899px){
   nav.main-nav{display:none}
-  .header-inner{max-width:none}
+  .header-inner{max-width:none; padding:10px 14px 10px 16px}
+  .menu-btn{
+    display:flex; flex-direction:column; justify-content:center; gap:5px;
+    width:44px; height:44px; padding:10px; margin:-3px 0; border-radius:999px; flex:none;
+  }
+  .menu-btn i{display:block; height:2px; border-radius:2px; background:var(--ink); transition:transform .3s var(--ease-out), opacity .2s ease}
+  .menu-btn.open i:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .menu-btn.open i:nth-child(2){opacity:0}
+  .menu-btn.open i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 }
+/* full-screen glass menu (mobile) */
+.menu{
+  position:fixed; inset:0; z-index:9500;
+  background:rgba(16,19,16,0.82);
+  -webkit-backdrop-filter:blur(36px) saturate(180%); backdrop-filter:blur(36px) saturate(180%);
+  opacity:0; pointer-events:none; transition:opacity .35s var(--ease-out);
+  display:flex; flex-direction:column; justify-content:center; padding:24px 34px; overflow-y:auto;
+}
+.menu.open{opacity:1; pointer-events:auto}
+.menu nav{display:flex; flex-direction:column; gap:4px;
+  transform:scale(0.975); filter:blur(6px);
+  transition:transform .34s var(--ease-out), filter .32s ease}
+.menu.open nav{transform:none; filter:none}
+.menu nav a{
+  font-family:var(--serif); font-size:28px; color:var(--ink); text-decoration:none;
+  padding:12px 4px; border-bottom:1px solid rgba(236,232,224,0.08);
+  opacity:0; transform:translateY(10px);
+}
+.menu.open nav a{
+  opacity:1; transform:none;
+  transition:opacity .26s ease-out .0s, transform .3s var(--ease-out), padding-left .2s ease;
+  transition-delay:var(--gd,0s);
+}
+.menu nav a:hover,.menu nav a:active{color:var(--green-soft); padding-left:10px}
+.menu .menu-foot{margin-top:34px; font-size:12px; color:var(--ink-faint); letter-spacing:.06em; text-transform:uppercase;
+  opacity:0; transition:opacity .3s ease .18s}
+.menu.open .menu-foot{opacity:1}
 
 /* ---------- layout ---------- */
 section{padding:110px 24px}
@@ -287,6 +328,8 @@ em{font-family:var(--serif); font-style:italic}
 </head>
 <body>
 
+<div id="bgfx" aria-hidden="true"></div>
+
 <header class="site-header" id="siteHeader">
   <div class="header-inner" id="headerInner">
     <a class="brand" href="#top" aria-label="Alembic home">
@@ -302,8 +345,21 @@ em{font-family:var(--serif); font-style:italic}
       <a href="mse/">MSE Builder</a>
       <a class="cta" href="#contact">Get in touch</a>
     </nav>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><i></i><i></i><i></i></button>
   </div>
 </header>
+
+<div class="menu" id="mobileMenu" aria-hidden="true">
+  <nav aria-label="Mobile">
+    <a href="#principle" style="--gd:0.02s">Principle</a>
+    <a href="#product" style="--gd:0.05s">Product</a>
+    <a href="#philosophy" style="--gd:0.08s">Philosophy</a>
+    <a href="#founder" style="--gd:0.11s">Founder</a>
+    <a href="mse/" style="--gd:0.14s">MSE Builder</a>
+    <a href="#contact" style="--gd:0.17s">Get in touch</a>
+  </nav>
+  <div class="menu-foot">Alembic Labs · Melbourne</div>
+</div>
 
 <main id="top">
 
@@ -501,6 +557,21 @@ em{font-family:var(--serif); font-style:italic}
       ticking = false;
     });
   }, {passive:true});
+
+  /* mobile menu */
+  var menuBtn = document.getElementById('menuBtn');
+  var menu = document.getElementById('mobileMenu');
+  function setMenu(open){
+    menu.classList.toggle('open', open);
+    menuBtn.classList.toggle('open', open);
+    menuBtn.setAttribute('aria-expanded', open);
+    menu.setAttribute('aria-hidden', !open);
+    document.body.style.overflow = open ? 'hidden' : '';
+    document.body.classList.toggle('menu-open', open);
+  }
+  menuBtn.addEventListener('click', function(){ setMenu(!menu.classList.contains('open')); });
+  menu.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', function(){ setMenu(false); }); });
+  window.addEventListener('keydown', function(e){ if (e.key === 'Escape') setMenu(false); });
 
   /* cursor-tracked glow + gentle tilt on small cards */
   if (!reduced && window.matchMedia('(hover: hover)').matches){
