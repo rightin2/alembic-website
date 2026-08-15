@@ -1,0 +1,135 @@
+// Selection and serialisation engine for the MSE composer, ported from the
+// signed-off prototype at app/prototypes/mse-composer.html (its S object,
+// word(), tog() and build()). Pure: no DOM, no React, no I/O.
+//
+// State shape:
+//   sel  { [domainId]: { [subId]: term[] } }  what the clinician has picked
+//   own  { [scope]: string }                  free-typed lines, scope is
+//                                             'root' | domainId | 'domainId|subId'
+//   over { 'domainId|subId|term': string }    the clinician's own wording for
+//                                             a term, reused everywhere after
+//
+// Every mutator returns a new state object and leaves the old one untouched,
+// so React can hold state in useState and compare by identity.
+
+import { MSE_DOMAINS } from './mseVocabulary'
+
+const findDomain = domainId => MSE_DOMAINS.find(d => d.id === domainId)
+
+const findSub = (domainId, subId) =>
+  findDomain(domainId)?.subs.find(s => s.id === subId)
+
+const termKey = (domainId, subId, term) => domainId + '|' + subId + '|' + term
+
+// The prototype's three own-line scopes: the whole MSE, one domain, one sub.
+const ownKey = (domainId, subId) =>
+  domainId == null ? 'root' : subId == null ? domainId : domainId + '|' + subId
+
+const trimmed = value => (typeof value === 'string' ? value.trim() : '')
+
+// Every domain and sub gets its empty array up front, exactly as the prototype
+// seeds S.sel, so callers can read state.sel[domainId][subId] without guarding.
+export function emptyMseState() {
+  const sel = {}
+  for (const domain of MSE_DOMAINS) {
+    sel[domain.id] = {}
+    for (const sub of domain.subs) sel[domain.id][sub.id] = []
+  }
+  return { sel, own: {}, over: {} }
+}
+
+export function toggleTerm(state, domainId, subId, term) {
+  const sub = findSub(domainId, subId)
+  if (!sub) return state
+  const current = state.sel?.[domainId]?.[subId] || []
+  const was = current.includes(term)
+  let next
+  if (sub.single) next = was ? [] : [term]
+  else if (was) next = current.filter(t => t !== term)
+  else next = [...current, term]
+  return {
+    ...state,
+    sel: {
+      ...state.sel,
+      [domainId]: { ...(state.sel?.[domainId] || {}), [subId]: next },
+    },
+  }
+}
+
+// Empty wording, or wording identical to the term, clears the override.
+export function setOwnWording(state, domainId, subId, term, wording) {
+  const key = termKey(domainId, subId, term)
+  const value = trimmed(wording)
+  const over = { ...state.over }
+  if (value && value !== term) over[key] = value
+  else delete over[key]
+  return { ...state, over }
+}
+
+// The Write-my-own entries. Empty text clears the line.
+export function setOwnLine(state, domainId, subId, text) {
+  const key = ownKey(domainId, subId)
+  const value = trimmed(text)
+  const own = { ...state.own }
+  if (value) own[key] = value
+  else delete own[key]
+  return { ...state, own }
+}
+
+export function effectiveWording(state, domainId, subId, term) {
+  return state.over?.[termKey(domainId, subId, term)] || term
+}
+
+// One entry per domain that has anything in it, in MSE_DOMAINS order, plus a
+// leading unlabelled entry when the clinician wrote a whole-MSE line.
+function domainParts(state) {
+  const parts = []
+  if (state.own?.root) parts.push({ label: null, lead: '', text: state.own.root })
+  for (const domain of MSE_DOMAINS) {
+    const bits = []
+    if (state.own?.[domain.id]) bits.push(state.own[domain.id])
+    for (const sub of domain.subs) {
+      const picks = state.sel?.[domain.id]?.[sub.id] || []
+      const own = state.own?.[domain.id + '|' + sub.id]
+      const pieces = []
+      if (picks.length) {
+        pieces.push(picks.map(t => effectiveWording(state, domain.id, sub.id, t)).join(', '))
+      }
+      if (own) pieces.push(own)
+      if (pieces.length) bits.push((sub.lead ? sub.lead + ' ' : '') + pieces.join(', '))
+    }
+    if (bits.length) parts.push({ label: domain.label, lead: domain.lead, text: bits.join(', ') })
+  }
+  return parts
+}
+
+export function domainsRecorded(state) {
+  return domainParts(state).filter(p => p.label).length
+}
+
+export function serialiseMse(state, format = 'para') {
+  const parts = domainParts(state)
+  if (!parts.length) return ''
+  if (format === 'bullets') {
+    return parts.map(p => '- ' + (p.label ? p.label + ': ' : '') + p.text).join('\n')
+  }
+  if (format === 'labelled') {
+    return parts
+      .map(p => (p.label ? p.label + ': ' : '') + p.text.charAt(0).toUpperCase() + p.text.slice(1) + '.')
+      .join(' ')
+  }
+  // paragraph: the mandated inline shape
+  return (
+    parts
+      .map(p => (p.lead ? p.lead + ' ' + p.text : p.text))
+      .join('; ')
+      .replace(/^./, m => m.toUpperCase()) + '.'
+  )
+}
+
+// The single line that goes into a chart note. documentation.md requires MSE
+// to sit inline after its label, so any newline a clinician typed into a
+// free-text line is folded back to a space here.
+export function mseInlineLine(state) {
+  return 'MSE: ' + serialiseMse(state, 'para').replace(/\s*\n+\s*/g, ' ')
+}
