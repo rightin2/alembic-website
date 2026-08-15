@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MSE Builder · Alembic</title>
+<meta name="description" content="A free tool for composing a mental state examination from a curated clinical vocabulary. Runs entirely in your browser; nothing is stored or sent anywhere.">
+<meta name="theme-color" content="#141714">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+:root{
+  --bg:#141714; --panel:#1e211e; --panel2:#252924; --panel3:#2c312b;
+  --border:#343a33; --border-strong:#4a514a;
+  --ink:#eceae4; --ink2:#c9cec6; --muted:#8b918a;
+  --accent:#8fb287; --accent-soft:#31402f; --accent-text:#a7c79e; --on-accent:#12180f;
+  --danger:#e06b63;
+  --r1:8px; --r2:12px;
+  --font:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg)}
+body{font-family:var(--font); color:var(--ink); font-size:14px; line-height:1.5; min-height:100vh}
+a{color:var(--accent-text)}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+button{font-family:inherit; color:inherit; background:none; border:none; cursor:pointer; font-size:inherit; text-align:left}
+
+/* top bar */
+.bar{display:flex; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid var(--border)}
+.bar img{width:28px; height:28px; border-radius:7px}
+.bar .name{font-family:var(--serif); font-size:17px}
+.bar .divider{color:var(--border-strong)}
+.bar .tool{font-weight:700; font-size:13px; letter-spacing:.02em; color:var(--ink2)}
+.bar .home{margin-left:auto; font-size:12.5px; color:var(--muted); text-decoration:none}
+.bar .home:hover{color:var(--ink2)}
+
+.page{max-width:1120px; margin:0 auto; padding:22px 20px 40px}
+.head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+.head h1{font-family:var(--serif); font-weight:400; font-size:22px}
+.head .count{color:var(--muted); font-size:13px}
+
+/* cascade */
+.cascade{border:1px solid var(--border); border-radius:var(--r2); background:var(--panel); overflow:hidden}
+.cols{display:grid; grid-template-columns:minmax(148px,0.80fr) minmax(150px,0.85fr) minmax(196px,1.20fr) minmax(200px,1.15fr)}
+.cols.three{grid-template-columns:minmax(150px,1fr) minmax(180px,1.25fr) minmax(180px,1.15fr)}
+.col{padding:10px; border-right:1px solid var(--border); display:flex; flex-direction:column; min-width:0}
+.col:last-child{border-right:none}
+.col-label{font-size:10.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); padding:4px 10px 8px; flex:none}
+.col-scroll{overflow-y:auto; min-height:0}
+.row{
+  display:flex; align-items:flex-start; gap:8px; width:100%;
+  padding:7px 10px; border-radius:var(--r1); font-size:13px; line-height:1.45; color:var(--ink2);
+  min-height:32px;
+}
+.row:hover{background:rgba(255,255,255,0.055)}
+.row.open{background:var(--panel3); color:var(--ink)}
+.row .dot{width:8px; height:8px; border-radius:50%; background:transparent; border:1px solid var(--border-strong); flex:none; margin-top:5px}
+.row .dot.on{background:var(--accent); border-color:var(--accent)}
+.row .dot.risk.on{background:var(--danger); border-color:var(--danger)}
+.row .tick{
+  width:13px; height:13px; flex:none; margin-top:3px;
+  border:1.5px solid var(--border-strong); border-radius:3px; position:relative;
+}
+.row .tick.round{border-radius:50%}
+.row .tick.on{background:var(--accent); border-color:var(--accent)}
+.row .tick.on::after{
+  content:""; position:absolute; left:3px; top:0.5px; width:4px; height:7px;
+  border:solid var(--on-accent); border-width:0 2px 2px 0; transform:rotate(40deg);
+}
+.row .txt{min-width:0}
+.own-sep{border-top:1px solid var(--border); margin:8px 6px}
+.row.own{color:var(--muted); font-style:italic}
+.row.own.open{color:var(--ink)}
+.empty-hint{color:var(--muted); font-size:12.5px; padding:8px 10px; font-style:italic}
+
+/* explain panel */
+.explain{padding:6px 8px; display:flex; flex-direction:column; gap:10px; font-size:13px}
+.explain .what{font-size:10.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
+.explain .term{font-size:14.5px; color:var(--ink); font-weight:600}
+.badge{display:inline-block; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent-text); background:var(--accent-soft); border-radius:999px; padding:2px 8px; margin-left:8px; vertical-align:1px}
+.explain .desc{color:var(--ink2)}
+.explain textarea{
+  width:100%; min-height:64px; resize:vertical; background:var(--panel2); color:var(--ink);
+  border:1px solid var(--border); border-radius:var(--r1); padding:8px 10px; font-family:inherit; font-size:13px; line-height:1.5;
+}
+.explain textarea:focus{border-color:var(--accent); outline:none}
+.btn-row{display:flex; gap:8px; flex-wrap:wrap}
+.b{
+  padding:7px 14px; border-radius:var(--r1); font-size:12.5px; font-weight:600;
+  border:1px solid var(--border-strong); color:var(--ink2); background:var(--panel2);
+  transition:background .15s ease, color .15s ease;
+}
+.b:hover{background:var(--panel3); color:var(--ink)}
+.b.primary{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
+.b.primary:hover{filter:brightness(1.08)}
+.b.danger{border-color:var(--danger); color:var(--danger)}
+.hint{color:var(--muted); font-size:11.5px; line-height:1.5}
+
+/* output */
+.output{margin-top:16px; display:flex; flex-direction:column; gap:10px}
+.out-controls{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.seg{display:inline-flex; border:1px solid var(--border-strong); border-radius:999px; overflow:hidden}
+.seg button{padding:7px 16px; font-size:12.5px; font-weight:600; color:var(--muted)}
+.seg button.on{background:var(--accent-soft); color:var(--accent-text)}
+.chars{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums}
+.preview{
+  border:1px solid var(--border); border-radius:var(--r2); background:var(--panel);
+  padding:14px 16px; font-size:13.5px; line-height:1.6; color:var(--ink2);
+  white-space:pre-wrap; min-height:54px; max-height:180px; overflow-y:auto;
+}
+.preview.placeholder{font-style:italic; color:var(--muted)}
+.copy-row{display:flex; justify-content:flex-end}
+.copy{
+  padding:11px 26px; border-radius:999px; font-size:12.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  background:var(--accent); color:var(--on-accent); border:none; transition:filter .15s ease;
+}
+.copy:hover{filter:brightness(1.08)}
+.copy[disabled]{opacity:.45; cursor:default; filter:none}
+
+/* footer */
+.foot{max-width:1120px; margin:30px auto 0; padding:18px 20px 34px; border-top:1px solid var(--border);
+  font-size:12px; color:var(--muted); line-height:1.8}
+.foot a{color:var(--ink2); text-decoration:none}
+.foot a:hover{color:var(--ink)}
+
+/* ------- phone drill-down ------- */
+.crumbs{display:none}
+.sheet-scrim{display:none}
+@media(max-width:559px){
+  body{font-size:15px}
+  .page{padding:16px 14px 140px}
+  .cols,.cols.three{display:block}
+  .col{border-right:none; padding:6px}
+  .col-label{display:none}
+  .row{min-height:44px; padding:11px 12px; font-size:14.5px; align-items:center}
+  .row .dot,.row .tick{margin-top:0}
+  .crumbs{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border); font-size:12.5px; color:var(--muted)}
+  .crumbs button{color:var(--accent-text); font-size:12.5px; padding:4px 2px; min-height:0}
+  .crumbs .sep{color:var(--border-strong)}
+  .output{position:fixed; left:0; right:0; bottom:0; margin:0; padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:var(--panel); border-top:1px solid var(--border-strong); box-shadow:0 -12px 30px rgba(0,0,0,.4); z-index:50}
+  .preview{max-height:56px; padding:8px 12px; font-size:12.5px}
+  .out-controls{gap:8px; justify-content:space-between}
+  .seg button{padding:8px 12px; font-size:12px}
+  .output{gap:8px}
+  .copy-row .copy{padding:10px 20px; min-height:40px}
+  .sheet-scrim{display:block; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:60; opacity:0; pointer-events:none; transition:opacity .25s ease}
+  .sheet-scrim.open{opacity:1; pointer-events:auto}
+  .sheet{position:fixed; left:0; right:0; bottom:0; z-index:61; background:var(--panel2);
+    border-radius:16px 16px 0 0; border-top:1px solid var(--border-strong);
+    padding:16px 16px calc(20px + env(safe-area-inset-bottom)); max-height:72vh; overflow-y:auto;
+    transform:translateY(105%); transition:transform .3s cubic-bezier(0.16,1,0.3,1)}
+  .sheet.open{transform:none}
+  .sheet .b{min-height:44px}
+  .foot{padding-bottom:150px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <img src="../assets/alembic-mark.png" alt="">
+  <span class="name">Alembic</span>
+  <span class="divider">/</span>
+  <span class="tool">MSE Builder</span>
+  <a class="home" href="../">alembiclabs.com.au</a>
+</header>
+
+<main class="page">
+  <div class="head">
+    <h1>Mental state examination</h1>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="cascade" id="cascade">
+    <div class="crumbs" id="crumbs"></div>
+    <div class="cols" id="cols"></div>
+  </div>
+
+  <div class="output">
+    <div class="out-controls">
+      <div class="seg" role="group" aria-label="Output format" id="seg"></div>
+      <span class="chars" id="chars"></span>
+    </div>
+    <div class="preview" id="preview"></div>
+    <div class="copy-row"><button class="copy" id="copyBtn">Copy MSE</button></div>
+  </div>
+</main>
+
+<div class="sheet-scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Descriptor detail" style="display:none"></div>
+
+<footer class="foot">
+  This tool supports a clinician composing their own mental state examination. It is not diagnostic, records nothing,
+  and everything entered stays in your browser: no accounts, no storage, no AI, and the page makes no external requests.<br>
+  Part of <a href="../">Alembic</a>, practice software that keeps client records on the clinician's own machine · Alembic Labs · ABN 58 247 784 426
+</footer>
+
+<script type="module">
+import { MSE_DOMAINS } from './mseVocabulary.js'
+import { emptyMseState, toggleTerm, setOwnWording, setOwnLine, effectiveWording, domainsRecorded, serialiseMse } from './mseState.js'
+
+let state = emptyMseState()
+const ui = { domainId:null, subId:null, term:null, ownAt:null, format:'para', level:'domains', sheetOpen:false }
+let mode = 'wide' // wide | three | phone
+
+const $ = id => document.getElementById(id)
+const cols = $('cols'), crumbs = $('crumbs'), sheet = $('sheet'), scrim = $('scrim')
+
+const dom = id => MSE_DOMAINS.find(d => d.id === id)
+const sub = (d, s) => dom(d)?.subs.find(x => x.id === s)
+const subHas = (d, s) => (state.sel[d]?.[s]?.length || 0) > 0 || !!state.own[d + '|' + s]
+const domainHas = d => !!state.own[d] || dom(d).subs.some(s => subHas(d, s.id))
+
+function el(tag, cls, html){ const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n }
+function txt(tag, cls, text){ const n = document.createElement(tag); if (cls) n.className = cls; n.textContent = text; return n }
+
+function row({label, dotOn, dotRisk, tick, tickOn, tickRound, open, own, onclick}){
+  const b = el('button', 'row' + (open ? ' open' : '') + (own ? ' own' : ''))
+  if (tick){
+    const t = el('span', 'tick' + (tickOn ? ' on' : '') + (tickRound ? ' round' : '')); b.appendChild(t)
+  } else if (dotOn !== undefined){
+    const t = el('span', 'dot' + (dotOn ? ' on' : '') + (dotRisk ? ' risk' : '')); b.appendChild(t)
+  }
+  const s = txt('span', 'txt', label); b.appendChild(s)
+  b.addEventListener('click', onclick)
+  return b
+}
+
+/* ---------- column builders ---------- */
+function buildDomainRows(container){
+  MSE_DOMAINS.forEach(d => {
+    container.appendChild(row({
+      label:d.name, dotOn:domainHas(d.id), dotRisk:!!d.risk,
+      open:ui.domainId === d.id && !ui.ownAt,
+      onclick(){ ui.domainId = d.id; ui.subId = null; ui.term = null; ui.ownAt = null; ui.level = 'subs'; render() }
+    }))
+  })
+  container.appendChild(el('div','own-sep'))
+  container.appendChild(row({
+    label:'Write my own line', own:true, dotOn:!!state.own.root, open:ui.ownAt === 'root',
+    onclick(){ ui.ownAt = 'root'; ui.term = null; ui.sheetOpen = true; render() }
+  }))
+}
+
+function buildSubRows(container, d){
+  d.subs.forEach(s => {
+    container.appendChild(row({
+      label:s.name, dotOn:subHas(d.id, s.id), dotRisk:!!(s.risk || d.risk),
+      open:ui.subId === s.id && !ui.ownAt,
+      onclick(){ ui.subId = s.id; ui.term = null; ui.ownAt = null; ui.level = 'terms'; render() }
+    }))
+  })
+  container.appendChild(el('div','own-sep'))
+  container.appendChild(row({
+    label:'Write my own for ' + d.name.toLowerCase(), own:true, dotOn:!!state.own[d.id], open:ui.ownAt === d.id,
+    onclick(){ ui.ownAt = d.id; ui.term = null; ui.sheetOpen = true; render() }
+  }))
+}
+
+function buildTermRows(container, d, s){
+  s.terms.forEach(t => {
+    const term = t[0]
+    const on = (state.sel[d.id][s.id] || []).includes(term)
+    container.appendChild(row({
+      label:effectiveWording(state, d.id, s.id, term),
+      tick:true, tickOn:on, tickRound:!!s.single,
+      open:ui.term === term && !ui.ownAt,
+      onclick(){
+        state = toggleTerm(state, d.id, s.id, term)
+        ui.term = term; ui.ownAt = null; ui.sheetOpen = true; render()
+      }
+    }))
+  })
+  container.appendChild(el('div','own-sep'))
+  const scope = d.id + '|' + s.id
+  container.appendChild(row({
+    label:'Write my own', own:true, dotOn:!!state.own[scope], open:ui.ownAt === scope,
+    onclick(){ ui.ownAt = scope; ui.term = null; ui.sheetOpen = true; render() }
+  }))
+}
+
+/* ---------- explanation panel ---------- */
+function buildExplain(container){
+  const box = el('div', 'explain')
+  if (ui.ownAt){
+    const scope = ui.ownAt
+    const where = scope === 'root' ? 'the whole MSE'
+      : scope.includes('|') ? sub(scope.split('|')[0], scope.split('|')[1])?.name
+      : dom(scope)?.name
+    box.appendChild(txt('div','what','Write my own'))
+    box.appendChild(txt('div','desc','Your own line for ' + (where || '') + ', in your own words. It joins the note exactly as typed.'))
+    const ta = el('textarea'); ta.value = state.own[scope] || ''; ta.setAttribute('aria-label','Your own line')
+    box.appendChild(ta)
+    const btns = el('div','btn-row')
+    const add = txt('button','b primary','Add to note')
+    add.addEventListener('click', () => { state = setOwnLine(state, ...scopeArgs(scope), ta.value); render() })
+    const clear = txt('button','b','Clear')
+    clear.addEventListener('click', () => { state = setOwnLine(state, ...scopeArgs(scope), ''); render() })
+    btns.appendChild(add); btns.appendChild(clear); box.appendChild(btns)
+  } else if (ui.term && ui.domainId && ui.subId){
+    const d = dom(ui.domainId), s = sub(ui.domainId, ui.subId)
+    const entry = s.terms.find(t => t[0] === ui.term)
+    if (entry){
+      const [term, explanation, normal] = entry
+      box.appendChild(txt('div','what','What this means'))
+      const h = el('div','term'); h.textContent = term
+      if (normal) h.appendChild(el('span','badge','normal range'))
+      box.appendChild(h)
+      box.appendChild(txt('div','desc', explanation))
+      box.appendChild(txt('div','what','What goes in the note'))
+      const ta = el('textarea'); ta.value = effectiveWording(state, d.id, s.id, term); ta.setAttribute('aria-label','Wording that goes in the note')
+      box.appendChild(ta)
+      const on = (state.sel[d.id][s.id] || []).includes(term)
+      const btns = el('div','btn-row')
+      const tog = txt('button', on ? 'b danger' : 'b primary', on ? 'Remove' : 'Add to note')
+      tog.addEventListener('click', () => {
+        state = setOwnWording(state, d.id, s.id, term, ta.value)
+        state = toggleTerm(state, d.id, s.id, term)
+        render()
+      })
+      const save = txt('button','b','Save wording')
+      save.addEventListener('click', () => { state = setOwnWording(state, d.id, s.id, term, ta.value); render() })
+      btns.appendChild(tog); btns.appendChild(save); box.appendChild(btns)
+      box.appendChild(txt('div','hint','Your wording is reused everywhere afterwards. The description never goes in the note.'))
+    }
+  } else {
+    box.appendChild(txt('div','desc','Pick a domain, then a dimension, then the wording that matches what you observed. Every descriptor explains itself here before anything enters your note.'))
+  }
+  container.appendChild(box)
+}
+function scopeArgs(scope){
+  if (scope === 'root') return [null, null]
+  if (scope.includes('|')) { const [d, s] = scope.split('|'); return [d, s] }
+  return [scope, null]
+}
+
+/* ---------- render ---------- */
+function colShell(label){
+  const c = el('div','col')
+  c.appendChild(txt('div','col-label',label))
+  const scroll = el('div','col-scroll')
+  c.appendChild(scroll)
+  return [c, scroll]
+}
+
+function render(){
+  const d = ui.domainId ? dom(ui.domainId) : null
+  const s = d && ui.subId ? sub(d.id, ui.subId) : null
+
+  $('count').textContent = domainsRecorded(state) + ' of 12 domains recorded'
+  cols.innerHTML = ''
+  cols.classList.toggle('three', mode === 'three')
+
+  if (mode === 'phone'){ renderPhone(d, s) }
+  else if (mode === 'three'){ renderThree(d, s) }
+  else { renderWide(d, s) }
+
+  /* output */
+  const out = serialiseMse(state, ui.format)
+  const pv = $('preview')
+  if (out){ pv.textContent = out; pv.classList.remove('placeholder') }
+  else { pv.textContent = 'Nothing recorded yet. The MSE builds here as you pick.'; pv.classList.add('placeholder') }
+  $('chars').textContent = out.length + ' characters'
+  $('copyBtn').disabled = !out
+  renderSeg()
+  if (mode === 'wide') sizeColumns()
+}
+
+function renderWide(d, s){
+  const [c1, s1] = colShell('MSE domain'); buildDomainRows(s1); cols.appendChild(c1)
+  const [c2, s2] = colShell(d ? d.name : 'Dimension')
+  if (d) buildSubRows(s2, d); else s2.appendChild(txt('div','empty-hint','Choose a domain.'))
+  cols.appendChild(c2)
+  const [c3, s3] = colShell(s ? s.name + (s.single ? ' · one' : '') : 'Descriptors')
+  if (d && s) buildTermRows(s3, d, s); else s3.appendChild(txt('div','empty-hint','Choose a dimension.'))
+  cols.appendChild(c3)
+  const [c4, s4] = colShell('Detail'); buildExplain(s4); cols.appendChild(c4)
+}
+
+function renderThree(d, s){
+  const [c1, s1] = colShell(d ? d.name : 'Dimension')
+  const sel = el('select'); sel.setAttribute('aria-label','MSE domain'); sel.style.cssText = 'width:100%;margin:0 0 8px;background:var(--panel2);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px'
+  const opt0 = el('option'); opt0.textContent = 'Choose a domain'; opt0.value = ''; sel.appendChild(opt0)
+  MSE_DOMAINS.forEach(x => {
+    const o = el('option'); o.value = x.id; o.textContent = x.name + (domainHas(x.id) ? ' ✓' : ''); if (ui.domainId === x.id) o.selected = true
+    sel.appendChild(o)
+  })
+  sel.addEventListener('change', () => { ui.domainId = sel.value || null; ui.subId = null; ui.term = null; ui.ownAt = null; render() })
+  s1.appendChild(sel)
+  s1.appendChild(row({
+    label:'Write my own line', own:true, dotOn:!!state.own.root, open:ui.ownAt === 'root',
+    onclick(){ ui.ownAt = 'root'; ui.term = null; render() }
+  }))
+  if (d){ s1.appendChild(el('div','own-sep')); buildSubRows(s1, d) }
+  cols.appendChild(c1)
+  const [c3, s3] = colShell(s ? s.name + (s.single ? ' · one' : '') : 'Descriptors')
+  if (d && s) buildTermRows(s3, d, s); else s3.appendChild(txt('div','empty-hint','Choose a dimension.'))
+  cols.appendChild(c3)
+  const [c4, s4] = colShell('Detail'); buildExplain(s4); cols.appendChild(c4)
+}
+
+function renderPhone(d, s){
+  /* breadcrumb */
+  crumbs.innerHTML = ''
+  const root = txt('button', null, 'Mental state examination')
+  root.addEventListener('click', () => { ui.domainId = null; ui.subId = null; ui.term = null; ui.ownAt = null; ui.level = 'domains'; render() })
+  crumbs.appendChild(root)
+  if (d){
+    crumbs.appendChild(txt('span','sep','›'))
+    const b = txt('button', null, d.name)
+    b.addEventListener('click', () => { ui.subId = null; ui.term = null; ui.ownAt = null; ui.level = 'subs'; render() })
+    crumbs.appendChild(b)
+  }
+  if (s){ crumbs.appendChild(txt('span','sep','›')); crumbs.appendChild(txt('span', null, s.name)) }
+
+  const [c, scroll] = colShell('')
+  if (!d) buildDomainRows(scroll)
+  else if (!s) buildSubRows(scroll, d)
+  else buildTermRows(scroll, d, s)
+  cols.appendChild(c)
+
+  /* bottom sheet for detail */
+  const showSheet = ui.sheetOpen && (ui.term || ui.ownAt)
+  sheet.style.display = 'block'
+  sheet.innerHTML = ''
+  if (showSheet){
+    buildExplain(sheet)
+    const close = txt('button','b','Close')
+    close.style.marginTop = '12px'
+    close.addEventListener('click', () => { ui.sheetOpen = false; render() })
+    sheet.appendChild(close)
+    sheet.classList.add('open'); scrim.classList.add('open')
+  } else {
+    sheet.classList.remove('open'); scrim.classList.remove('open')
+  }
+}
+scrim.addEventListener('click', () => { ui.sheetOpen = false; render() })
+
+function renderSeg(){
+  const seg = $('seg'); seg.innerHTML = ''
+  ;[['para','Paragraph'],['labelled','Labelled'],['bullets','Dot points']].forEach(([v, label]) => {
+    const b = txt('button', ui.format === v ? 'on' : '', label)
+    b.setAttribute('aria-pressed', ui.format === v)
+    b.addEventListener('click', () => { ui.format = v; render() })
+    seg.appendChild(b)
+  })
+}
+
+/* the domain column sets the height for everyone */
+function sizeColumns(){
+  const first = cols.querySelector('.col .col-scroll')
+  if (!first) return
+  first.style.maxHeight = 'none'
+  const h = Math.max(330, first.scrollHeight)
+  cols.querySelectorAll('.col-scroll').forEach((c, i) => { c.style.maxHeight = h + 'px' })
+}
+
+/* layout switching */
+const ro = new ResizeObserver(entries => {
+  const w = entries[0].contentRect.width
+  const next = w < 560 ? 'phone' : w < 700 ? 'three' : 'wide'
+  if (next !== mode){ mode = next; ui.sheetOpen = false; render() }
+})
+ro.observe($('cascade'))
+mode = $('cascade').getBoundingClientRect().width < 560 ? 'phone' : $('cascade').getBoundingClientRect().width < 700 ? 'three' : 'wide'
+
+/* copy */
+$('copyBtn').addEventListener('click', async () => {
+  const text = serialiseMse(state, ui.format)
+  if (!text) return
+  let ok = false
+  try { await navigator.clipboard.writeText(text); ok = true }
+  catch(e){
+    const ta = document.createElement('textarea')
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'
+    document.body.appendChild(ta); ta.select()
+    try { ok = document.execCommand('copy') } catch(e2){}
+    ta.remove()
+  }
+  const btn = $('copyBtn')
+  if (!ok){
+    /* last resort: select the preview so a manual copy is one keystroke */
+    const range = document.createRange(); range.selectNodeContents($('preview'))
+    const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range)
+  }
+  btn.textContent = ok ? 'Copied' : 'Press Ctrl/Cmd+C'
+  setTimeout(() => { btn.textContent = 'Copy MSE' }, 2000)
+})
+
+render()
+</script>
+</body>
+</html>

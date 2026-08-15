@@ -12,7 +12,7 @@
 // Every mutator returns a new state object and leaves the old one untouched,
 // so React can hold state in useState and compare by identity.
 
-import { MSE_DOMAINS } from './mseVocabulary'
+import { MSE_DOMAINS } from './mseVocabulary.js' // website port: extension added for browser/node ES modules; logic untouched
 
 const findDomain = domainId => MSE_DOMAINS.find(d => d.id === domainId)
 
