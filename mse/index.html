@@ -30,6 +30,12 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg)}
 body{font-family:var(--font); color:var(--ink); font-size:14px; line-height:1.5; min-height:100vh}
+#bgfx{position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(ellipse 800px 560px at 10% 4%, rgba(143,178,135,0.10), transparent 62%),
+    radial-gradient(ellipse 760px 560px at 90% 40%, rgba(201,164,92,0.06), transparent 60%),
+    radial-gradient(ellipse 800px 620px at 20% 96%, rgba(143,178,135,0.07), transparent 62%),
+    linear-gradient(180deg, #161915 0%, #141714 60%, #111411 100%)}
 a{color:var(--accent-text)}
 :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
 button{font-family:inherit; color:inherit; background:none; border:none; cursor:pointer; font-size:inherit; text-align:left}
@@ -44,12 +50,42 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 .bar .home:hover{color:var(--ink2)}
 
 .page{max-width:1120px; margin:0 auto; padding:22px 20px 40px}
-.head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+.head{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px}
 .head h1{font-family:var(--serif); font-weight:400; font-size:22px}
 .head .count{color:var(--muted); font-size:13px}
+.head .spacer{flex:1}
+.search-wrap{position:relative}
+.search-wrap input{
+  width:230px; max-width:56vw; background:var(--panel2); color:var(--ink);
+  border:1px solid var(--border); border-radius:999px; padding:8px 14px;
+  font-family:inherit; font-size:13px;
+}
+.search-wrap input:focus{border-color:var(--accent); outline:none}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-results{
+  position:absolute; top:calc(100% + 6px); right:0; z-index:80; width:min(420px, 86vw);
+  background:rgba(30,33,30,0.92); -webkit-backdrop-filter:blur(28px) saturate(160%); backdrop-filter:blur(28px) saturate(160%);
+  border:1px solid var(--border-strong); border-radius:12px; padding:6px;
+  box-shadow:0 16px 48px rgba(0,0,0,0.45); max-height:340px; overflow-y:auto;
+}
+.search-results button{
+  display:block; width:100%; padding:9px 11px; border-radius:8px; font-size:13px; color:var(--ink2); line-height:1.4;
+}
+.search-results button:hover,.search-results button:focus{background:rgba(255,255,255,0.07); color:var(--ink)}
+.search-results .path{display:block; font-size:10.5px; color:var(--muted); letter-spacing:.03em; text-transform:uppercase; margin-bottom:1px}
+.search-results .none{padding:10px 12px; color:var(--muted); font-size:12.5px; font-style:italic}
+.clear-btn{
+  font-size:12px; font-weight:600; color:var(--muted); border:1px solid var(--border);
+  border-radius:999px; padding:8px 14px; transition:color .15s ease, border-color .15s ease;
+}
+.clear-btn:hover{color:var(--ink2); border-color:var(--border-strong)}
+.clear-btn.armed{color:var(--danger); border-color:var(--danger)}
 
 /* cascade */
-.cascade{border:1px solid var(--border); border-radius:var(--r2); background:var(--panel); overflow:hidden}
+.cascade{border:1px solid rgba(236,234,228,0.10); border-radius:14px; overflow:hidden;
+  background:rgba(30,33,30,0.62);
+  -webkit-backdrop-filter:blur(22px) saturate(150%); backdrop-filter:blur(22px) saturate(150%);
+  box-shadow:0 12px 40px rgba(0,0,0,0.30), inset 0 1px 0 rgba(236,234,228,0.07)}
 .cols{display:grid; grid-template-columns:minmax(148px,0.80fr) minmax(150px,0.85fr) minmax(196px,1.20fr) minmax(200px,1.15fr)}
 .cols.three{grid-template-columns:minmax(150px,1fr) minmax(180px,1.25fr) minmax(180px,1.15fr)}
 .col{padding:10px; border-right:1px solid var(--border); display:flex; flex-direction:column; min-width:0}
@@ -109,6 +145,15 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 
 /* output */
 .output{margin-top:16px; display:flex; flex-direction:column; gap:10px}
+@media(min-width:560px) and (min-height:700px){
+  .output{
+    position:sticky; bottom:14px; z-index:40;
+    background:rgba(22,25,22,0.78);
+    -webkit-backdrop-filter:blur(22px) saturate(160%); backdrop-filter:blur(22px) saturate(160%);
+    border:1px solid rgba(236,234,228,0.10); border-radius:14px; padding:12px 14px;
+    box-shadow:0 -6px 30px rgba(0,0,0,0.30), inset 0 1px 0 rgba(236,234,228,0.06);
+  }
+}
 .out-controls{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
 .seg{display:inline-flex; border:1px solid var(--border-strong); border-radius:999px; overflow:hidden}
 .seg button{padding:7px 16px; font-size:12.5px; font-weight:600; color:var(--muted)}
@@ -177,6 +222,8 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 </head>
 <body>
 
+<div id="bgfx" aria-hidden="true"></div>
+
 <header class="bar">
   <img src="../assets/alembic-mark-256.png" alt="">
   <span class="name">Alembic</span>
@@ -189,6 +236,12 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
   <div class="head">
     <h1>Mental state examination</h1>
     <span class="count" id="count"></span>
+    <span class="spacer"></span>
+    <div class="search-wrap">
+      <input id="search" type="search" placeholder="Search 221 descriptors" autocomplete="off" aria-label="Search descriptors">
+      <div class="search-results" id="searchResults" style="display:none"></div>
+    </div>
+    <button class="clear-btn" id="clearBtn">Start again</button>
   </div>
 
   <div class="cascade" id="cascade">
@@ -201,7 +254,7 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
       <div class="seg" role="group" aria-label="Output format" id="seg"></div>
       <span class="chars" id="chars"></span>
     </div>
-    <div class="preview" id="preview"></div>
+    <div class="preview" id="preview" aria-live="polite"></div>
     <div class="copy-row"><button class="copy" id="copyBtn">Copy MSE</button></div>
   </div>
 </main>
@@ -228,6 +281,28 @@ const cols = $('cols'), crumbs = $('crumbs'), sheet = $('sheet'), scrim = $('scr
 
 const dom = id => MSE_DOMAINS.find(d => d.id === id)
 const sub = (d, s) => dom(d)?.subs.find(x => x.id === s)
+
+/* Hover navigation (2026-08-16, Jean-Luc's direction; supersedes the handover's
+   click-only rule for the WEBSITE). Hovering previews and navigates with a short
+   intent delay; clicking still commits selections. Touch is untouched. */
+const HOVER_OK = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+let hoverTimer = null
+let lastClickAt = 0
+document.addEventListener('pointerdown', () => { lastClickAt = Date.now() }, true)
+function onHover(el, fn, delay){
+  if (!HOVER_OK) return
+  el.addEventListener('pointerenter', () => {
+    clearTimeout(hoverTimer)
+    /* a recent click owns the panel; hover may not steal it while the hand travels,
+       and never while the clinician is typing in any field */
+    hoverTimer = setTimeout(() => {
+      const a = document.activeElement
+      if (a && (a.tagName === 'TEXTAREA' || a.tagName === 'INPUT')) return
+      if (Date.now() - lastClickAt > 600) fn()
+    }, delay)
+  })
+  el.addEventListener('pointerleave', () => clearTimeout(hoverTimer))
+}
 const subHas = (d, s) => (state.sel[d]?.[s]?.length || 0) > 0 || !!state.own[d + '|' + s]
 const domainHas = d => !!state.own[d] || dom(d).subs.some(s => subHas(d, s.id))
 
@@ -249,11 +324,15 @@ function row({label, dotOn, dotRisk, tick, tickOn, tickRound, open, own, onclick
 /* ---------- column builders ---------- */
 function buildDomainRows(container){
   MSE_DOMAINS.forEach(d => {
-    container.appendChild(row({
+    const r = row({
       label:d.name, dotOn:domainHas(d.id), dotRisk:!!d.risk,
       open:ui.domainId === d.id && !ui.ownAt,
       onclick(){ ui.domainId = d.id; ui.subId = null; ui.term = null; ui.ownAt = null; ui.level = 'subs'; render() }
-    }))
+    })
+    onHover(r, () => {
+      if (ui.domainId !== d.id){ ui.domainId = d.id; ui.subId = null; ui.term = null; ui.ownAt = null; render() }
+    }, 120)
+    container.appendChild(r)
   })
   container.appendChild(el('div','own-sep'))
   container.appendChild(row({
@@ -264,11 +343,15 @@ function buildDomainRows(container){
 
 function buildSubRows(container, d){
   d.subs.forEach(s => {
-    container.appendChild(row({
+    const r = row({
       label:s.name, dotOn:subHas(d.id, s.id), dotRisk:!!(s.risk || d.risk),
       open:ui.subId === s.id && !ui.ownAt,
       onclick(){ ui.subId = s.id; ui.term = null; ui.ownAt = null; ui.level = 'terms'; render() }
-    }))
+    })
+    onHover(r, () => {
+      if (ui.subId !== s.id || ui.ownAt){ ui.subId = s.id; ui.term = null; ui.ownAt = null; render() }
+    }, 120)
+    container.appendChild(r)
   })
   container.appendChild(el('div','own-sep'))
   container.appendChild(row({
@@ -281,7 +364,7 @@ function buildTermRows(container, d, s){
   s.terms.forEach(t => {
     const term = t[0]
     const on = (state.sel[d.id][s.id] || []).includes(term)
-    container.appendChild(row({
+    const r = row({
       label:effectiveWording(state, d.id, s.id, term),
       tick:true, tickOn:on, tickRound:!!s.single,
       open:ui.term === term && !ui.ownAt,
@@ -289,7 +372,12 @@ function buildTermRows(container, d, s){
         state = toggleTerm(state, d.id, s.id, term)
         ui.term = term; ui.ownAt = null; ui.sheetOpen = true; render()
       }
-    }))
+    })
+    /* hovering a descriptor previews its explanation without touching the selection */
+    onHover(r, () => {
+      if (ui.term !== term || ui.ownAt){ ui.term = term; ui.ownAt = null; render() }
+    }, 60)
+    container.appendChild(r)
   })
   container.appendChild(el('div','own-sep'))
   const scope = d.id + '|' + s.id
@@ -492,6 +580,65 @@ const ro = new ResizeObserver(entries => {
 })
 ro.observe($('cascade'))
 mode = $('cascade').getBoundingClientRect().width < 560 ? 'phone' : $('cascade').getBoundingClientRect().width < 700 ? 'three' : 'wide'
+
+/* ---------- search ---------- */
+const INDEX = []
+MSE_DOMAINS.forEach(d => d.subs.forEach(s => s.terms.forEach(t => INDEX.push({ d:d.id, s:s.id, term:t[0], hay:(d.name + ' ' + s.name + ' ' + t[0]).toLowerCase(), path:d.name + ' › ' + s.name }))))
+const searchInput = $('search'), results = $('searchResults')
+function hideResults(){ results.style.display = 'none'; results.innerHTML = '' }
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase()
+  if (q.length < 2){ hideResults(); return }
+  const words = q.split(/\s+/)
+  const hits = INDEX.filter(e => words.every(w => e.hay.includes(w))).slice(0, 14)
+  results.innerHTML = ''
+  if (!hits.length){ results.appendChild(txt('div','none','No descriptor matches that.')) }
+  hits.forEach(h => {
+    const b = el('button')
+    b.appendChild(txt('span','path', h.path))
+    b.appendChild(document.createTextNode(h.term))
+    b.addEventListener('click', () => {
+      ui.domainId = h.d; ui.subId = h.s; ui.term = h.term; ui.ownAt = null
+      ui.level = 'terms'; ui.sheetOpen = true
+      searchInput.value = ''; hideResults(); render()
+    })
+    results.appendChild(b)
+  })
+  results.style.display = 'block'
+})
+searchInput.addEventListener('keydown', e => { if (e.key === 'Escape'){ searchInput.value = ''; hideResults() } })
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.search-wrap')) hideResults() })
+
+/* ---------- start again ---------- */
+const clearBtn = $('clearBtn')
+let clearArm = null
+clearBtn.addEventListener('click', () => {
+  if (clearBtn.classList.contains('armed')){
+    clearTimeout(clearArm); clearBtn.classList.remove('armed'); clearBtn.textContent = 'Start again'
+    state = emptyMseState(); ui.domainId = null; ui.subId = null; ui.term = null; ui.ownAt = null; ui.sheetOpen = false
+    render()
+  } else {
+    clearBtn.classList.add('armed'); clearBtn.textContent = 'Clear everything?'
+    clearArm = setTimeout(() => { clearBtn.classList.remove('armed'); clearBtn.textContent = 'Start again' }, 3000)
+  }
+})
+
+/* ---------- keyboard: arrows move through the cascade ---------- */
+cols.addEventListener('keydown', e => {
+  if (!['ArrowDown','ArrowUp','ArrowRight','ArrowLeft'].includes(e.key)) return
+  const t = e.target
+  if (!t.classList || !t.classList.contains('row')) return
+  e.preventDefault()
+  const colScrolls = [...cols.querySelectorAll('.col-scroll')]
+  const myCol = t.closest('.col-scroll')
+  const idx = colScrolls.indexOf(myCol)
+  const rows = [...myCol.querySelectorAll('.row')]
+  const at = rows.indexOf(t)
+  if (e.key === 'ArrowDown' && rows[at + 1]) rows[at + 1].focus()
+  if (e.key === 'ArrowUp' && rows[at - 1]) rows[at - 1].focus()
+  if (e.key === 'ArrowRight'){ t.click(); requestAnimationFrame(() => { const n = [...cols.querySelectorAll('.col-scroll')][idx + 1]; const f = n && n.querySelector('.row'); if (f) f.focus() }) }
+  if (e.key === 'ArrowLeft'){ const p = colScrolls[idx - 1]; const f = p && p.querySelector('.row.open, .row'); if (f) f.focus() }
+})
 
 /* copy */
 $('copyBtn').addEventListener('click', async () => {
