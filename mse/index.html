@@ -80,6 +80,15 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 }
 .clear-btn:hover{color:var(--ink2); border-color:var(--border-strong)}
 .clear-btn.armed{color:var(--danger); border-color:var(--danger)}
+.clear-btn[disabled]{opacity:.4; cursor:default}
+.row .pick-count{margin-left:auto; font-size:10.5px; color:var(--accent-text); background:var(--accent-soft);
+  border-radius:999px; padding:1px 7px; flex:none; align-self:center; font-variant-numeric:tabular-nums}
+.row .own-mark{margin-left:auto; flex:none; align-self:center; color:var(--accent-text); font-size:11px; font-style:italic}
+@media(max-width:559px){
+  .search-results{left:0; right:auto}
+  .sheet::before{content:""; display:block; width:38px; height:4px; border-radius:2px;
+    background:var(--border-strong); margin:0 auto 12px}
+}
 
 /* cascade */
 .cascade{border:1px solid rgba(236,234,228,0.10); border-radius:14px; overflow:hidden;
@@ -241,6 +250,7 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
       <input id="search" type="search" placeholder="Search 221 descriptors" autocomplete="off" aria-label="Search descriptors">
       <div class="search-results" id="searchResults" style="display:none"></div>
     </div>
+    <button class="clear-btn" id="undoBtn" disabled>Undo</button>
     <button class="clear-btn" id="clearBtn">Start again</button>
   </div>
 
@@ -273,6 +283,18 @@ import { MSE_DOMAINS } from './mseVocabulary.js'
 import { emptyMseState, toggleTerm, setOwnWording, setOwnLine, effectiveWording, domainsRecorded, serialiseMse } from './mseState.js'
 
 let state = emptyMseState()
+const past = []
+function setState(next){
+  if (next === state) return
+  past.push(state)
+  if (past.length > 30) past.shift()
+  state = next
+}
+function undo(){
+  if (!past.length) return
+  state = past.pop()
+  render()
+}
 const ui = { domainId:null, subId:null, term:null, ownAt:null, format:'para', level:'domains', sheetOpen:false }
 let mode = 'wide' // wide | three | phone
 
@@ -309,17 +331,23 @@ const domainHas = d => !!state.own[d] || dom(d).subs.some(s => subHas(d, s.id))
 function el(tag, cls, html){ const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n }
 function txt(tag, cls, text){ const n = document.createElement(tag); if (cls) n.className = cls; n.textContent = text; return n }
 
-function row({label, dotOn, dotRisk, tick, tickOn, tickRound, open, own, onclick}){
+function row({label, dotOn, dotRisk, tick, tickOn, tickRound, open, own, count, ownMark, onclick}){
   const b = el('button', 'row' + (open ? ' open' : '') + (own ? ' own' : ''))
   if (tick){
     const t = el('span', 'tick' + (tickOn ? ' on' : '') + (tickRound ? ' round' : '')); b.appendChild(t)
+    b.setAttribute('aria-pressed', !!tickOn)
   } else if (dotOn !== undefined){
     const t = el('span', 'dot' + (dotOn ? ' on' : '') + (dotRisk ? ' risk' : '')); b.appendChild(t)
   }
   const s = txt('span', 'txt', label); b.appendChild(s)
+  if (count) b.appendChild(txt('span', 'pick-count', String(count)))
+  if (ownMark) b.appendChild(txt('span', 'own-mark', 'yours'))
   b.addEventListener('click', onclick)
   return b
 }
+const domainPickCount = d =>
+  dom(d).subs.reduce((n, s) => n + (state.sel[d]?.[s.id]?.length || 0), 0) +
+  (state.own[d] ? 1 : 0) + dom(d).subs.filter(s => state.own[d + '|' + s.id]).length + 0
 
 /* ---------- column builders ---------- */
 function buildDomainRows(container){
@@ -327,6 +355,7 @@ function buildDomainRows(container){
     const r = row({
       label:d.name, dotOn:domainHas(d.id), dotRisk:!!d.risk,
       open:ui.domainId === d.id && !ui.ownAt,
+      count:domainPickCount(d.id),
       onclick(){ ui.domainId = d.id; ui.subId = null; ui.term = null; ui.ownAt = null; ui.level = 'subs'; render() }
     })
     onHover(r, () => {
@@ -367,9 +396,10 @@ function buildTermRows(container, d, s){
     const r = row({
       label:effectiveWording(state, d.id, s.id, term),
       tick:true, tickOn:on, tickRound:!!s.single,
+      ownMark:effectiveWording(state, d.id, s.id, term) !== term,
       open:ui.term === term && !ui.ownAt,
       onclick(){
-        state = toggleTerm(state, d.id, s.id, term)
+        setState(toggleTerm(state, d.id, s.id, term))
         ui.term = term; ui.ownAt = null; ui.sheetOpen = true; render()
       }
     })
@@ -401,9 +431,9 @@ function buildExplain(container){
     box.appendChild(ta)
     const btns = el('div','btn-row')
     const add = txt('button','b primary','Add to note')
-    add.addEventListener('click', () => { state = setOwnLine(state, ...scopeArgs(scope), ta.value); render() })
+    add.addEventListener('click', () => { setState(setOwnLine(state, ...scopeArgs(scope), ta.value)); render() })
     const clear = txt('button','b','Clear')
-    clear.addEventListener('click', () => { state = setOwnLine(state, ...scopeArgs(scope), ''); render() })
+    clear.addEventListener('click', () => { setState(setOwnLine(state, ...scopeArgs(scope), '')); render() })
     btns.appendChild(add); btns.appendChild(clear); box.appendChild(btns)
   } else if (ui.term && ui.domainId && ui.subId){
     const d = dom(ui.domainId), s = sub(ui.domainId, ui.subId)
@@ -422,12 +452,11 @@ function buildExplain(container){
       const btns = el('div','btn-row')
       const tog = txt('button', on ? 'b danger' : 'b primary', on ? 'Remove' : 'Add to note')
       tog.addEventListener('click', () => {
-        state = setOwnWording(state, d.id, s.id, term, ta.value)
-        state = toggleTerm(state, d.id, s.id, term)
+        setState(toggleTerm(setOwnWording(state, d.id, s.id, term, ta.value), d.id, s.id, term))
         render()
       })
       const save = txt('button','b','Save wording')
-      save.addEventListener('click', () => { state = setOwnWording(state, d.id, s.id, term, ta.value); render() })
+      save.addEventListener('click', () => { setState(setOwnWording(state, d.id, s.id, term, ta.value)); render() })
       btns.appendChild(tog); btns.appendChild(save); box.appendChild(btns)
       box.appendChild(txt('div','hint','Your wording is reused everywhere afterwards. The description never goes in the note.'))
     }
@@ -470,6 +499,7 @@ function render(){
   else { pv.textContent = 'Nothing recorded yet. The MSE builds here as you pick.'; pv.classList.add('placeholder') }
   $('chars').textContent = out.length + ' characters'
   $('copyBtn').disabled = !out
+  $('undoBtn').disabled = !past.length
   renderSeg()
   if (mode === 'wide') sizeColumns()
   /* the fixed bottom bar must never hide content: measure it and pad the page to match */
@@ -609,13 +639,23 @@ searchInput.addEventListener('input', () => {
 searchInput.addEventListener('keydown', e => { if (e.key === 'Escape'){ searchInput.value = ''; hideResults() } })
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.search-wrap')) hideResults() })
 
+/* ---------- undo ---------- */
+$('undoBtn').addEventListener('click', undo)
+window.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z'){
+    const a = document.activeElement
+    if (a && (a.tagName === 'TEXTAREA' || a.tagName === 'INPUT')) return
+    e.preventDefault(); undo()
+  }
+})
+
 /* ---------- start again ---------- */
 const clearBtn = $('clearBtn')
 let clearArm = null
 clearBtn.addEventListener('click', () => {
   if (clearBtn.classList.contains('armed')){
     clearTimeout(clearArm); clearBtn.classList.remove('armed'); clearBtn.textContent = 'Start again'
-    state = emptyMseState(); ui.domainId = null; ui.subId = null; ui.term = null; ui.ownAt = null; ui.sheetOpen = false
+    setState(emptyMseState()); ui.domainId = null; ui.subId = null; ui.term = null; ui.ownAt = null; ui.sheetOpen = false
     render()
   } else {
     clearBtn.classList.add('armed'); clearBtn.textContent = 'Clear everything?'
