@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Risk Section Writer · Alembic</title>
-<meta name="description" content="A free tool for writing the Risk section of a clinical note from a curated vocabulary. It assesses nothing and records nothing: everything stays in your browser.">
+<title>Composing the Risk section of a clinical note · Alembic</title>
+<meta name="description" content="A free writing tool for clinicians composing the Risk section of a clinical note from a curated vocabulary. It assesses nobody, rates nothing, replaces no mandated form, and keeps everything in your browser.">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141714">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f5f2">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Risk Section Writer · free, by Alembic">
-<meta property="og:description" content="Write the Risk section of a case note from a curated clinical vocabulary. Nothing is assessed, stored or sent anywhere.">
+<meta property="og:title" content="Composing the Risk section of a clinical note · free, by Alembic">
+<meta property="og:description" content="A writing tool for clinicians. Compose the Risk section of a case note from a curated clinical vocabulary. Nothing is assessed, rated, stored or sent anywhere.">
 <meta property="og:image" content="https://rightin2.github.io/alembic-website/assets/alembic-icon-1024.png">
 <meta property="og:url" content="https://rightin2.github.io/alembic-website/risk/">
 <meta name="twitter:card" content="summary">
@@ -210,20 +210,28 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 <main class="page">
 
   <div class="crisis">
-    <b>If you or someone you are with needs help now:</b>
+    <b>If you or someone you are with needs help now, these are free and open right now:</b>
     <div class="nums">
       <span><b>000</b> emergency</span>
       <span><b>Lifeline 13 11 14</b></span>
       <span><b>Suicide Call Back Service 1300 659 467</b></span>
-      <span><b>13YARN 13 92 76</b></span>
+      <span><b>Kids Helpline 1800 55 1800</b> (ages 5 to 25)</span>
+      <span><b>13YARN 13 92 76</b> (Aboriginal and Torres Strait Islander crisis support)</span>
+      <span><b>Translating and Interpreting Service 131 450</b></span>
     </div>
   </div>
 
   <p class="audience">
     <strong>This is a writing tool for clinicians.</strong> It helps you word the Risk section of a
-    case note you have already decided the content of. It does not assess anyone, does not
-    calculate or suggest a risk level, and does not tell you what to do. It is not a crisis
-    service and it does not receive, read or respond to anything you type.
+    case note whose content you have already decided. It does not assess anyone, does not
+    calculate or suggest a risk level, and does not tell you what to do. <strong>It is not a
+    self-assessment</strong> and it is not a crisis service: it does not receive, read or respond
+    to anything you type.
+  </p>
+  <p class="audience">
+    <strong>It replaces no form.</strong> If your service mandates a risk assessment form or
+    proforma, this composes wording for your clinical note and does not stand in for that form,
+    or for any screening tool your service requires.
   </p>
 
   <div class="head">
@@ -242,19 +250,20 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
     <h2>First, which kind of contact was this?</h2>
     <p class="why">Nothing is written until you choose, and nothing is chosen for you. If risk was
       not formally assessed, you pick the reason yourself: the tool never fills one in.</p>
-    <div class="branches" id="branches"></div>
+    <div class="branches" id="branches" role="group" aria-label="Contact type"></div>
   </div>
 
   <div class="cascade" id="cascade" hidden>
     <div class="crumbs" id="crumbs"></div>
-    <div class="cols" id="cols"></div>
+    <div class="cols" id="cols" role="group" aria-label="Risk section builder"></div>
   </div>
 
   <div class="output" id="output" hidden>
     <div class="out-controls">
       <span class="chars" id="chars"></span>
     </div>
-    <div class="preview" id="preview" aria-live="polite"></div>
+    <h2 id="previewLabel" style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)">What will go in your note</h2>
+    <div class="preview" id="preview" role="region" aria-labelledby="previewLabel" aria-live="polite"></div>
     <div class="copy-row"><button class="copy" id="copyBtn" disabled>Copy risk section</button></div>
   </div>
 </main>
@@ -353,11 +362,22 @@ function colShell(label){
 const LANE_LABEL = { assessed:'Goes on the Assessed line', outcome:'Goes on the Outcome line',
                      actions:'Goes on the Actions line', reason:'Goes on the Outcome line' }
 
+/* Plain-English glosses shown beside the clinical register, visible without interaction
+   (risk-155). The term text keeps the clinical word, because the note is a clinical
+   document; the gloss is teaching, and teaching never enters the note. */
+const GLOSS = {
+  si: 'thoughts of suicide',
+  sh: 'hurting yourself without intending to die',
+  ho: 'thoughts of hurting someone else',
+  me: 'access to the things someone could use to act',
+}
+
 function buildDimRows(container){
   branchAreas().forEach(a => {
     container.appendChild(txt('div','lane-head', LANE_LABEL[a.lane] || a.name))
     visibleSubs(a).forEach(s => {
-      const r = row({ label:s.name, dotOn:subHas(a.id,s.id), dotRisk:RISKY.has(s.id),
+      const r = row({ label:s.name + (GLOSS[s.id] ? '  (' + GLOSS[s.id] + ')' : ''),
+        dotOn:subHas(a.id,s.id), dotRisk:RISKY.has(s.id),
         open: ui.areaId===a.id && ui.subId===s.id && !ui.ownAt,
         count:(state.sel[a.id]?.[s.id]||[]).length || 0,
         onclick(){ ui.areaId=a.id; ui.subId=s.id; ui.term=null; ui.ownAt=null; ui.level='terms'; render() } })
@@ -446,7 +466,12 @@ function render(){
   const hasBranch = !!state.branch
   $('cascade').hidden = !hasBranch
   $('output').hidden = !hasBranch
-  $('count').textContent = hasBranch ? areasRecorded(state)+' of '+areaCount(state)+' areas recorded' : ''
+  /* No denominator, deliberately. "2 of 4 areas recorded" is a coverage affordance: it
+     implies a target and lets the tool imply what an adequate risk entry contains, which
+     is the tool judging the adequacy of a clinical assessment (risk-083, risk-080 item 6).
+     A count of what you have recorded is a fact; a fraction is a scoreboard. */
+  const n = hasBranch ? areasRecorded(state) : 0
+  $('count').textContent = hasBranch ? (n === 0 ? '' : n === 1 ? '1 area recorded' : n + ' areas recorded') : ''
   $('undoBtn').disabled = !past.length
 
   if (hasBranch){
@@ -468,7 +493,7 @@ function render(){
       cols.appendChild(c)
     } else {
       const [c1,s1] = colShell('What to record'); buildDimRows(s1); cols.appendChild(c1)
-      const [c2,s2] = colShell(s ? s.name + (s.single?' · one':'') : 'Wording')
+      const [c2,s2] = colShell(s ? s.name + (GLOSS[s.id] ? ' · ' + GLOSS[s.id] : '') + (s.single?' · one':'') : 'Wording')
       if (a && s) buildTermRows(s2, a, s); else s2.appendChild(txt('div','empty-hint','Choose something on the left.'))
       cols.appendChild(c2)
       const [c3,s3] = colShell('Detail'); buildExplain(s3); cols.appendChild(c3)
