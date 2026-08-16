@@ -454,8 +454,15 @@ function buildSubRows(container, d){
 }
 
 function buildTermRows(container, d, s){
-  s.terms.forEach(t => {
+  /* Risk dimensions bracket the meta options (not asked, not raised) away
+     from the answer options: the one adjacency where a mis-click matters
+     most (research card mse-061, pick-list juxtaposition errors). */
+  const risky = !!(s.risk || d.risk)
+  const isMeta = txt => /^not (asked|raised)/.test(txt)
+  s.terms.forEach((t, i) => {
     const term = t[0]
+    if (risky && i > 0 && isMeta(term) !== isMeta(s.terms[i - 1][0]))
+      container.appendChild(el('div','own-sep'))
     const on = (state.sel[d.id][s.id] || []).includes(term)
     const r = row({
       label:effectiveWording(state, d.id, s.id, term),
@@ -522,7 +529,7 @@ function buildExplain(container){
       const save = txt('button','b','Save wording')
       save.addEventListener('click', () => { setState(setOwnWording(state, d.id, s.id, term, ta.value)); render() })
       btns.appendChild(tog); btns.appendChild(save); box.appendChild(btns)
-      box.appendChild(txt('div','hint','Your wording is reused everywhere afterwards. The description never goes in the note.'))
+      box.appendChild(txt('div','hint','Your wording is reused everywhere afterwards. The description never goes in the note. If the term records what the client reported, keep the report word (reports, described, asked) in your wording.'))
     }
   } else {
     box.appendChild(txt('div','desc','Pick a domain, then a dimension, then the wording that matches what you observed. Every descriptor explains itself here before anything enters your note.'))

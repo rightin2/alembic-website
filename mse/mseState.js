@@ -12,7 +12,7 @@
 // Every mutator returns a new state object and leaves the old one untouched,
 // so React can hold state in useState and compare by identity.
 
-import { MSE_DOMAINS } from './mseVocabulary.js' // website port: extension added for browser/node ES modules; logic untouched
+import { MSE_DOMAINS } from './mseVocabulary.js'
 
 const findDomain = domainId => MSE_DOMAINS.find(d => d.id === domainId)
 
@@ -38,6 +38,28 @@ export function emptyMseState() {
   return { sel, own: {}, over: {} }
 }
 
+// The contradiction guard (research card mse-077). A blanket negative claims
+// the whole dimension ("no specific fears reported"), so it cannot sit in the
+// same serialised line as a positive it negates. In the listed multi-pick
+// dimensions, picking the blanket clears the dimension and picking anything
+// else clears the blanket. Detection is by the signed-off text rather than a
+// vocabulary flag because the vocabulary is clinical content only Jean-Luc
+// edits. tc/ge is special-cased: its "no acute distress observed" is a
+// summary term whose own explanation says to pair it with specific findings,
+// so only the delusions-and-perception blanket is exclusive there. tc/sx and
+// co/su stay unguarded: their negatives record single enquiry facts that
+// legitimately co-exist with the dimension's other facts.
+const BLANKET_SUBS = new Set([
+  'app|df', 'beh|ps', 'beh|mnr', 'tf|pv', 'tc|dp', 'tc|oc', 'tc|ph', 'tc|pr',
+  'pe|ex', 'pe|hm', 'pe|il', 'pe|dd', 'pe|ii', 'co|me',
+])
+function isBlanketNegative(domainId, subId, term) {
+  if (/ not enquired about this session$/.test(term)) return true
+  if (/ asked about; none reported$/.test(term)) return true
+  if (domainId === 'tc' && subId === 'ge') return term.startsWith('no delusional beliefs')
+  return BLANKET_SUBS.has(domainId + '|' + subId) && /^no /.test(term)
+}
+
 export function toggleTerm(state, domainId, subId, term) {
   const sub = findSub(domainId, subId)
   if (!sub) return state
@@ -46,7 +68,8 @@ export function toggleTerm(state, domainId, subId, term) {
   let next
   if (sub.single) next = was ? [] : [term]
   else if (was) next = current.filter(t => t !== term)
-  else next = [...current, term]
+  else if (isBlanketNegative(domainId, subId, term)) next = [term]
+  else next = [...current.filter(t => !isBlanketNegative(domainId, subId, t)), term]
   return {
     ...state,
     sel: {
