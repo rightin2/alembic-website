@@ -9,10 +9,10 @@ function check(name, ok, detail) {
   else { failures++; console.error('FAIL ' + name + (detail ? '\n  ' + detail : '')) }
 }
 
-// 1. Structure: 12 domains, 50 dimensions, 221 terms
+// 1. Structure: 13 domains, 69 dimensions, 428 terms (2026-08-16 research pass)
 const dims = MSE_DOMAINS.reduce((n, d) => n + d.subs.length, 0)
 const terms = MSE_DOMAINS.reduce((n, d) => n + d.subs.reduce((m, s) => m + s.terms.length, 0), 0)
-check('structure 12/50/221', MSE_DOMAINS.length === 12 && dims === 50 && terms === 221,
+check('structure 13/69/428', MSE_DOMAINS.length === 13 && dims === 69 && terms === 428,
   `got ${MSE_DOMAINS.length}/${dims}/${terms}`)
 
 // 2. Dash scan: no em or en dashes anywhere in the vocabulary
@@ -25,15 +25,15 @@ s = toggleTerm(s, 'app', 'gr', 'well groomed')
 s = toggleTerm(s, 'beh', 'en', 'cooperative and engaged')
 s = toggleTerm(s, 'sp', 'fl', 'coherent')
 s = toggleTerm(s, 'mo', 'm', 'low')
-s = toggleTerm(s, 'af', 'rg', 'restricted')
-s = toggleTerm(s, 'af', 'cg', 'congruent with content')
+s = toggleTerm(s, 'af', 'rg', 'restricted; reduced range of expression, still present')
+s = toggleTerm(s, 'af', 'ap', 'appropriate to the content and the situation')
 s = toggleTerm(s, 'tf', 'as', 'logical and goal-directed')
-s = toggleTerm(s, 'tc', 'ge', 'no psychotic features evident')
-s = toggleTerm(s, 'tc', 'si', 'denied on direct enquiry')
+s = toggleTerm(s, 'tc', 'ge', 'no delusional beliefs or perceptual disturbance elicited')
+s = toggleTerm(s, 'tc', 'si', 'asked about directly; client reported none')
 s = toggleTerm(s, 'co', 'lc', 'alert')
-s = toggleTerm(s, 'in', 'i', 'client identifies the difficulty and the reason for attending')
+s = toggleTerm(s, 'in', 'aw', 'client identifies the difficulty and the reason for attending')
 
-const GOLDEN = 'Well groomed; cooperative and engaged; speech coherent; mood low; affect restricted, congruent with content; thought form logical and goal-directed; no psychotic features evident, suicidal ideation denied on direct enquiry; cognition alert; insight client identifies the difficulty and the reason for attending.'
+const GOLDEN = 'Well groomed. Cooperative and engaged. Speech coherent. Mood low. Affect restricted; reduced range of expression, still present, appropriate to the content and the situation. Thought form logical and goal-directed. No delusional beliefs or perceptual disturbance elicited, suicidal ideation asked about directly; client reported none. Cognition alert. Client identifies the difficulty and the reason for attending.'
 const para = serialiseMse(s, 'para')
 check('golden paragraph', para === GOLDEN, 'got:\n  ' + para)
 

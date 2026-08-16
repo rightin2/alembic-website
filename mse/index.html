@@ -9,7 +9,7 @@
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f5f2">
 <meta property="og:type" content="website">
 <meta property="og:title" content="The MSE Builder · free, by Alembic">
-<meta property="og:description" content="Compose a mental state examination from a curated clinical vocabulary of 221 descriptors. Runs entirely in your browser; nothing is stored or sent anywhere.">
+<meta property="og:description" content="Compose a mental state examination from a curated clinical vocabulary. Runs entirely in your browser; nothing is stored or sent anywhere.">
 <meta property="og:image" content="https://rightin2.github.io/alembic-website/assets/alembic-icon-1024.png">
 <meta property="og:url" content="https://rightin2.github.io/alembic-website/mse/">
 <meta name="twitter:card" content="summary">
@@ -284,7 +284,7 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
     <span class="count" id="count"></span>
     <span class="spacer"></span>
     <div class="search-wrap">
-      <input id="search" type="search" placeholder="Search 221 descriptors" autocomplete="off" aria-label="Search descriptors">
+      <input id="search" type="search" placeholder="Search the vocabulary" autocomplete="off" aria-label="Search descriptors">
       <div class="search-results" id="searchResults" style="display:none"></div>
     </div>
     <button class="clear-btn" id="undoBtn" disabled>Undo</button>
@@ -526,7 +526,7 @@ function render(){
   const d = ui.domainId ? dom(ui.domainId) : null
   const s = d && ui.subId ? sub(d.id, ui.subId) : null
 
-  $('count').textContent = domainsRecorded(state) + ' of 12 domains recorded'
+  $('count').textContent = domainsRecorded(state) + ' of ' + MSE_DOMAINS.length + ' domains recorded'
   cols.innerHTML = ''
   cols.classList.toggle('three', mode === 'three')
 

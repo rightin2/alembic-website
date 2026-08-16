@@ -118,12 +118,17 @@ export function serialiseMse(state, format = 'para') {
       .map(p => (p.label ? p.label + ': ' : '') + p.text.charAt(0).toUpperCase() + p.text.slice(1) + '.')
       .join(' ')
   }
-  // paragraph: the mandated inline shape
+  // paragraph: the mandated inline shape. Domains join with full stops so the
+  // semicolon stays reserved for the intra-term evidential join (research card
+  // mse-065, 2026-08-16; matches the clinician's own filed sentence-per-domain
+  // lines and documentation.md, which allows full stops within a section line).
   return (
     parts
-      .map(p => (p.lead ? p.lead + ' ' + p.text : p.text))
-      .join('; ')
-      .replace(/^./, m => m.toUpperCase()) + '.'
+      .map(p => {
+        const t = p.lead ? p.lead + ' ' + p.text : p.text
+        return t.charAt(0).toUpperCase() + t.slice(1)
+      })
+      .join('. ') + '.'
   )
 }
 
