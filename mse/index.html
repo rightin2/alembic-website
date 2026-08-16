@@ -328,7 +328,12 @@ function undo(){
   state = past.pop()
   render()
 }
-const ui = { domainId:null, subId:null, term:null, ownAt:null, format:'para', level:'domains', sheetOpen:false }
+/* format is a UI preference, not clinical content; persisting it is allowed */
+let savedFormat = null
+try { savedFormat = localStorage.getItem('mse-format') } catch(e){}
+const ui = { domainId:null, subId:null, term:null, ownAt:null,
+  format:['para','labelled','bullets'].includes(savedFormat) ? savedFormat : 'para',
+  level:'domains', sheetOpen:false }
 let mode = 'wide' // wide | three | phone
 
 const $ = id => document.getElementById(id)
@@ -621,7 +626,7 @@ function renderSeg(){
   ;[['para','Paragraph'],['labelled','Labelled'],['bullets','Dot points']].forEach(([v, label]) => {
     const b = txt('button', ui.format === v ? 'on' : '', label)
     b.setAttribute('aria-pressed', ui.format === v)
-    b.addEventListener('click', () => { ui.format = v; render() })
+    b.addEventListener('click', () => { ui.format = v; try { localStorage.setItem('mse-format', v) } catch(e){}; render() })
     seg.appendChild(b)
   })
 }
@@ -670,6 +675,7 @@ searchInput.addEventListener('input', () => {
   results.style.display = 'block'
 })
 searchInput.addEventListener('keydown', e => { if (e.key === 'Escape'){ searchInput.value = ''; hideResults() } })
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && ui.sheetOpen){ ui.sheetOpen = false; render() } })
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.search-wrap')) hideResults() })
 
 /* ---------- undo ---------- */
