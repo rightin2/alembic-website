@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MSE Builder · Alembic</title>
 <meta name="description" content="A free tool for composing a mental state examination from a curated clinical vocabulary. Runs entirely in your browser; nothing is stored or sent anywhere.">
-<meta name="theme-color" content="#141714">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141714">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f5f2">
 <meta property="og:type" content="website">
 <meta property="og:title" content="The MSE Builder · free, by Alembic">
 <meta property="og:description" content="Compose a mental state examination from a curated clinical vocabulary of 221 descriptors. Runs entirely in your browser; nothing is stored or sent anywhere.">
@@ -27,6 +28,16 @@
   --serif:'Fraunces',Georgia,serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
+/* Light palette, full per-theme set per the app's theming convention */
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f7f5f2; --panel:#ffffff; --panel2:#fafaf8; --panel3:#f0ece4;
+    --border:#d8d3cc; --border-strong:#b9b2a8;
+    --ink:#1a1a1a; --ink2:#3a3a3a; --muted:#5c5852;
+    --accent:#4a6741; --accent-soft:#dde8da; --accent-text:#3f5a35; --on-accent:#f0ece6;
+    --danger:#c8392f;
+  }
+}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg)}
 body{font-family:var(--font); color:var(--ink); font-size:14px; line-height:1.5; min-height:100vh}
@@ -36,6 +47,28 @@ body{font-family:var(--font); color:var(--ink); font-size:14px; line-height:1.5;
     radial-gradient(ellipse 760px 560px at 90% 40%, rgba(201,164,92,0.06), transparent 60%),
     radial-gradient(ellipse 800px 620px at 20% 96%, rgba(143,178,135,0.07), transparent 62%),
     linear-gradient(180deg, #161915 0%, #141714 60%, #111411 100%)}
+@media (prefers-color-scheme: light){
+  #bgfx{background:
+    radial-gradient(ellipse 800px 560px at 10% 4%, rgba(74,103,65,0.08), transparent 62%),
+    radial-gradient(ellipse 760px 560px at 90% 40%, rgba(181,109,43,0.05), transparent 60%),
+    radial-gradient(ellipse 800px 620px at 20% 96%, rgba(74,103,65,0.05), transparent 62%),
+    linear-gradient(180deg, #faf7f2 0%, #f7f5f2 60%, #f2ece1 100%)}
+  .cascade{background:rgba(255,255,255,0.62); border-color:rgba(26,26,26,0.10);
+    box-shadow:0 12px 40px rgba(26,26,26,0.10), inset 0 1px 0 rgba(255,255,255,0.6)}
+  .row:hover{background:rgba(26,26,26,0.045)}
+  .row:active{background:rgba(26,26,26,0.08)}
+  .search-results{background:rgba(255,255,255,0.92); box-shadow:0 16px 48px rgba(26,26,26,0.18)}
+  .search-results button:hover,.search-results button:focus{background:rgba(26,26,26,0.05)}
+  .bar{background:rgba(255,255,255,0.5)}
+  @media(min-width:560px) and (min-height:700px){
+    .output{background:rgba(250,247,242,0.78); border-color:rgba(26,26,26,0.10);
+      box-shadow:0 -6px 30px rgba(26,26,26,0.10), inset 0 1px 0 rgba(255,255,255,0.6)}
+  }
+  @media(max-width:559px){
+    .output{background:var(--panel); border-top-color:var(--border-strong);
+      box-shadow:0 -12px 30px rgba(26,26,26,0.12)}
+  }
+}
 a{color:var(--accent-text)}
 :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
 button{font-family:inherit; color:inherit; background:none; border:none; cursor:pointer; font-size:inherit; text-align:left}
