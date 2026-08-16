@@ -53,21 +53,6 @@ body{font-family:var(--font); color:var(--ink); font-size:14px; line-height:1.5;
     radial-gradient(ellipse 760px 560px at 90% 40%, rgba(181,109,43,0.05), transparent 60%),
     radial-gradient(ellipse 800px 620px at 20% 96%, rgba(74,103,65,0.05), transparent 62%),
     linear-gradient(180deg, #faf7f2 0%, #f7f5f2 60%, #f2ece1 100%)}
-  .cascade{background:rgba(255,255,255,0.62); border-color:rgba(26,26,26,0.10);
-    box-shadow:0 12px 40px rgba(26,26,26,0.10), inset 0 1px 0 rgba(255,255,255,0.6)}
-  .row:hover{background:rgba(26,26,26,0.045)}
-  .row:active{background:rgba(26,26,26,0.08)}
-  .search-results{background:rgba(255,255,255,0.92); box-shadow:0 16px 48px rgba(26,26,26,0.18)}
-  .search-results button:hover,.search-results button:focus{background:rgba(26,26,26,0.05)}
-  .bar{background:rgba(255,255,255,0.5)}
-  @media(min-width:560px) and (min-height:700px){
-    .output{background:rgba(250,247,242,0.78); border-color:rgba(26,26,26,0.10);
-      box-shadow:0 -6px 30px rgba(26,26,26,0.10), inset 0 1px 0 rgba(255,255,255,0.6)}
-  }
-  @media(max-width:559px){
-    .output{background:var(--panel); border-top-color:var(--border-strong);
-      box-shadow:0 -12px 30px rgba(26,26,26,0.12)}
-  }
 }
 a{color:var(--accent-text)}
 :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
@@ -260,6 +245,25 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
   .foot{padding-bottom:150px}
 }
 @media (prefers-reduced-motion: reduce){*{transition:none !important}}
+/* light-theme component surfaces; kept LAST so they outrank every base rule */
+@media (prefers-color-scheme: light){
+  .cascade{background:rgba(255,255,255,0.62); border-color:rgba(26,26,26,0.10);
+    box-shadow:0 12px 40px rgba(26,26,26,0.10), inset 0 1px 0 rgba(255,255,255,0.6)}
+  .row:hover{background:rgba(26,26,26,0.045)}
+  .row:active{background:rgba(26,26,26,0.08)}
+  .search-results{background:rgba(255,255,255,0.92); box-shadow:0 16px 48px rgba(26,26,26,0.18)}
+  .search-results button:hover,.search-results button:focus{background:rgba(26,26,26,0.05)}
+  .bar{background:rgba(255,255,255,0.5)}
+}
+@media (prefers-color-scheme: light) and (min-width:560px) and (min-height:700px){
+  .output{background:rgba(250,247,242,0.78); border-color:rgba(26,26,26,0.10);
+    box-shadow:0 -6px 30px rgba(26,26,26,0.10), inset 0 1px 0 rgba(255,255,255,0.6)}
+}
+@media (prefers-color-scheme: light) and (max-width:559px){
+  .output{background:var(--panel); border-top-color:var(--border-strong);
+    box-shadow:0 -12px 30px rgba(26,26,26,0.12)}
+  .sheet{background:var(--panel2)}
+}
 </style>
 </head>
 <body>
@@ -669,6 +673,10 @@ searchInput.addEventListener('input', () => {
       ui.domainId = h.d; ui.subId = h.s; ui.term = h.term; ui.ownAt = null
       ui.level = 'terms'; ui.sheetOpen = true
       searchInput.value = ''; hideResults(); render()
+      requestAnimationFrame(() => {
+        const open = cols.querySelector('.row.open')
+        if (open) open.scrollIntoView({ block:'nearest' })
+      })
     })
     results.appendChild(b)
   })
