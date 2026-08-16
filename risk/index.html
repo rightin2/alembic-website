@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Risk Section Writer · Alembic</title>
+<meta name="description" content="A free tool for writing the Risk section of a clinical note from a curated vocabulary. It assesses nothing and records nothing: everything stays in your browser.">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141714">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f5f2">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Risk Section Writer · free, by Alembic">
+<meta property="og:description" content="Write the Risk section of a case note from a curated clinical vocabulary. Nothing is assessed, stored or sent anywhere.">
+<meta property="og:image" content="https://rightin2.github.io/alembic-website/assets/alembic-icon-1024.png">
+<meta property="og:url" content="https://rightin2.github.io/alembic-website/risk/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+:root{
+  --bg:#141714; --panel:#1e211e; --panel2:#252924; --panel3:#2c312b;
+  --border:#343a33; --border-strong:#4a514a;
+  --ink:#eceae4; --ink2:#c9cec6; --muted:#8b918a;
+  --accent:#8fb287; --accent-soft:#31402f; --accent-text:#a7c79e; --on-accent:#12180f;
+  --danger:#e06b63; --danger-soft:#3a2624;
+  --r1:8px; --r2:12px;
+  --font:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f7f5f2; --panel:#ffffff; --panel2:#fafaf8; --panel3:#f0ece4;
+    --border:#d8d3cc; --border-strong:#b9b2a8;
+    --ink:#1a1a1a; --ink2:#3a3a3a; --muted:#5c5852;
+    --accent:#4a6741; --accent-soft:#dde8da; --accent-text:#3f5a35; --on-accent:#f0ece6;
+    --danger:#c8392f; --danger-soft:#f7e4e2;
+  }
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg)}
+body{font-family:var(--font); color:var(--ink); font-size:14px; line-height:1.5; min-height:100vh}
+#bgfx{position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(ellipse 800px 560px at 10% 4%, rgba(143,178,135,0.10), transparent 62%),
+    radial-gradient(ellipse 760px 560px at 90% 40%, rgba(201,164,92,0.06), transparent 60%),
+    linear-gradient(180deg, #161915 0%, #141714 60%, #111411 100%)}
+@media (prefers-color-scheme: light){
+  #bgfx{background:
+    radial-gradient(ellipse 800px 560px at 10% 4%, rgba(74,103,65,0.08), transparent 62%),
+    radial-gradient(ellipse 760px 560px at 90% 40%, rgba(181,109,43,0.05), transparent 60%),
+    linear-gradient(180deg, #faf7f2 0%, #f7f5f2 60%, #f2ece1 100%)}
+}
+a{color:var(--accent-text)}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+button{font-family:inherit; color:inherit; background:none; border:none; cursor:pointer; font-size:inherit; text-align:left}
+
+.bar{display:flex; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid var(--border)}
+.bar img{width:28px; height:28px; border-radius:7px}
+.bar .name{font-family:var(--serif); font-size:17px}
+.bar .divider{color:var(--border-strong)}
+.bar .tool{font-weight:700; font-size:13px; color:var(--ink2)}
+.bar .home{margin-left:auto; font-size:12.5px; color:var(--muted); text-decoration:none}
+.bar .home:hover{color:var(--ink2)}
+
+.page{max-width:1120px; margin:0 auto; padding:22px 20px 40px}
+
+/* crisis block, above the fold, never collapsed */
+.crisis{border:1px solid var(--border-strong); border-radius:var(--r2); background:var(--panel2);
+  padding:12px 16px; margin-bottom:16px; font-size:13px; color:var(--ink2); line-height:1.6}
+.crisis b{color:var(--ink)}
+.crisis .nums{display:flex; gap:18px; flex-wrap:wrap; margin-top:4px}
+.crisis .nums span{white-space:nowrap}
+
+.audience{font-size:13px; color:var(--muted); line-height:1.65; margin-bottom:18px; max-width:70ch}
+.audience strong{color:var(--ink2); font-weight:600}
+
+.head{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px}
+.head h1{font-family:var(--serif); font-weight:400; font-size:22px}
+.head .count{color:var(--muted); font-size:13px}
+.head .spacer{flex:1}
+.search-wrap{position:relative}
+.search-wrap input{width:210px; max-width:52vw; background:var(--panel2); color:var(--ink);
+  border:1px solid var(--border); border-radius:999px; padding:8px 14px; font-family:inherit; font-size:13px}
+.search-wrap input:focus{border-color:var(--accent); outline:none}
+.search-results{position:absolute; top:calc(100% + 6px); right:0; z-index:80; width:min(420px,86vw);
+  background:var(--panel2); border:1px solid var(--border-strong); border-radius:12px; padding:6px;
+  box-shadow:0 16px 48px rgba(0,0,0,0.35); max-height:340px; overflow-y:auto}
+.search-results button{display:block; width:100%; padding:9px 11px; border-radius:8px; font-size:13px; color:var(--ink2); line-height:1.4}
+.search-results button:hover{background:rgba(127,127,127,0.12); color:var(--ink)}
+.search-results .path{display:block; font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em}
+.search-results .none{padding:10px 12px; color:var(--muted); font-size:12.5px; font-style:italic}
+.pillbtn{font-size:12px; font-weight:600; color:var(--muted); border:1px solid var(--border);
+  border-radius:999px; padding:8px 14px; transition:color .15s ease, border-color .15s ease}
+.pillbtn:hover{color:var(--ink2); border-color:var(--border-strong)}
+.pillbtn.armed{color:var(--danger); border-color:var(--danger)}
+.pillbtn[disabled]{opacity:.4; cursor:default}
+
+/* the branch gate */
+.gate{border:1px solid var(--border); border-radius:var(--r2); background:var(--panel); padding:16px; margin-bottom:16px}
+.gate h2{font-size:13px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin-bottom:4px}
+.gate p.why{font-size:12.5px; color:var(--muted); margin-bottom:12px; max-width:78ch; line-height:1.6}
+.branches{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+@media(max-width:620px){.branches{grid-template-columns:1fr}}
+.branch{border:1px solid var(--border-strong); border-radius:var(--r1); padding:13px 15px; background:var(--panel2);
+  transition:border-color .15s ease, background .15s ease}
+.branch:hover{border-color:var(--accent)}
+.branch.on{border-color:var(--accent); background:var(--accent-soft)}
+.branch .t{font-weight:700; font-size:14px; color:var(--ink); display:block; margin-bottom:3px}
+.branch .d{font-size:12.5px; color:var(--muted); line-height:1.5}
+.branch.on .d{color:var(--ink2)}
+
+/* cascade */
+.cascade{border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--panel)}
+.cols{display:grid; grid-template-columns:minmax(210px,0.95fr) minmax(230px,1.25fr) minmax(220px,1.1fr)}
+.col{padding:10px; border-right:1px solid var(--border); display:flex; flex-direction:column; min-width:0}
+.col:last-child{border-right:none}
+.col-label{font-size:10.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); padding:4px 10px 8px}
+.col-scroll{overflow-y:auto; min-height:0}
+.lane-head{font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text);
+  padding:10px 10px 5px; margin-top:4px}
+.lane-head:first-child{margin-top:0}
+.row{display:flex; align-items:flex-start; gap:8px; width:100%; padding:7px 10px; border-radius:var(--r1);
+  font-size:13px; line-height:1.45; color:var(--ink2); min-height:32px}
+.row:hover{background:rgba(127,127,127,0.10)}
+.row:active{background:rgba(127,127,127,0.16)}
+.row.open{background:var(--panel3); color:var(--ink)}
+.row .dot{width:8px;height:8px;border-radius:50%;background:transparent;border:1px solid var(--border-strong);flex:none;margin-top:5px}
+.row .dot.on{background:var(--accent);border-color:var(--accent)}
+.row .dot.risk.on{background:var(--danger);border-color:var(--danger)}
+.row .tick{width:13px;height:13px;flex:none;margin-top:3px;border:1.5px solid var(--border-strong);border-radius:3px;position:relative}
+.row .tick.round{border-radius:50%}
+.row .tick.on{background:var(--accent);border-color:var(--accent)}
+.row .tick.on::after{content:"";position:absolute;left:3px;top:.5px;width:4px;height:7px;
+  border:solid var(--on-accent);border-width:0 2px 2px 0;transform:rotate(40deg)}
+.row .txt{min-width:0}
+.row .pick-count{margin-left:auto;font-size:10.5px;color:var(--accent-text);background:var(--accent-soft);
+  border-radius:999px;padding:1px 7px;flex:none;align-self:center}
+.row .own-mark{margin-left:auto;flex:none;align-self:center;color:var(--accent-text);font-size:11px;font-style:italic}
+.own-sep{border-top:1px solid var(--border); margin:8px 6px}
+.row.own{color:var(--muted); font-style:italic}
+.row.own.open{color:var(--ink)}
+.empty-hint{color:var(--muted); font-size:12.5px; padding:8px 10px; font-style:italic; line-height:1.55}
+
+.explain{padding:6px 8px; display:flex; flex-direction:column; gap:10px; font-size:13px}
+.explain .what{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.explain .term{font-size:14.5px;color:var(--ink);font-weight:600}
+.explain .desc{color:var(--ink2)}
+.explain textarea{width:100%;min-height:64px;resize:vertical;background:var(--panel2);color:var(--ink);
+  border:1px solid var(--border);border-radius:var(--r1);padding:8px 10px;font-family:inherit;font-size:13px;line-height:1.5}
+.explain textarea:focus{border-color:var(--accent);outline:none}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.b{padding:7px 14px;border-radius:var(--r1);font-size:12.5px;font-weight:600;
+  border:1px solid var(--border-strong);color:var(--ink2);background:var(--panel2)}
+.b:hover{background:var(--panel3);color:var(--ink)}
+.b.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.b.danger{border-color:var(--danger);color:var(--danger)}
+.hint{color:var(--muted);font-size:11.5px;line-height:1.5}
+
+/* output: the three lines */
+.output{margin-top:16px; display:flex; flex-direction:column; gap:10px}
+.out-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.chars{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.preview{border:1px solid var(--border);border-radius:var(--r2);background:var(--panel);
+  padding:14px 16px;font-size:13.5px;line-height:1.7;color:var(--ink2);white-space:pre-wrap;min-height:54px}
+.preview.placeholder{font-style:italic;color:var(--muted)}
+.copy-row{display:flex;justify-content:flex-end}
+.copy{padding:11px 26px;border-radius:999px;font-size:12.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;background:var(--accent);color:var(--on-accent);border:none}
+.copy[disabled]{opacity:.45;cursor:default}
+
+.foot{max-width:1120px;margin:30px auto 0;padding:18px 20px 40px;border-top:1px solid var(--border);
+  font-size:12px;color:var(--muted);line-height:1.8}
+.foot a{color:var(--ink2);text-decoration:none}
+.foot a:hover{color:var(--ink)}
+
+@media(max-width:699px), (pointer:coarse){
+  .explain textarea{font-size:16px !important}
+  .b,.copy,.pillbtn{min-height:44px;display:inline-flex;align-items:center}
+}
+@media(max-width:640px){
+  body{font-size:15px}
+  .page{padding:16px 14px 40px}
+  .cols{display:block}
+  .col{border-right:none;padding:6px}
+  .col-label{display:none}
+  .row{min-height:44px;padding:11px 12px;font-size:14.5px;align-items:center}
+  .row .dot,.row .tick{margin-top:0}
+  .crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 12px;
+    border-bottom:1px solid var(--border);font-size:12.5px;color:var(--muted)}
+  .crumbs button{color:var(--accent-text);font-size:12.5px;padding:4px 2px}
+  .search-results{left:0;right:auto}
+}
+/* Hidden on desktop only. Scoped to a min-width so it cannot outrank the phone
+   rule above, which is what makes the drill-down navigable with a thumb. */
+@media(min-width:641px){ .crumbs{display:none} }
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div id="bgfx" aria-hidden="true"></div>
+
+<header class="bar">
+  <img src="../assets/alembic-mark-256.png" alt="">
+  <span class="name">Alembic</span>
+  <span class="divider">/</span>
+  <span class="tool">Risk Section Writer</span>
+  <a class="home" href="../">alembiclabs.com.au</a>
+</header>
+
+<main class="page">
+
+  <div class="crisis">
+    <b>If you or someone you are with needs help now:</b>
+    <div class="nums">
+      <span><b>000</b> emergency</span>
+      <span><b>Lifeline 13 11 14</b></span>
+      <span><b>Suicide Call Back Service 1300 659 467</b></span>
+      <span><b>13YARN 13 92 76</b></span>
+    </div>
+  </div>
+
+  <p class="audience">
+    <strong>This is a writing tool for clinicians.</strong> It helps you word the Risk section of a
+    case note you have already decided the content of. It does not assess anyone, does not
+    calculate or suggest a risk level, and does not tell you what to do. It is not a crisis
+    service and it does not receive, read or respond to anything you type.
+  </p>
+
+  <div class="head">
+    <h1>Risk section</h1>
+    <span class="count" id="count"></span>
+    <span class="spacer"></span>
+    <div class="search-wrap">
+      <input id="search" type="search" placeholder="Search the wording" autocomplete="off" aria-label="Search wording">
+      <div class="search-results" id="searchResults" style="display:none"></div>
+    </div>
+    <button class="pillbtn" id="undoBtn" disabled>Undo</button>
+    <button class="pillbtn" id="clearBtn">Start again</button>
+  </div>
+
+  <div class="gate">
+    <h2>First, which kind of contact was this?</h2>
+    <p class="why">Nothing is written until you choose, and nothing is chosen for you. If risk was
+      not formally assessed, you pick the reason yourself: the tool never fills one in.</p>
+    <div class="branches" id="branches"></div>
+  </div>
+
+  <div class="cascade" id="cascade" hidden>
+    <div class="crumbs" id="crumbs"></div>
+    <div class="cols" id="cols"></div>
+  </div>
+
+  <div class="output" id="output" hidden>
+    <div class="out-controls">
+      <span class="chars" id="chars"></span>
+    </div>
+    <div class="preview" id="preview" aria-live="polite"></div>
+    <div class="copy-row"><button class="copy" id="copyBtn" disabled>Copy risk section</button></div>
+  </div>
+</main>
+
+<footer class="foot">
+  This tool helps a clinician word a Risk section they have already decided. It assesses nothing,
+  scores nothing, and suggests nothing. Everything you type stays in this browser: no accounts, no
+  storage, no analytics on what you write, no AI, and the page makes no external requests.<br>
+  Wording is the same curated vocabulary used in <a href="../">Alembic</a>, practice software that
+  keeps client records on the clinician's own machine · Alembic Labs · ABN 58 247 784 426
+</footer>
+
+<script type="module">
+import { RISK_AREAS, ASSESSED, NOT_ASSESSED } from './riskVocabulary.js'
+import { emptyRiskState, setBranch, toggleTerm, setOwnWording, setOwnLine,
+         effectiveWording, areaHasContent, toRiskBlock, areasRecorded, areaCount } from './riskState.js'
+import { serialiseRiskBlock } from './riskBlock.js'
+
+/* The risk level dimension is deliberately NOT offered on the public site. It stays in the
+   shared vocabulary so the data file matches the app byte for byte, but four buttons labelled
+   low to high on a public suicide page is a classification control, which is the one thing this
+   tool must never be. Decision card risk-051; see risk/PORT-NOTES.md. */
+const HIDDEN_HERE = new Set(['out|lvl'])
+
+let state = emptyRiskState()
+const past = []
+function setState(next){ if (next===state) return; past.push(state); if (past.length>30) past.shift(); state = next }
+function undo(){ if (!past.length) return; state = past.pop(); render() }
+
+const ui = { areaId:null, subId:null, term:null, ownAt:null, level:'dims' }
+const $ = id => document.getElementById(id)
+const cols = $('cols'), crumbs = $('crumbs')
+let phone = false
+
+const area = id => RISK_AREAS.find(a => a.id === id)
+const sub = (a,s) => area(a)?.subs.find(x => x.id === s)
+const visibleSubs = a => a.subs.filter(s => !HIDDEN_HERE.has(a.id + '|' + s.id))
+const subHas = (a,s) => (state.sel[a]?.[s]?.length||0) > 0 || !!state.own[a+'|'+s]
+const RISKY = new Set(['si','sh','ho'])
+
+const actionAreas = ASSESSED.filter(a => a.lane === 'actions')
+const branchAreas = () =>
+  state.branch === 'assessed' ? ASSESSED
+  : state.branch === 'not_assessed' ? [...NOT_ASSESSED, ...actionAreas] : []
+
+const HOVER_OK = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+let hoverTimer=null, lastClick=0
+document.addEventListener('pointerdown', ()=>{lastClick=Date.now()}, true)
+function onHover(el, fn, delay){
+  if (!HOVER_OK) return
+  el.addEventListener('pointerenter', ()=>{ clearTimeout(hoverTimer)
+    hoverTimer=setTimeout(()=>{ const a=document.activeElement
+      if (a && (a.tagName==='TEXTAREA'||a.tagName==='INPUT')) return
+      if (Date.now()-lastClick>600) fn() }, delay) })
+  el.addEventListener('pointerleave', ()=>clearTimeout(hoverTimer))
+}
+const el=(t,c,h)=>{const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n}
+const txt=(t,c,s)=>{const n=document.createElement(t); if(c)n.className=c; n.textContent=s; return n}
+
+function row({label,dotOn,dotRisk,tick,tickOn,tickRound,open,own,count,ownMark,onclick}){
+  const b = el('button','row'+(open?' open':'')+(own?' own':''))
+  if (tick){ b.appendChild(el('span','tick'+(tickOn?' on':'')+(tickRound?' round':''))); b.setAttribute('aria-pressed',!!tickOn) }
+  else if (dotOn!==undefined){ b.appendChild(el('span','dot'+(dotOn?' on':'')+(dotRisk?' risk':''))) }
+  b.appendChild(txt('span','txt',label))
+  if (count) b.appendChild(txt('span','pick-count',String(count)))
+  if (ownMark) b.appendChild(txt('span','own-mark','yours'))
+  b.addEventListener('click', onclick)
+  return b
+}
+
+/* ---------- branch gate ---------- */
+const BRANCHES = [
+  { id:'assessed', t:'Risk was assessed', d:'You asked about risk in this contact and have something to record.' },
+  { id:'not_assessed', t:'Risk was not formally assessed', d:'You will choose the reason yourself on the next screen.' },
+]
+function renderGate(){
+  const wrap = $('branches'); wrap.innerHTML = ''
+  BRANCHES.forEach(b => {
+    const n = el('button','branch'+(state.branch===b.id?' on':''))
+    n.appendChild(txt('span','t',b.t)); n.appendChild(txt('span','d',b.d))
+    n.setAttribute('aria-pressed', state.branch===b.id)
+    n.addEventListener('click', ()=>{
+      setState(setBranch(state, state.branch===b.id ? null : b.id))
+      ui.areaId=null; ui.subId=null; ui.term=null; ui.ownAt=null; ui.level='dims'
+      render()
+    })
+    wrap.appendChild(n)
+  })
+}
+
+/* ---------- columns ---------- */
+function colShell(label){
+  const c = el('div','col'); c.appendChild(txt('div','col-label',label))
+  const s = el('div','col-scroll'); c.appendChild(s); return [c,s]
+}
+const LANE_LABEL = { assessed:'Goes on the Assessed line', outcome:'Goes on the Outcome line',
+                     actions:'Goes on the Actions line', reason:'Goes on the Outcome line' }
+
+function buildDimRows(container){
+  branchAreas().forEach(a => {
+    container.appendChild(txt('div','lane-head', LANE_LABEL[a.lane] || a.name))
+    visibleSubs(a).forEach(s => {
+      const r = row({ label:s.name, dotOn:subHas(a.id,s.id), dotRisk:RISKY.has(s.id),
+        open: ui.areaId===a.id && ui.subId===s.id && !ui.ownAt,
+        count:(state.sel[a.id]?.[s.id]||[]).length || 0,
+        onclick(){ ui.areaId=a.id; ui.subId=s.id; ui.term=null; ui.ownAt=null; ui.level='terms'; render() } })
+      onHover(r, ()=>{ if (ui.subId!==s.id||ui.ownAt){ ui.areaId=a.id; ui.subId=s.id; ui.term=null; ui.ownAt=null; render() } }, 120)
+      container.appendChild(r)
+    })
+  })
+  container.appendChild(el('div','own-sep'))
+  container.appendChild(row({ label:'Write my own line', own:true, dotOn:!!state.own.root,
+    open: ui.ownAt==='root',
+    onclick(){ ui.ownAt='root'; ui.term=null; ui.level='terms'; render() } }))
+}
+
+function buildTermRows(container, a, s){
+  s.terms.forEach(t => {
+    const term = t[0]
+    const on = (state.sel[a.id][s.id]||[]).includes(term)
+    const r = row({ label:effectiveWording(state,a.id,s.id,term), tick:true, tickOn:on, tickRound:!!s.single,
+      ownMark: effectiveWording(state,a.id,s.id,term)!==term,
+      open: ui.term===term && !ui.ownAt,
+      onclick(){ setState(toggleTerm(state,a.id,s.id,term)); ui.term=term; ui.ownAt=null; render() } })
+    onHover(r, ()=>{ if (ui.term!==term||ui.ownAt){ ui.term=term; ui.ownAt=null; render() } }, 60)
+    container.appendChild(r)
+  })
+  container.appendChild(el('div','own-sep'))
+  const scope = a.id+'|'+s.id
+  container.appendChild(row({ label:'Write my own', own:true, dotOn:!!state.own[scope], open:ui.ownAt===scope,
+    onclick(){ ui.ownAt=scope; ui.term=null; render() } }))
+}
+
+function scopeArgs(scope){
+  if (scope==='root') return [null,null]
+  if (scope.includes('|')){ const [a,s]=scope.split('|'); return [a,s] }
+  return [scope,null]
+}
+
+function buildExplain(container){
+  const box = el('div','explain')
+  if (ui.ownAt){
+    const scope = ui.ownAt
+    const where = scope==='root' ? 'this risk section'
+      : scope.includes('|') ? sub(scope.split('|')[0], scope.split('|')[1])?.name : area(scope)?.name
+    box.appendChild(txt('div','what','Write my own'))
+    box.appendChild(txt('div','desc','Your own words for '+(where||'')+'. They join the section exactly as typed.'))
+    const ta = el('textarea'); ta.value = state.own[scope]||''; ta.setAttribute('aria-label','Your own line')
+    box.appendChild(ta)
+    const btns = el('div','btn-row')
+    const add = txt('button','b primary','Add to section')
+    add.addEventListener('click', ()=>{ setState(setOwnLine(state,...scopeArgs(scope),ta.value)); render() })
+    const clr = txt('button','b','Clear')
+    clr.addEventListener('click', ()=>{ setState(setOwnLine(state,...scopeArgs(scope),'')); render() })
+    btns.appendChild(add); btns.appendChild(clr); box.appendChild(btns)
+  } else if (ui.term && ui.areaId && ui.subId){
+    const a = area(ui.areaId), s = sub(ui.areaId, ui.subId)
+    const entry = s.terms.find(t => t[0]===ui.term)
+    if (entry){
+      const [term, explanation] = entry
+      box.appendChild(txt('div','what','What this means'))
+      box.appendChild(txt('div','term',term))
+      box.appendChild(txt('div','desc',explanation))
+      box.appendChild(txt('div','what','What goes in the note'))
+      const ta = el('textarea'); ta.value = effectiveWording(state,a.id,s.id,term)
+      ta.setAttribute('aria-label','Wording that goes in the note')
+      box.appendChild(ta)
+      const on = (state.sel[a.id][s.id]||[]).includes(term)
+      const btns = el('div','btn-row')
+      const tog = txt('button', on?'b danger':'b primary', on?'Remove':'Add to section')
+      tog.addEventListener('click', ()=>{
+        setState(toggleTerm(setOwnWording(state,a.id,s.id,term,ta.value), a.id,s.id,term)); render() })
+      const save = txt('button','b','Save wording')
+      save.addEventListener('click', ()=>{ setState(setOwnWording(state,a.id,s.id,term,ta.value)); render() })
+      btns.appendChild(tog); btns.appendChild(save); box.appendChild(btns)
+      box.appendChild(txt('div','hint','Your wording is reused everywhere afterwards. The description never goes in the note.'))
+    }
+  } else {
+    box.appendChild(txt('div','desc', state.branch
+      ? 'Pick what you want to record, then the wording that matches what you actually did. Every entry explains itself here before it enters your note.'
+      : 'Choose a contact type above to begin.'))
+  }
+  container.appendChild(box)
+}
+
+/* ---------- render ---------- */
+function render(){
+  renderGate()
+  const hasBranch = !!state.branch
+  $('cascade').hidden = !hasBranch
+  $('output').hidden = !hasBranch
+  $('count').textContent = hasBranch ? areasRecorded(state)+' of '+areaCount(state)+' areas recorded' : ''
+  $('undoBtn').disabled = !past.length
+
+  if (hasBranch){
+    const a = ui.areaId ? area(ui.areaId) : null
+    const s = a && ui.subId ? sub(a.id, ui.subId) : null
+    cols.innerHTML = ''
+    phone = window.matchMedia('(max-width:640px)').matches
+
+    if (phone){
+      crumbs.innerHTML = ''
+      const root = txt('button',null,'Risk section')
+      root.addEventListener('click', ()=>{ ui.subId=null; ui.term=null; ui.ownAt=null; ui.level='dims'; render() })
+      crumbs.appendChild(root)
+      if (s){ crumbs.appendChild(txt('span','sep',' › ')); crumbs.appendChild(txt('span',null,s.name)) }
+      const [c, sc] = colShell('')
+      if (ui.level==='dims' || (!s && !ui.ownAt)) buildDimRows(sc)
+      else if (ui.ownAt) buildExplain(sc)
+      else { buildTermRows(sc, a, s); buildExplain(sc) }
+      cols.appendChild(c)
+    } else {
+      const [c1,s1] = colShell('What to record'); buildDimRows(s1); cols.appendChild(c1)
+      const [c2,s2] = colShell(s ? s.name + (s.single?' · one':'') : 'Wording')
+      if (a && s) buildTermRows(s2, a, s); else s2.appendChild(txt('div','empty-hint','Choose something on the left.'))
+      cols.appendChild(c2)
+      const [c3,s3] = colShell('Detail'); buildExplain(s3); cols.appendChild(c3)
+    }
+  }
+
+  const lines = serialiseRiskBlock(toRiskBlock(state))
+  const out = lines ? lines.join('\n') : ''
+  const pv = $('preview')
+  if (out){ pv.textContent = out; pv.classList.remove('placeholder') }
+  else { pv.textContent = state.branch
+      ? (state.branch==='not_assessed'
+          ? 'Choose the reason risk was not formally assessed. Nothing is written until you do.'
+          : 'Nothing recorded yet. The three lines build here as you pick.')
+      : 'Choose a contact type above to begin.'
+    pv.classList.add('placeholder') }
+  $('chars').textContent = out ? out.length+' characters' : ''
+  $('copyBtn').disabled = !out
+}
+
+/* ---------- search ---------- */
+const INDEX = []
+RISK_AREAS.forEach(a => a.subs.forEach(s => {
+  if (HIDDEN_HERE.has(a.id+'|'+s.id)) return
+  s.terms.forEach(t => INDEX.push({ a:a.id, s:s.id, term:t[0], lane:a.lane,
+    hay:(a.name+' '+s.name+' '+t[0]).toLowerCase(), path:a.name+' › '+s.name }))
+}))
+const searchInput = $('search'), results = $('searchResults')
+const hideResults = () => { results.style.display='none'; results.innerHTML='' }
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase()
+  if (q.length < 2){ hideResults(); return }
+  const words = q.split(/\s+/)
+  const branchLanes = state.branch==='assessed' ? ['assessed','outcome','actions']
+    : state.branch==='not_assessed' ? ['reason','actions'] : ['assessed','outcome','actions','reason']
+  const hits = INDEX.filter(e => branchLanes.includes(e.lane) && words.every(w => e.hay.includes(w))).slice(0,14)
+  results.innerHTML = ''
+  if (!hits.length) results.appendChild(txt('div','none','No wording matches that.'))
+  hits.forEach(h => {
+    const b = el('button'); b.appendChild(txt('span','path',h.path))
+    b.appendChild(document.createTextNode(h.term))
+    b.addEventListener('click', ()=>{
+      ui.areaId=h.a; ui.subId=h.s; ui.term=h.term; ui.ownAt=null; ui.level='terms'
+      searchInput.value=''; hideResults(); render()
+      requestAnimationFrame(()=>{ const o=cols.querySelector('.row.open'); if(o) o.scrollIntoView({block:'nearest'}) })
+    })
+    results.appendChild(b)
+  })
+  results.style.display='block'
+})
+searchInput.addEventListener('keydown', e=>{ if(e.key==='Escape'){ searchInput.value=''; hideResults() } })
+document.addEventListener('pointerdown', e=>{ if(!e.target.closest('.search-wrap')) hideResults() })
+
+/* ---------- undo, clear, copy ---------- */
+$('undoBtn').addEventListener('click', undo)
+window.addEventListener('keydown', e=>{
+  if ((e.metaKey||e.ctrlKey) && !e.shiftKey && e.key.toLowerCase()==='z'){
+    const a=document.activeElement; if (a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT')) return
+    e.preventDefault(); undo() }
+})
+const clearBtn = $('clearBtn'); let clearArm=null
+clearBtn.addEventListener('click', ()=>{
+  if (clearBtn.classList.contains('armed')){
+    clearTimeout(clearArm); clearBtn.classList.remove('armed'); clearBtn.textContent='Start again'
+    setState(emptyRiskState()); ui.areaId=null; ui.subId=null; ui.term=null; ui.ownAt=null; ui.level='dims'; render()
+  } else {
+    clearBtn.classList.add('armed'); clearBtn.textContent='Clear everything?'
+    clearArm=setTimeout(()=>{ clearBtn.classList.remove('armed'); clearBtn.textContent='Start again' },3000)
+  }
+})
+$('copyBtn').addEventListener('click', async ()=>{
+  const lines = serialiseRiskBlock(toRiskBlock(state)); if (!lines) return
+  const text = lines.join('\n'); let ok=false
+  try { await navigator.clipboard.writeText(text); ok=true }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'
+    document.body.appendChild(ta); ta.select(); try{ ok=document.execCommand('copy') }catch(e2){}; ta.remove() }
+  const btn=$('copyBtn')
+  if (!ok){ const r=document.createRange(); r.selectNodeContents($('preview'))
+    const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r) }
+  btn.textContent = ok ? 'Copied' : 'Press Ctrl/Cmd+C'
+  setTimeout(()=>{ btn.textContent='Copy risk section' }, 2000)
+})
+
+window.addEventListener('resize', ()=>{ const p=window.matchMedia('(max-width:640px)').matches
+  if (p!==phone) render() })
+render()
+</script>
+</body>
+</html>
