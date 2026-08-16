@@ -515,6 +515,7 @@ export const MSE_DOMAINS = [
  {id:"su",name:"Summary and qualifiers",label:"Summary and qualifiers",lead:"",subs:[
    {id:"sum",name:"Overall summary",single:true,terms:[
      ["overall presentation consistent with previous sessions","The summary clause the literature says an MSE should end with, in its baseline-relative form.",1],
+     ["all other domains consistent with the client's previous presentation","For review sessions with a client you know. Covers everything not separately recorded above, in one line. Only use it when that is what you observed; anything that changed gets its own entry.",1],
      ["no findings outside this client's usual range this session","The plain all-clear, stated once rather than implied by twelve separate normal findings.",1],
      ["overall presentation changed from the last session; the changes are recorded above","Points the reader at the change without restating it."],
      ["first session; this record is a starting baseline rather than a comparison","Guards the first note from being read as a change finding, and tells the next reader what it is for.",1]]},

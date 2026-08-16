@@ -144,6 +144,8 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 .own-sep{border-top:1px solid var(--border); margin:8px 6px}
 .row.own{color:var(--muted); font-style:italic}
 .row.own.open{color:var(--ink)}
+.row.quick{color:var(--accent-text); font-weight:600}
+.row.quick:hover{background:var(--accent-soft)}
 .empty-hint{color:var(--muted); font-size:12.5px; padding:8px 10px; font-style:italic}
 
 /* explain panel */
@@ -410,6 +412,26 @@ function buildDomainRows(container){
     label:'Write my own line', own:true, dotOn:!!state.own.root, open:ui.ownAt === 'root',
     onclick(){ ui.ownAt = 'root'; ui.term = null; ui.sheetOpen = true; render() }
   }))
+  container.appendChild(quickConsistentRow())
+}
+
+/* One-click line for review sessions: record what changed, this covers the rest.
+   It is the su/sum vocabulary term, so it serialises at the end of the note. */
+const QUICK_CONSISTENT = "all other domains consistent with the client's previous presentation"
+function quickConsistentRow(){
+  const on = (state.sel.su?.sum || []).includes(QUICK_CONSISTENT)
+  const r = row({
+    label:'No other changes', dotOn:on, open:false,
+    onclick(){
+      setState(toggleTerm(state, 'su', 'sum', QUICK_CONSISTENT))
+      ui.term = QUICK_CONSISTENT; ui.domainId = 'su'; ui.subId = 'sum'; ui.ownAt = null
+      render()
+    }
+  })
+  r.classList.add('quick')
+  r.title = QUICK_CONSISTENT
+  r.setAttribute('aria-pressed', on)
+  return r
 }
 
 function buildSubRows(container, d){
@@ -580,6 +602,7 @@ function renderThree(d, s){
     label:'Write my own line', own:true, dotOn:!!state.own.root, open:ui.ownAt === 'root',
     onclick(){ ui.ownAt = 'root'; ui.term = null; render() }
   }))
+  s1.appendChild(quickConsistentRow())
   if (d){ s1.appendChild(el('div','own-sep')); buildSubRows(s1, d) }
   cols.appendChild(c1)
   const [c3, s3] = colShell(s ? s.name + (s.single ? ' · one' : '') : 'Descriptors')

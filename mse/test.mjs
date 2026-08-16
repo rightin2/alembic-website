@@ -9,10 +9,10 @@ function check(name, ok, detail) {
   else { failures++; console.error('FAIL ' + name + (detail ? '\n  ' + detail : '')) }
 }
 
-// 1. Structure: 13 domains, 69 dimensions, 428 terms (2026-08-16 research pass)
+// 1. Structure: 13 domains, 69 dimensions, 429 terms (2026-08-16 research pass)
 const dims = MSE_DOMAINS.reduce((n, d) => n + d.subs.length, 0)
 const terms = MSE_DOMAINS.reduce((n, d) => n + d.subs.reduce((m, s) => m + s.terms.length, 0), 0)
-check('structure 13/69/428', MSE_DOMAINS.length === 13 && dims === 69 && terms === 428,
+check('structure 13/69/429', MSE_DOMAINS.length === 13 && dims === 69 && terms === 429,
   `got ${MSE_DOMAINS.length}/${dims}/${terms}`)
 
 // 2. Dash scan: no em or en dashes anywhere in the vocabulary
