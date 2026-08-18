@@ -21,24 +21,17 @@
 // but it can never pre-select a reason, so the sentence that lands in the record
 // is always one the clinician picked.
 
-// WEBSITE PORT, 2026-08-17. Three documented differences from the app copy, all
-// recorded in risk/PORT-NOTES.md. (1) this import carries a .js extension for
-// browser ES modules; (2) the own.root free-text line now serialises on BOTH
-// branches, fixing live data loss; (3) the actions lane now serialises on the
-// not-assessed branch instead of being hardcoded empty. Differences 2 and 3 are
-// bug fixes the app must make too (HANDOVER-risk-implementation.md section 2).
 import { RISK_AREAS, ASSESSED, NOT_ASSESSED } from './riskVocabulary.js'
 
-// PORT FIX 3a, the root cause of the "Actions: None" defect. The not-assessed
-// branch only ever exposed the reason area, so the actions area was unreachable
-// and its lane could not carry anything. A missed contact needs to record what
-// the clinician actually did: attempts, supervisor notification, the decision.
-// The reason area stays first, so the branch still reads reason-then-actions.
-const actionAreas = ASSESSED.filter(a => a.lane === 'actions')
-const areasFor = branch =>
-  branch === 'assessed' ? ASSESSED
-  : branch === 'not_assessed' ? [...NOT_ASSESSED, ...actionAreas]
-  : []
+// Branch membership comes straight from the vocabulary's explicit lists
+// (DECISIONS-ADDENDUM.md A1): the not-assessed branch carries its own Actions
+// area (nac, risk-065), whose wording is written for a missed contact, so the
+// 2026-08-17 interim fix that borrowed the assessed Actions area is retired.
+// Exported so the panel renders exactly the areas the engine will serialise;
+// it used to duplicate this expression locally, which is how the actions area
+// stayed invisible on the not-assessed branch even once the engine carried it.
+export const areasFor = branch =>
+  branch === 'assessed' ? ASSESSED : branch === 'not_assessed' ? NOT_ASSESSED : []
 
 const findArea = areaId => RISK_AREAS.find(a => a.id === areaId)
 const findSub = (areaId, subId) => findArea(areaId)?.subs.find(s => s.id === subId)
@@ -68,6 +61,33 @@ export function setBranch(state, branch) {
   return { ...state, branch }
 }
 
+// The contradiction guard, ported from mseState.js (risk-074). A blanket
+// negative claims the whole dimension ("not asked this contact",
+// "contributing factors asked about; none reported this contact"), so it can
+// never sit in one serialised line beside a positive it negates: picking the
+// blanket clears the dimension, picking anything else clears the blanket.
+// The prefix rule covers the honest meta family in every multi-pick
+// dimension; the exact-text set covers the enumerated whole-dimension
+// negatives. Deliberately NOT guarded: domain-specific negatives that
+// co-exist with other facts ("no history of violence on record or reported"
+// beside an attempt history), and out/cl's episode negative, which the w3e
+// boundary rule REQUIRES to sit beside a stated boundary term.
+const BLANKET_EXACT = new Set([
+  'contributing factors asked about; none reported this contact',
+  'no strengths or supports named on enquiry this contact',
+  'no preparatory steps reported on direct enquiry',
+  'no contact with other services reported since the last contact',
+  'no relevant history on record or reported',
+  'no safety planning indicated this contact',
+  'no means identified that required restriction this contact',
+  'no medical review indicated this contact',
+  'no external contact indicated this contact',
+  'no report indicated this contact',
+  'no escalation indicated this contact',
+])
+const isBlanketNegative = term =>
+  /^not (asked|explored|discussed|raised)/.test(term) || BLANKET_EXACT.has(term)
+
 export function toggleTerm(state, areaId, subId, term) {
   const sub = findSub(areaId, subId)
   if (!sub) return state
@@ -76,7 +96,8 @@ export function toggleTerm(state, areaId, subId, term) {
   let next
   if (sub.single) next = was ? [] : [term]
   else if (was) next = current.filter(t => t !== term)
-  else next = [...current, term]
+  else if (isBlanketNegative(term)) next = [term]
+  else next = [...current.filter(t => !isBlanketNegative(t)), term]
   return {
     ...state,
     sel: { ...state.sel, [areaId]: { ...(state.sel?.[areaId] || {}), [subId]: next } },
@@ -114,9 +135,10 @@ export function areaHasContent(state, area) {
 // sub's picks joined with commas and the subs joined with semicolons.
 export function laneText(state, lane) {
   const bits = []
-  // PORT FIX 2: was `lane === 'assessed' && state.own?.root`, which captured the
-  // clinician's typed line on the not-assessed branch and then never serialised
-  // it. The line now lands on whichever lane the chosen branch writes to.
+  // FIX 2026-08-17 (b): was `lane === 'assessed' && state.own?.root`, which
+  // captured the clinician's typed line on the not-assessed branch and then
+  // never serialised it. The panel offers "Write my own line" on both branches,
+  // so the line now lands on whichever lane the chosen branch writes to.
   const rootLane = state.branch === 'not_assessed' ? 'reason' : 'assessed'
   if (lane === rootLane && state.own?.root) bits.push(state.own.root)
   for (const area of areasFor(state.branch)) {
@@ -133,7 +155,16 @@ export function laneText(state, lane) {
       if (pieces.length) bits.push((sub.lead ? sub.lead + ' ' : '') + pieces.join(', '))
     }
   }
-  return bits.join('; ')
+  // Sub-dimensions join with full stops, exactly as mseState.js does post
+  // mse-065, so the semicolon stays reserved for the intra-term evidential join
+  // (research card risk-072). This became necessary in the same pass as the
+  // vocabulary: the adopted replacement for "denied on direct enquiry" is
+  // "asked about directly; client reported none", which carries its own
+  // semicolon, and semicolon-joined fragments containing semicolons are
+  // unreadable. Each part is capitalised so the line reads as sentences.
+  return bits
+    .map(t => t.charAt(0).toUpperCase() + t.slice(1))
+    .join('. ')
 }
 
 // A sentence: first letter up, one full stop at the end. Empty stays empty.
@@ -165,9 +196,10 @@ export function toRiskBlock(state) {
       branch: 'not_assessed',
       assessedDetails: '',
       outcome: '',
-      // PORT FIX 3: was hardcoded ''. A clinician who rang the client twice, left
-      // a message, told their supervisor and brought the appointment forward could
-      // record none of it, and the block printed "Actions: None" over their name.
+      // FIX 2026-08-17 (c): was hardcoded ''. A clinician who rang the client
+      // twice, left a message, told their supervisor and brought the
+      // appointment forward could record none of it, and the block printed
+      // "Actions: None" over their name.
       actions: sentence(laneText(state, 'actions')),
       notAssessedReason: sentence(laneText(state, 'reason')),
     }

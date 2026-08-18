@@ -277,9 +277,10 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 </footer>
 
 <script type="module">
-import { RISK_AREAS, ASSESSED, NOT_ASSESSED } from './riskVocabulary.js'
+import { RISK_AREAS } from './riskVocabulary.js'
 import { emptyRiskState, setBranch, toggleTerm, setOwnWording, setOwnLine,
-         effectiveWording, areaHasContent, toRiskBlock, areasRecorded, areaCount } from './riskState.js'
+         effectiveWording, areaHasContent, toRiskBlock, areasRecorded, areaCount,
+         areasFor } from './riskState.js'
 import { serialiseRiskBlock } from './riskBlock.js'
 
 /* The risk level dimension is deliberately NOT offered on the public site. It stays in the
@@ -304,10 +305,12 @@ const visibleSubs = a => a.subs.filter(s => !HIDDEN_HERE.has(a.id + '|' + s.id))
 const subHas = (a,s) => (state.sel[a]?.[s]?.length||0) > 0 || !!state.own[a+'|'+s]
 const RISKY = new Set(['si','sh','ho'])
 
-const actionAreas = ASSESSED.filter(a => a.lane === 'actions')
-const branchAreas = () =>
-  state.branch === 'assessed' ? ASSESSED
-  : state.branch === 'not_assessed' ? [...NOT_ASSESSED, ...actionAreas] : []
+/* Branch membership comes from the engine's exported areasFor, never a local copy.
+   The engine comment says it plainly: duplicating this expression in the panel is how
+   the actions area stayed invisible on the not-assessed branch even once the engine
+   carried it. The not-assessed branch now has its own Actions area (nac), written for
+   a missed contact, which supersedes the interim fix that borrowed the assessed one. */
+const branchAreas = () => areasFor(state.branch)
 
 const HOVER_OK = window.matchMedia('(hover: hover) and (pointer: fine)').matches
 let hoverTimer=null, lastClick=0

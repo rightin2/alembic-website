@@ -27,16 +27,22 @@ export function makeBlankRiskState() {
 
 /**
  * True when the risk state has one branch complete enough to serialise.
- * "Complete" means: assessed branch needs at least one of the three fields
- * filled in (details/outcome/actions — a clinician may not always have all
- * three, e.g. "Actions: None" is itself a value the UI prefills as text, so
- * this checks for any non-empty field); not_assessed branch needs a
- * non-empty rationale.
+ *
+ * The assessed branch requires ALL THREE lines to carry clinician-chosen
+ * content (risk-070 and risk-073, decided 2026-08-17): the old any-field rule
+ * let software print fallback sentences ("Not provided", "None") that no
+ * clinician wrote, and blocking removes the mechanism rather than softening
+ * the wording. The vocabulary ships an honest one-click answer for every lane
+ * (the limits dimension, "considered and not taken", the no-escalation terms),
+ * so a truthful entry always exists; the gate never forces a false one.
+ *
+ * The not_assessed branch needs a non-empty rationale, and only that: the
+ * reason remains the sole mandatory element there.
  */
 export function isRiskBlockComplete(risk) {
   if (!risk || typeof risk !== 'object') return false
   if (risk.branch === 'assessed') {
-    return !!(risk.assessedDetails?.trim() || risk.outcome?.trim() || risk.actions?.trim())
+    return !!(risk.assessedDetails?.trim() && risk.outcome?.trim() && risk.actions?.trim())
   }
   if (risk.branch === 'not_assessed') {
     return !!risk.notAssessedReason?.trim()
@@ -53,22 +59,27 @@ export function isRiskBlockComplete(risk) {
 export function serialiseRiskBlock(risk) {
   if (!isRiskBlockComplete(risk)) return null
   if (risk.branch === 'assessed') {
-    // PORT FIX, 2026-08-17: the fallbacks printed "Not provided" and "None",
-    // both of which assert something the clinician never chose. A line the
-    // clinician left empty is now omitted rather than filled with an assertion.
-    const lines = [`Assessed: ${risk.assessedDetails?.trim() || 'Yes'}`]
-    if (risk.outcome?.trim()) lines.push(`Outcome: ${risk.outcome.trim()}`)
-    if (risk.actions?.trim()) lines.push(`Actions: ${risk.actions.trim()}`)
-    return lines
+    // No fallbacks. isRiskBlockComplete now requires all three lines, so an
+    // unauthored sentence ("Yes", "Not provided", "None") can never print
+    // (risk-070 and risk-073, decided 2026-08-17).
+    return [
+      `Assessed: ${risk.assessedDetails.trim()}`,
+      `Outcome: ${risk.outcome.trim()}`,
+      `Actions: ${risk.actions.trim()}`,
+    ]
   }
-  // PORT FIX, 2026-08-17: the Actions line was hardcoded to "None" on this branch,
-  // which asserted something about the clinician's conduct that they never chose.
-  // It now prints what they recorded, and omits the line entirely when they
-  // recorded nothing, rather than asserting an absence. See risk/PORT-NOTES.md.
-  const notAssessedLines = [
-    `Assessed: No`,
-    `Outcome: Risk not formally assessed this session. ${risk.notAssessedReason.trim()}`,
+  // The not-assessed shape (risk-070 with r27's sentence; the precise reading
+  // is DECISIONS-ADDENDUM.md A9). The statement that risk was not formally
+  // assessed lives once, on the Assessed line; the Outcome line carries the
+  // clinician's chosen reason alone; the Actions line prints what they
+  // recorded, falling back to "not recorded", which is a statement about the
+  // record that is true by construction, never a claim about their conduct.
+  // Research lane r26 found the old form's worst case: in the note recording
+  // a client's death, the block read "the client was not present" followed by
+  // "Actions: None" over the clinician's name.
+  return [
+    `Assessed: Risk was not formally assessed this contact.`,
+    `Outcome: ${risk.notAssessedReason.trim()}`,
+    `Actions: ${risk.actions?.trim() || 'not recorded'}`,
   ]
-  if (risk.actions?.trim()) notAssessedLines.push(`Actions: ${risk.actions.trim()}`)
-  return notAssessedLines
 }
