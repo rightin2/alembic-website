@@ -6,6 +6,8 @@
 //   sel     { [areaId]: { [subId]: term[] } }
 //   own     { [scope]: string }   'root' | areaId | 'areaId|subId'
 //   over    { 'areaId|subId|term': string }
+//   edited  { [lane]: string }    a line typed by hand into the preview, which
+//                                 replaces the built line for that lane only
 //
 // Every mutator returns a new object and leaves the old one untouched.
 //
@@ -22,6 +24,7 @@
 // is always one the clinician picked.
 
 import { RISK_AREAS, ASSESSED, NOT_ASSESSED } from './riskVocabulary.js'
+import { subOffered } from '../detailLevel.js'
 
 // Branch membership comes straight from the vocabulary's explicit lists
 // (DECISIONS-ADDENDUM.md A1): the not-assessed branch carries its own Actions
@@ -50,7 +53,37 @@ export function emptyRiskState() {
     sel[area.id] = {}
     for (const sub of area.subs) sel[area.id][sub.id] = []
   }
-  return { branch: null, sel, own: {}, over: {} }
+  return { branch: null, sel, own: {}, over: {}, edited: {} }
+}
+
+// The hand edit, per lane (change request B1, 2026-08-17). Risk is three
+// separate lines in the record, so the override is per line rather than one
+// blob: editing the Actions line must not require retyping the other two, and
+// a re-parse of an edited block back into three lanes would be a guess about
+// which sentence belonged where.
+//
+// The picks stay untouched underneath, so "Back to the built line" is
+// lossless. The blocking contract is unchanged and still applies to the
+// result: an edited assessed branch serialises only when all three lines carry
+// something, whether chosen or typed.
+export function setEditedLane(state, lane, text) {
+  const value = trimmed(text)
+  const edited = { ...(state.edited || {}) }
+  if (value) edited[lane] = value
+  else delete edited[lane]
+  return { ...state, edited }
+}
+
+export function clearEditedLane(state, lane) {
+  return setEditedLane(state, lane, '')
+}
+
+export function isLaneEdited(state, lane) {
+  return !!trimmed(state?.edited?.[lane])
+}
+
+export function hasEdits(state) {
+  return Object.values(state?.edited || {}).some(v => trimmed(v))
 }
 
 // Changing branch keeps every selection: a clinician who ticks their way
@@ -134,6 +167,9 @@ export function areaHasContent(state, area) {
 // One line's worth of text: every area on that lane, in vocabulary order, each
 // sub's picks joined with commas and the subs joined with semicolons.
 export function laneText(state, lane) {
+  // A hand edit replaces this lane entirely, so the preview, the completeness
+  // check and the note all read the same sentence.
+  if (isLaneEdited(state, lane)) return trimmed(state.edited[lane])
   const bits = []
   // FIX 2026-08-17 (b): was `lane === 'assessed' && state.own?.root`, which
   // captured the clinician's typed line on the not-assessed branch and then
@@ -214,4 +250,38 @@ export function areasRecorded(state) {
 
 export function areaCount(state) {
   return areasFor(state?.branch).length
+}
+
+// The detail level (change request B3, treatment A, 2026-08-17). Same contract
+// as the MSE engine: exported from here, imported by the panel, never
+// re-derived there (HANDOVER-website-sync.md section 5).
+//
+// The blocking contract is what makes the content escape hatch essential here.
+// The assessed branch refuses to serialise until all three lines carry
+// something (risk-070, risk-073), so a dimension holding one of those three
+// entries must stay visible whatever the level says, or a clinician could drop
+// to Brief and find the note blocked by an entry they can no longer see.
+export function subHasContent(state, areaId, subId) {
+  return (state?.sel?.[areaId]?.[subId] || []).length > 0
+    || !!state?.own?.[areaId + '|' + subId]
+}
+
+export function areasForLevel(state, branch, level) {
+  const out = []
+  for (const area of areasFor(branch)) {
+    const subs = area.subs.filter(s => subOffered(s, level, subHasContent(state, area.id, s.id)))
+    if (subs.length || state?.own?.[area.id]) out.push({ ...area, subs })
+  }
+  return out
+}
+
+export function offeredCounts(state, branch, level) {
+  const areas = areasForLevel(state, branch, level)
+  let dims = 0
+  let terms = 0
+  for (const a of areas) {
+    dims += a.subs.length
+    for (const s of a.subs) terms += s.terms.length
+  }
+  return { areas: areas.length, dims, terms }
 }

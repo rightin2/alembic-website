@@ -16,20 +16,20 @@
 
 export const MSE_DOMAINS = [
  {id:"app",name:"Appearance",label:"Appearance",lead:"",subs:[
-   {id:"gr",name:"Grooming and self-care",terms:[
+   {id:"gr",name:"Grooming and self-care",level:1,terms:[
      ["grooming and dress usual for this client","Nothing has changed from how this person usually presents. The safest baseline-relative wording, because it compares them to themselves rather than to a social standard.",1],
      ["well groomed","Hair, clothing and hygiene appear cared for and appropriate to the setting.",1],
      ["grooming below usual standard for this client","A departure from their own baseline, which is the clinically meaningful comparison."],
      ["self-care below usual standard for this client","Broader than grooming: may take in eating, hygiene, medication or household tasks the client has mentioned."],
      ["appearance markedly changed since last session","Use when the change itself is the finding. Say what changed in your own words."]]},
-   {id:"dr",name:"Dress and context",terms:[
+   {id:"dr",name:"Dress and context",level:2,terms:[
      ["dressed for the weather and setting","Clothing suits the conditions and the appointment.",1],
      ["dress consistent with cultural or religious practice","Marks dress as cultural rather than clinical, so it is never later read as bizarre.",1],
      ["wearing noise-reducing or other sensory supports by preference (client confirmed)","Records sensory accommodation as preference, not avoidance. Matters for autistic clients.",1],
      ["presented in the name, pronouns and gender expression the client uses","Records gender expression in the client's own terms and commits the rest of the note to their name and pronouns. Misgendering in clinical records is common and avoidable.",1],
      ["dressed more heavily than the conditions required","Observation only. Do not infer concealment here; if concealment is a live clinical question, ask about it and record the conversation instead."],
      ["hearing or vision difficulty apparent; some responses may reflect not hearing the question","Establish hearing and vision before treating any answer as a cognitive finding. A misheard question that was answered wrongly is an artefact, not a result."]]},
-   {id:"ab",name:"Apparent age and build",terms:[
+   {id:"ab",name:"Apparent age and build",level:3,terms:[
      ["appears their stated age","The default observation. Apparent age is recorded because a large gap from stated age can flag physical illness or sustained strain, which is also why no cause is ever attached here.",1],
      ["appears older than stated age","An observation only. This line is often read as code for hard living, so if you mean something specific, say that instead. Never attach a cause here."],
      ["appears younger than stated age","An observation only. Do not attach a cause to it here."],
@@ -38,13 +38,13 @@ export const MSE_DOMAINS = [
      ["slight build","A neutral descriptor. Record build only where it bears on the clinical picture; otherwise leave the line out."],
      ["larger build","A neutral descriptor; keep evaluative words out of this line. Record build only where it bears on the clinical picture; otherwise leave the line out."],
      ["apparent change in build since last session; raised with client","The clinically live observation is change, not category. The second clause records that you asked rather than concluded."]]},
-   {id:"df",name:"Distinguishing features",terms:[
+   {id:"df",name:"Distinguishing features",level:3,terms:[
      ["no distinguishing features noted","Nothing that needs recording for identification or clinical relevance.",1],
      ["visible tattoos or piercings, noted as appearance only","Records the observation without letting it become a clinical finding.",1],
      ["mobility aid used","A fact about how the client gets about, not a finding about function.",1],
      ["visible injury or scarring observed; raised with client","The observation plus the fact that you raised it. Only use if you actually did; an injury recorded without a conversation is a question the record leaves hanging."],
      ["smell of alcohol noticed; raised with client","An observation plus the fact that you asked. Never record intoxication as a conclusion, and never record the observation without raising it."]]},
-   {id:"ey",name:"Eye contact",terms:[
+   {id:"ey",name:"Eye contact",level:2,terms:[
      ["eye contact usual for this client","Baseline-relative, and safe across cultures and neurotypes.",1],
      ["reduced eye contact; client describes this as their usual comfortable pattern","Records the observation and the explanation together, so it is not later read as avoidance.",1],
      ["direct eye contact avoided as a mark of respect in the client's community (client explained)","Stops a culturally normative behaviour being recorded as a finding. Only use when the client told you.",1],
@@ -53,14 +53,14 @@ export const MSE_DOMAINS = [
      ["sustained, direct eye contact throughout","The other pole from reduced eye contact, described rather than called intense or staring, which read as judgements. Often a neurodivergent pattern rather than a finding."],
      ["eye contact increased as the session went on","Within-session change, which a single static descriptor cannot carry. Say what shifted and when in your own wording."],
      ["eye contact observed; no cultural or personal baseline established, so not interpreted","There is no universal standard for eye contact, and no baseline here to compare against. This is the honest line when you have noticed something and have no frame for reading it."]]},
-   {id:"po",name:"Posture and gait",terms:[
+   {id:"po",name:"Posture and gait",level:2,terms:[
      ["posture and gait usual for this client","Baseline-relative, and the safest way to close the item when nothing drew your attention.",1],
      ["sat comfortably; no postural change of note","The plain negative for a session where posture was unremarkable throughout.",1],
      ["sat slumped for much of the session","An observation about how the client held themselves. Do not attach a cause to it here; slumping is not a mood finding on its own."],
      ["held a tense or guarded posture through the session","Describes the body, not the person. Pair it with what the client said about it where you asked."],
      ["unsteady or altered gait observed; medical review suggested","Gait change can be neurological or medication-related. A psychologist records what was seen and refers; naming the cause is not ours to do."]]}]},
  {id:"beh",name:"Behaviour",label:"Behaviour",lead:"",subs:[
-   {id:"ps",name:"Psychomotor activity",terms:[
+   {id:"ps",name:"Psychomotor activity",level:2,terms:[
      ["settled readily","Took a short time to settle, then remained settled.",1],
      ["movement pattern usual for this client","Baseline-relative: compares the client with their own usual pattern, which is the comparison that carries clinical meaning.",1],
      ["no agitation or slowing observed","Neither raised nor reduced activity was apparent.",1],
@@ -74,20 +74,20 @@ export const MSE_DOMAINS = [
      ["increased activity; paced during the session","The observable evidence, so agitation is not asserted bare."],
      ["restless; shifted position frequently","Plainer alternative where agitation would overstate it."],
      ["client describes inner restlessness and difficulty sitting still","The client's own account of restlessness felt from the inside, which is different from restlessness you observed. Worth recording separately because it is often medication related."]]},
-   {id:"ar",name:"Arousal and vigilance",terms:[
+   {id:"ar",name:"Arousal and vigilance",level:3,terms:[
      ["arousal level usual for this client","Baseline-relative, and the safest way to record that nothing about vigilance stood out.",1],
      ["startled at sounds outside the room","The observable rather than the label. Says what happened and where the sound came from."],
      ["turned toward the door and checked it during the session","A specific, common trauma-related observation, recorded as behaviour and not as a symptom."],
      ["settled after the first few minutes; no further startle observed","Records within-session change, which the flat term would lose."],
      ["heightened vigilance to sounds and movement; client describes this as usual for them","The observation with the client's own account attached, so it is not later read as new."]]},
-   {id:"mnr",name:"Movements and mannerisms",terms:[
+   {id:"mnr",name:"Movements and mannerisms",level:3,terms:[
      ["no unusual mannerisms observed","Nothing repetitive or atypical was apparent.",1],
      ["repetitive hand movement observed; client describes this as usual","The observation with the client account attached, so it is not read as abnormal.",1],
      ["tremor observed","Observation only. Say which limb, and whether at rest or on movement."],
      ["tremor observed; prescriber or GP review suggested","The same observation with the referral attached. A new tremor is worth the prescriber knowing about; say which limb, and whether at rest or on movement, in your own wording."],
      ["tic-like movement observed","Descriptive rather than diagnostic."],
      ["involuntary movement of the mouth, tongue or face observed; prescriber review suggested","Orofacial involuntary movement is commonly medication-related. Record what you saw and refer to the prescriber; naming a movement disorder is not a psychologist's call."]]},
-   {id:"en",name:"Cooperation and engagement",terms:[
+   {id:"en",name:"Cooperation and engagement",level:1,terms:[
      ["engaged readily; answered openly","Replaces the compliance verdict \"cooperative\" with what happened.",1],
      ["cooperative and engaged","Plainer, and common in Australian notes. \"Cooperative\" carries a compliance sense, so prefer the term above where the client attended under pressure; it says what happened rather than rating compliance.",1],
      ["requested a break; break taken","A neutral record of an accommodation, never a finding about tolerance.",1],
@@ -95,7 +95,7 @@ export const MSE_DOMAINS = [
      ["responses brief; limited elaboration","Observable, and avoids inferring guardedness."],
      ["declined to answer some questions","States the fact without attributing a motive such as evasive."],
      ["engagement increased after the first part of the session","Within-session change. The shape of a session is often the finding, and a single descriptor flattens it."]]},
-   {id:"cx",name:"Context",terms:[
+   {id:"cx",name:"Context",level:2,terms:[
      ["first session; presentation may reflect unfamiliarity with the setting","Guards a first-session presentation from being treated as a baseline."],
      ["support person present at client request","A fact about the session, not about dependence.",1],
      ["client is in Sorry Business (client term); presentation understood in that context","Marks culturally normative mourning so withdrawal is not recorded as retardation.",1],
@@ -112,7 +112,7 @@ export const MSE_DOMAINS = [
      ["change in presentation reported by a family member as occurring over days","Onset and course are established by report, not by examination. Record who said it and over what period; that time frame is the clinically useful part."],
      ["risk questions asked openly rather than as yes or no questions","Recording how you asked is what makes the answer worth something. Only use it when you actually asked open questions rather than yes or no ones."],
      ["information from others not sought this session","States the limit of what the findings rest on. Useful whenever the presentation is unusual and the account is the client's alone.",1]]},
-   {id:"md",name:"Mode and what it allowed",terms:[
+   {id:"md",name:"Mode and what it allowed",level:2,terms:[
      ["session by video; observations limited to what the camera showed","Video shows head and shoulders. Gait, posture, whole-body psychomotor activity, tremor and grooming below the frame are not assessable. Record this so a later reader knows the Appearance and Behaviour lines are partial rather than negative."],
      ["session by telephone; appearance, behaviour and observed affect not assessable","On the phone, speech, thought form, thought content, reported mood, insight and judgement remain assessable. Everything visual does not. Say so rather than leaving those domains blank and ambiguous."],
      ["contact by written message only; no mental state observation possible","Use for SMS or written contact. It is a complete and honest MSE for that contact. Anything more would be inferred from text."],
@@ -120,20 +120,20 @@ export const MSE_DOMAINS = [
      ["client location and an emergency contact confirmed at the start of the session","Standard practice for remote contact, and the fact that you did it belongs in the note. Record the fact, not the address."],
      ["others present in the client's environment; client confirmed they could speak freely","Remote sessions happen in rooms you cannot see. Ask, and record the answer, because it qualifies everything the client did and did not say. A yes given with others in the room is weak evidence, so put the question again when the client is alone and record what they said then."]]}]},
  {id:"ar",name:"Attitude and rapport",label:"Attitude and rapport",lead:"",subs:[
-   {id:"att",name:"Attitude to interviewer",lead:"attitude",terms:[
+   {id:"att",name:"Attitude to interviewer",lead:"attitude",level:1,terms:[
      ["open and receptive to the interview","Engaged with the process without reservation.",1],
      ["usual for this client","Baseline-relative: compares the client with their own usual pattern, which is the comparison that carries clinical meaning.",1],
      ["described themselves as guarded on some topics","Records the reticence together with the client's own account of it."],
      ["described mixed feelings about attending, and discussed this openly","Neutral, and avoids the loaded word resistant."],
      ["attended at the request of another person, and said so","A fact about how the referral came about, not a verdict on motivation."],
      ["raised voice at one point; named in session and the conversation continued","Describes what happened and what you did about it. The recovery-oriented replacement for \"hostile\" is the sequence of events, not an adjective about the person."]]},
-   {id:"rap",name:"Quality of rapport",lead:"rapport",terms:[
+   {id:"rap",name:"Quality of rapport",lead:"rapport",level:2,terms:[
      ["established readily and maintained","Warm working contact through the session.",1],
      ["consistent with previous sessions","Baseline-relative: compares the client with their own usual pattern, which is the comparison that carries clinical meaning.",1],
      ["slower to establish, then settled","Describes the shape of the session rather than labelling the client."],
      ["limited this session; client named tiredness as the reason","The observation with the reason the client gave for it. If the client named a different reason, record that reason in your own words instead."]]}]},
  {id:"sp",name:"Speech",label:"Speech",lead:"speech",subs:[
-   {id:"rt",name:"Rate and volume",terms:[
+   {id:"rt",name:"Rate and volume",level:1,terms:[
      ["normal rate and volume","Nothing remarkable in pace or loudness.",1],
      ["rate usual for this client","Baseline-relative: compares the client with their own usual pattern, which is the comparison that carries clinical meaning.",1],
      ["volume usual for this client","Baseline-relative. Habitual volume varies widely between people.",1],
@@ -142,14 +142,14 @@ export const MSE_DOMAINS = [
      ["pressured and difficult to interrupt","Technical term; the second clause is the observable that earns it. Fast speech you can interrupt is not pressured, so hold the term for speech that is driven and resists interruption."],
      ["soft","Quieter than conversational volume."],
      ["louder than conversational volume","Observation only. Do not attach a cause such as anger or elevation here."]]},
-   {id:"tn",name:"Tone and prosody",terms:[
+   {id:"tn",name:"Tone and prosody",level:3,terms:[
      ["tone and inflection unremarkable","The usual variation in pitch and emphasis was present.",1],
      ["prosody usual for this client","Baseline-relative: compares the client with their own usual pattern, which is the comparison that carries clinical meaning.",1],
      ["prosody is the client's usual communication style (client confirmed)","Records atypical intonation as style rather than as flattening. Only use where the client or the record establishes it. Prefer it to \"monotonous\" for autistic clients.",1],
      ["little variation in pitch or emphasis (monotonous)","Little variation in pitch or emphasis. For autistic clients this is often a communication style rather than a change, so prefer a client-confirmed baseline term where that applies."],
      ["tone flattened compared with previous sessions","A baseline-relative change, which is the meaningful one."],
      ["more animated and emphatic than usual for this client","Greater variation in pitch and stress than this client usually shows."]]},
-   {id:"qt",name:"Quantity and spontaneity",terms:[
+   {id:"qt",name:"Quantity and spontaneity",level:2,terms:[
      ["normal quantity; spoke spontaneously","The usual amount of speech, initiated as well as answered.",1],
      ["quantity usual for this client","Baseline-relative: compares the client with their own usual pattern, which is the comparison that carries clinical meaning.",1],
      ["reduced quantity; answered briefly","Observable, without inferring that anything was withheld."],
@@ -157,7 +157,7 @@ export const MSE_DOMAINS = [
      ["produced only in answer to questions; not initiated","The loss of spontaneity, recorded separately from the amount. Someone can say a great deal and still initiate none of it."],
      ["minimal; brief single-word answers throughout","The far end of reduced quantity, described rather than labelled poverty of speech or mute."],
      ["usual in amount, conveying little information","What is reduced is the information, not the amount. Distinct from reduced quantity, and worth a second look at thought form."]]},
-   {id:"fl",name:"Flow and clarity",terms:[
+   {id:"fl",name:"Flow and clarity",level:2,terms:[
      ["fluent and clear","Flowed without difficulty and was easily understood.",1],
      ["coherent","Used here about audibility and sentence structure, not the organisation of thought. Thought form has its own coherence terms; do not record both for one observation.",1],
      ["spontaneous","Client initiated speech rather than only answering.",1],
@@ -167,7 +167,7 @@ export const MSE_DOMAINS = [
      ["with a stutter or stammer the client describes as longstanding","Marks a speech difference as a stable feature rather than a finding of this session."],
      ["began after a longer delay than usual for this client","Response latency: the gap before answering starts, as distinct from pauses inside a sentence. Only record it where the connection was good."],
      ["flow eased as the session went on","Records a change within the session rather than flattening it to one state."]]},
-   {id:"ch",name:"Channel",terms:[
+   {id:"ch",name:"Channel",level:3,terms:[
      ["in the client's first language","Establishes that speech findings are reliable.",1],
      ["through an interpreter; speech findings limited accordingly","Interpreted speech is not the client's speech; rate, prosody and latency are not assessable."],
      ["communicated in writing or using a communication device","Replaces the stigmatising label mute with what happened."],
@@ -175,7 +175,7 @@ export const MSE_DOMAINS = [
      ["by telephone; judged by ear alone, with line quality affecting volume and clarity","Volume and articulation findings over a phone line are the line's as much as the client's."],
      ["by video; audio lag present, so rate and response delay findings are approximate","Lag inflates apparent latency and can make normal turn-taking look slowed."]]}]},
  {id:"mo",name:"Mood",label:"Mood",lead:"mood",subs:[
-   {id:"m",name:"Predominant mood, as reported",single:true,terms:[
+   {id:"m",name:"Predominant mood, as reported",single:true,level:1,terms:[
      ["euthymic","Within the normal range, neither low nor elevated. Technical and precise.",1],
      ["settled","Plainer alternative to euthymic.",1],
      ["low","Below usual. Preferred over depressed, which is a diagnostic register word."],
@@ -188,7 +188,7 @@ export const MSE_DOMAINS = [
      ["expansive; client describes unusual confidence or plans","Feeling expressed with little restraint, together with the client describing unusual confidence in their own plans or abilities. The second clause is what the client told you."],
      ["not named; client describes difficulty identifying feelings","Attributed to the client, and states why the valence line is empty. Common for autistic clients and for clients with alexithymia generally, and not on its own a clinical finding."],
      ["not asked directly this session","An honest record that the mood question was not put. It is an answer, not a finding."]]},
-   {id:"ow",name:"Client's own words",lead:"described by the client as",terms:[
+   {id:"ow",name:"Client's own words",lead:"described by the client as",level:2,terms:[
      ["\"fine\"","Recorded verbatim, in the word the client used. Quotation marks keep it theirs.",1],
      ["\"okay\"","Recorded verbatim, in the word the client used. Quotation marks keep it theirs.",1],
      ["\"flat\"","Recorded verbatim, in the word the client used. Quotation marks keep it theirs."],
@@ -204,7 +204,7 @@ export const MSE_DOMAINS = [
      ["\"thinking too much\"","Recorded verbatim. A widely documented way of naming distress across many cultures; keep it in the client's words rather than translating it into \"ruminative\"."],
      ["\"I don't know\"","Recorded verbatim, like the other entries. Some clients, particularly autistic clients, find identifying and naming a feeling genuinely difficult. Their answer is the answer; do not substitute a word for them."],
      ["their own word in their first language, translated in session","Where the client's word has no clean English equivalent, record that fact rather than substituting an English approximation. Write the word itself and the translation offered in session; the word is theirs, the translation is not."]]},
-   {id:"tr",name:"Trend, as reported",terms:[
+   {id:"tr",name:"Trend, as reported",level:2,terms:[
      ["reported as usual for this client","No change from their own baseline.",1],
      ["reported as improved since last session","The client's own comparison, attributed to them."],
      ["reported as worse since last session","The client's own comparison. Pair it with the risk screen."],
@@ -212,7 +212,7 @@ export const MSE_DOMAINS = [
      ["reported as fluctuating through the day","Diurnal variation, in the client account. A mood that lifts by evening is a different picture from one that does not move."],
      ["reported as present most days over recent weeks","The duration element, which is what separates a mood from a reaction. Client's report, not your inference."],
      ["reported as reactive to circumstances","The client describes the mood lifting and falling with what is happening around them. This is their report; Affect is where reactivity you observed is recorded."]]},
-   {id:"nv",name:"Sleep, appetite and energy, as reported",lead:"reports",terms:[
+   {id:"nv",name:"Sleep, appetite and energy, as reported",lead:"reports",level:3,terms:[
      ["sleep as usual for this client","Baseline-relative, and the safest of the sleep terms because it compares them to themselves.",1],
      ["interest and enjoyment unchanged","Asked about and not present, in the client's account. Worth recording positively so the question does not disappear from the note.",1],
      ["reduced sleep since last session","The client's own report of a change since you last met. Attributed to them, not measured by you."],
@@ -220,11 +220,11 @@ export const MSE_DOMAINS = [
      ["low energy or motivation","The client's account of drive and energy. Useful across depression, grief, chronic illness and medication change without asserting any of them."],
      ["reduced interest in usual activities","Anhedonia in plain words, attributed to the client, without the diagnostic register word."]]}]},
  {id:"af",name:"Affect",label:"Affect",lead:"affect",subs:[
-   {id:"ob",name:"Observability",single:true,terms:[
+   {id:"ob",name:"Observability",single:true,level:3,terms:[
      ["not observable this session; contact was by telephone","Affect is an observation of expression. On an audio-only call there is nothing to observe, and saying so is stronger than leaving the domain blank."],
      ["observed on video with a clear picture throughout","Establishes that the affect findings that follow are reliable.",1],
      ["observed on video; picture quality limited, so range and reactivity findings are approximate","A degraded picture flattens expression. Recording the limit protects the finding from being read as certain."]]},
-   {id:"rg",name:"Range",single:true,terms:[
+   {id:"rg",name:"Range",single:true,level:1,terms:[
      ["full range","The usual variety of emotional expression was present.",1],
      ["range usual for this client","Baseline-relative: compares the client with their own usual pattern, which is the comparison that carries clinical meaning.",1],
      ["restricted; reduced range of expression, still present","Reduced range of expression, still present. DSM-5-TR treats restricted and constricted as the same finding, so name what you actually observed rather than relying on the word."],
@@ -232,44 +232,44 @@ export const MSE_DOMAINS = [
      ["blunted; markedly reduced intensity of expression","Markedly reduced intensity of expression, with some range still discernible. The word claims nothing about what the client feels inside, only what was expressed. Medication can blunt expression, so consider attribution before it stands alone."],
      ["flat; little or no emotional expression observable","Little or no emotional expression observable, the far end of the reduction family. Check the congruence dimension's client-reported protection before recording this for an autistic or medicated client, and note Mood has its own reported \"flat\"."],
      ["expansive; expression broader and less restrained than usual for this client","The raised counterpart to restricted. Baseline-relative, because how much expression is usual varies widely between people."]]},
-   {id:"re",name:"Reactivity",terms:[
+   {id:"re",name:"Reactivity",level:2,terms:[
      ["reactive to conversation","Expression shifted appropriately with the content.",1],
      ["brightened when discussing a specific topic","A useful, specific observation. Name the topic in your own wording.",1],
      ["reduced reactivity across the session","Less shift than expected with changing content."],
      ["tearful","Observable. Note when, and about what."],
      ["fixed; expression did not change with the content","The non-reactive pole. Reactivity runs fixed, reactive, labile, and this is the fixed end."],
      ["did not shift with content that has lifted the client in previous sessions","Baseline-relative non-reactivity, which is a stronger finding than a bare fixed."]]},
-   {id:"it",name:"Intensity",single:true,terms:[
+   {id:"it",name:"Intensity",single:true,level:3,terms:[
      ["usual intensity of expression","Emotion expressed at about the strength the content would suggest.",1],
      ["intensity usual for this client","Baseline-relative: compares the client with their own usual pattern, which is the comparison that carries clinical meaning.",1],
      ["heightened intensity of expression","Stronger than the content would suggest."],
      ["reduced intensity of expression","Weaker than the content would suggest."],
      ["reduced intensity of expression; client attributes this to medication","The client's account of why expression is reduced, recorded as their attribution and not yours."]]},
-   {id:"st",name:"Stability",single:true,terms:[
+   {id:"st",name:"Stability",single:true,level:3,terms:[
      ["stable across the session","No abrupt shifts in expressed emotion.",1],
      ["shifted with the content, and settled again","Movement that tracked the conversation, which is expected.",1],
      ["labile; rapid shifts not tied to the content","The technical term with the observable that earns it."]]},
-   {id:"cg",name:"Congruence",single:true,terms:[
+   {id:"cg",name:"Congruence",single:true,level:2,terms:[
      ["congruent with reported mood","What you saw matched what they told you.",1],
      ["facial expression may not reflect internal state for this client (client reported)","Stops autistic or medicated presentation being recorded as flat or incongruent.",1],
      ["incongruent with reported mood; context considered","A mismatch, with the caveat that context was weighed first."]]},
-   {id:"ap",name:"Appropriateness",single:true,terms:[
+   {id:"ap",name:"Appropriateness",single:true,level:3,terms:[
      ["appropriate to the content and the situation","What was expressed fitted what was being discussed. This is the content axis, kept separate from congruence with reported mood.",1],
      ["did not match the content; culture and context considered before recording this","The mismatch, with the record that you weighed context first. Inappropriate affect is one of the most culturally misread findings there is."],
      ["differs from the content; client describes this as how they manage distress","Laughter or lightness during difficult content is a coping response for many people, and for some communities it is the expected one. Records it as coping, not as a finding."]]}]},
  {id:"tf",name:"Thought form",label:"Thought form",lead:"thought form",subs:[
-   {id:"ce",name:"Overall followability",single:true,terms:[
+   {id:"ce",name:"Overall followability",single:true,level:1,terms:[
      ["coherent throughout","Followed without difficulty from beginning to end.",1],
      ["mostly coherent, with occasional loss of thread","A proportional hedge, which is usually the truthful shape."],
      ["difficult to follow at times","An observation about following, not a label on the client."],
      ["could not be followed for part of the session","The ceiling of this ladder. Use only when following genuinely failed, and say in your own words what the section of the session was about."],
      ["form loosened while distressing material was discussed, and settled again","A within-session change rather than a verdict on the whole hour. This shape is common in Australian notes."]]},
-   {id:"gl",name:"Reaching the point",single:true,terms:[
+   {id:"gl",name:"Reaching the point",single:true,level:2,terms:[
      ["goal-directed","Moved toward a point and reached it.",1],
      ["reached the point after considerable detail","Plainer than circumstantial, and says the same thing."],
      ["reached the point after detailed, interest-led description","Describes an associative, detail-rich communication style that arrives. Prefer it to circumstantial where the pattern is how the client communicates."],
      ["did not reach the point","Plainer than tangential. Consider whether the point would have been reached with more time before choosing this."]]},
-   {id:"as",name:"Connections between ideas",terms:[
+   {id:"as",name:"Connections between ideas",level:2,terms:[
      ["logical and goal-directed","Ideas connected sensibly and moved toward a point.",1],
      ["coherent and organised","Plainer alternative.",1],
      ["linear","Progressed in a straight line without digression.",1],
@@ -278,7 +278,7 @@ export const MSE_DOMAINS = [
      ["digressed and did not return to the question (tangential)","The distinction from circumstantial is the returning. Note the term has two live senses: Andreasen limits tangentiality to answers that go oblique to the question, which is the sense this term uses."],
      ["slipped to a loosely related or unrelated topic without signalling the change (derailment)","The ideas slip onto a track that is only obliquely related or unrelated, and the client does not mark the shift. Also called loosening of associations in older texts. Distinguished from tangentiality, which is about how a question is answered."],
      ["used a word of their own invention with a private meaning (neologism)","A word the client has coined. Write the word itself in your own line if you can, because the example carries more than the label."]]},
-   {id:"tp",name:"Tempo and amount",terms:[
+   {id:"tp",name:"Tempo and amount",level:3,terms:[
      ["normal tempo","Ideas arrived at a usual pace.",1],
      ["tempo usual for this client","Baseline-relative: compares the client with their own usual pattern, which is the comparison that carries clinical meaning.",1],
      ["usual amount of spontaneous content for this client","Baseline-relative: compares the client with their own usual pattern, which is the comparison that carries clinical meaning. The normal-range answer for the amount axis.",1],
@@ -288,48 +288,48 @@ export const MSE_DOMAINS = [
      ["little spontaneous content; answers brief and literal","Poverty of thought described by what you heard. Separate from soft or slow speech, which belongs in the Speech domain."],
      ["ample speech that conveyed little information","Poverty of content of speech: the amount is normal but it is vague, empty or repetitive. A thought-form finding, not a speech finding."],
      ["speech stopped mid-thought and the thread was lost (thought blocking)","The observable first, then the term."]]},
-   {id:"pv",name:"Perseveration",terms:[
+   {id:"pv",name:"Perseveration",level:3,terms:[
      ["no perseveration observed","No theme or response repeated beyond its point.",1],
      ["returned repeatedly to the same theme","An observable description, without a mechanism attached."],
      ["repeated the same response to different questions (perseveration)","The observable that earns the term."]]},
-   {id:"cx",name:"Context and reliability",terms:[
+   {id:"cx",name:"Context and reliability",level:3,terms:[
      ["detailed, associative style described by the client as usual for them","Records a communication style as the client's baseline rather than as circumstantiality. Matters for autistic and ADHD clients, and for anyone whose usual way of telling a story is long.",1],
      ["thought form inferred through an interpreter; findings limited accordingly","Thought form is read off speech, so interpreted speech makes tempo, connection and goal direction unreliable. Say so rather than record a finding you cannot support."]]}]},
  {id:"tc",name:"Thought content",label:"Thought content",lead:"",risk:true,subs:[
-   {id:"ge",name:"General content",terms:[
+   {id:"ge",name:"General content",level:1,terms:[
      ["no acute distress observed","A composite negative common across whole services' notes. Acute here means current and short-lived, not severe. It summarises, so it does not stand alone: pair it with at least one specific finding from this session.",1],
      ["no delusional beliefs or perceptual disturbance elicited","A blanket negative covering delusions and perceptual disturbance. It is a conclusion across two domains, so only use it after you actually enquired, and check it does not contradict a Perception line in the same note.",1],
      ["preoccupied with current stressors","Content dominated by present circumstances rather than fixed beliefs."],
      ["ruminative","Repetitive circling on the same content, usually past-focused; worry is the future-focused cousin. It is a bare adjective a supervisor may query, so where you can, record it as the client's own description of returning to the same thoughts."],
      ["reports worry about future events that is hard to control","Future-focused repetitive thinking, in the client's own account. Pair it with the rumination term where both are present, because they are different processes."],
      ["distress described by the client in bodily terms","Many people describe distress through the body first. This is a way of speaking about suffering, not a somatic belief, and should not be recorded as one."]]},
-   {id:"dp",name:"Hopelessness, guilt and worth",terms:[
+   {id:"dp",name:"Hopelessness, guilt and worth",level:2,terms:[
      ["no themes of hopelessness, guilt or worthlessness reported","You asked about these themes and none were reported. Only use if you asked.",1],
      ["reports hopelessness about the future","The client's own account of the future as closed off. Record it as their words and pair it with the suicidal ideation screen."],
      ["reports feeling trapped in the current situation","Entrapment in the client's words. Distinct from hopelessness: one is about the future, the other about no way out of the present."],
      ["reports guilt or self-blame about a specific matter","Name the area, not the detail. The detail belongs in the body of the note."],
      ["reports feeling worthless or a burden to others","The client's own account. Where the burden theme is present, pair it with the risk dimensions."]]},
-   {id:"si",name:"Suicidal ideation",lead:"suicidal ideation",risk:true,single:true,terms:[
+   {id:"si",name:"Suicidal ideation",lead:"suicidal ideation",risk:true,single:true,level:1,terms:[
      ["asked about directly; client reported none","You asked directly and the client said no. Only use if you actually asked.",1],
      ["not asked this session","An honest record that the question was not put. It is a fact about the session, not a finding about the client."],
      ["not raised this session; nothing in the session indicated the need","Different from \"not asked this session\", which is silent about why. This one is a clinician judgement you are making and owning, so use it only when it is true."],
      ["passive thoughts of death; no wish to act reported","Thoughts of being dead or of not waking, without intent to act. Passive is a description, not a safe category, so still ask the follow-up questions."],
      ["active thoughts reported; no plan described","Thoughts of ending life, with no plan described. \"No plan described\" is what the client said, not a guarantee: ask about intent, and record it in the Risk section, which you author."],
      ["active, plan described","Thoughts with a plan. Ask about intent and means, and record them in the Risk section, which you author."]]},
-   {id:"hi",name:"Harm to others",lead:"ideation of harm to others",risk:true,single:true,terms:[
+   {id:"hi",name:"Harm to others",lead:"ideation of harm to others",risk:true,single:true,level:2,terms:[
      ["asked about directly; client reported none","You asked directly and the client said no. Only use if you actually asked.",1],
      ["not asked this session","An honest record that the question was not put this session."],
      ["thoughts of harm to others reported; no wish to act reported","Thoughts of harming others without intent to act. Ask whether anyone specific is in mind, and raise the session with your supervisor."],
      ["thoughts of harm to others; no specific person identified","The absence of an identified person is a fact worth recording, and it is often the fact that shapes what you do next."],
      ["specific person identified; supervisor consulted","Records the fact and the step you took. Any decision about disclosure is yours and belongs in the Risk and Plan sections, not here."],
      ["active, plan described","Thoughts with a plan. Discuss with your supervisor the same day and consider your disclosure obligations; record the decisions in the Risk section, which you author."]]},
-   {id:"sh",name:"Self-harm",lead:"self-harm without suicidal intent",risk:true,single:true,terms:[
+   {id:"sh",name:"Self-harm",lead:"self-harm without suicidal intent",risk:true,single:true,level:2,terms:[
      ["asked about directly; client reported none","You asked directly and the client said no. Only use if you actually asked.",1],
      ["not asked this session","An honest record that the question was not put this session."],
      ["no self-harm since last session","For a client with a history, the absence since you last met is a finding in its own right, not the same as being asked and reporting none."],
      ["reports urges to self-harm without acting","Urges present, not acted on. Ask what has helped the client not act, and record the risk conversation in the Risk section, which you author."],
      ["reports self-harm since last session","Acted on since you last met. Ask about frequency, method and any need for medical care, and record the response in the Risk section, which you author."]]},
-   {id:"sx",name:"Suicide enquiry and safety steps",risk:true,terms:[
+   {id:"sx",name:"Suicide enquiry and safety steps",risk:true,level:3,terms:[
      ["intent asked about directly; client reported none","Intent is a separate question from ideation and from plan. Only use if you asked it as its own question."],
      ["client stated no intent to act on the thoughts","The client's own words, attributed to them."],
      ["access to means discussed","Records that the conversation happened, without recording the means themselves."],
@@ -340,7 +340,7 @@ export const MSE_DOMAINS = [
      ["safety plan reviewed with the client","An existing plan was gone through this session."],
      ["safety plan developed this session","A new plan was made. Where it is filed belongs in the Plan section."],
      ["concern raised by another person; discussed with the client","Third-party concern, recorded as a fact and as something you took to the client."]]},
-   {id:"fb",name:"Fixed beliefs by theme",terms:[
+   {id:"fb",name:"Fixed beliefs by theme",level:2,terms:[
      ["fixed beliefs asked about; none reported","You asked and found none. The term carries its own subject so the serialised line stays readable in a domain with no lead word.",1],
      ["fixed beliefs not enquired about this session","An honest record that the question was not put. Better than silence, which a later reader cannot distinguish from a negative finding. Use it in sessions where the content did not call for the question."],
      ["belief shared by the client's cultural or religious peers; not treated as a clinical finding","The cultural clause is part of the definition of a delusion. This records that you applied it.",1],
@@ -354,24 +354,24 @@ export const MSE_DOMAINS = [
      ["belief of guilt or unworthiness held with fixed conviction","What separates this from a depressive thought is the conviction."],
      ["jealous belief reported","Fixed belief about a partner's faithfulness."],
      ["nihilistic belief reported","Fixed belief that the self, the body or the world has ceased to exist."]]},
-   {id:"ov",name:"Overvalued ideas",terms:[
+   {id:"ov",name:"Overvalued ideas",level:3,terms:[
      ["overvalued ideas asked about; none reported","You asked and found none. The term carries its own subject so the serialised line stays readable in a domain with no lead word.",1],
      ["strongly held idea, with less than delusional conviction","Conviction short of delusional is one axis; the founding definition adds that the idea is understandable from the client's history and comes to dominate their life. Record the domination where it applies."],
      ["idea occupies a central place in the client's life, discussed in session","The domination of daily life is the original definition of an overvalued idea, and it is a separate axis from how firmly the idea is held."],
      ["strongly held health-related idea, discussed in session","A common presentation, and the note records that you raised it."]]},
-   {id:"oc",name:"Obsessions and compulsions",terms:[
+   {id:"oc",name:"Obsessions and compulsions",level:3,terms:[
      ["no obsessions or compulsions reported","You asked and none were reported.",1],
      ["reports intrusive unwanted thoughts","Described rather than labelled, and attributed to the client."],
      ["reports repeated checking or washing","The behaviour in plain terms."],
      ["reports mental rituals such as counting or repeating phrases silently","Covert compulsions. Clients rarely volunteer these, so record them when you have asked and they are present."],
      ["reports rituals that ease distress temporarily","Records the function without interpreting the cause."],
      ["client describes the thoughts as their own and as excessive","The client's own stance toward the thoughts. Recording what they said about them, not a judgement about insight."]]},
-   {id:"ph",name:"Phobias",terms:[
+   {id:"ph",name:"Phobias",level:3,terms:[
      ["no specific fears reported","You asked and none were reported.",1],
      ["reports a specific fear with avoidance","The fear plus the behaviour it drives, which is the useful pair."],
      ["reports fear of social situations with avoidance","Plain description, no diagnostic claim."],
      ["reports fear of bodily sensations or of losing control","Interoceptive fear, in plain description. Common where panic is part of the picture, and no diagnostic claim is being made."]]},
-   {id:"pr",name:"Preoccupations",terms:[
+   {id:"pr",name:"Preoccupations",level:2,terms:[
      ["no particular preoccupation reported","Nothing dominating the content.",1],
      ["preoccupied with a current relationship difficulty","Name the area, not the detail. The detail belongs elsewhere."],
      ["preoccupied with work or study demands","Name the area, not the detail. The detail belongs in the body of the note."],
@@ -380,7 +380,7 @@ export const MSE_DOMAINS = [
      ["preoccupied with body image, eating or weight","Name the area, not the detail. The detail belongs in the body of the note."],
      ["preoccupied with a recent loss","Name the area, not the detail. Grief already has a Mood term; this is the content side of it."]]}]},
  {id:"pe",name:"Perception",label:"Perception",lead:"",subs:[
-   {id:"ex",name:"Perceptual experience",terms:[
+   {id:"ex",name:"Perceptual experience",level:1,terms:[
      ["no perceptual disturbance reported or observed","Covers both what they told you and what you saw.",1],
      ["experience reported only when falling asleep or on waking","Experiences when falling asleep (hypnagogic) or on waking (hypnopompic) are common and within the normal range. They should not be recorded as hallucinations.",1],
      ["reports hearing a voice or sound with no identifiable external source","Describes the experience rather than asserting the conclusion."],
@@ -388,7 +388,7 @@ export const MSE_DOMAINS = [
      ["perceptual experience not enquired about this session","An honest record that the question was not put. Better than silence, which a later reader cannot distinguish from a negative finding."],
      ["appeared to respond to something not evident to me during the session","The observed half of perception. Record it when the client looks at, listens to or answers something you cannot detect, whether or not they report an experience. Say what you saw in your own words."],
      ["no perceptual experience during this session; experience reported since last contact","The MSE records what was present while you were with the client. When the experience happened between sessions, this keeps the session finding honest and still puts the report on the record."]]},
-   {id:"hm",name:"Hallucinations by modality",terms:[
+   {id:"hm",name:"Hallucinations by modality",level:3,terms:[
      ["no perceptual experience reported in any modality on enquiry","Covers every sense in one line, so it claims a lot. Only use it if you asked broadly.",1],
      ["auditory experience with no external source reported","The most common modality. Describe it rather than conclude it."],
      ["visual experience with no external source reported","Record what the client described seeing."],
@@ -397,23 +397,23 @@ export const MSE_DOMAINS = [
      ["reports a voice commenting on what the client is doing","Commentatory experience, one of the two auditory subtypes Australian guidance asks you to identify. Describe the content in the client's own words if you can."],
      ["somatic experience with no external source reported","Bodily sensation beyond the skin: internal, visceral or whole-body. Wider than tactile, and listed separately in Australian AOD guidance."],
      ["client locates the experience inside their own mind rather than in the room","Where the client places the experience is a useful observation and worth recording in their words. Record the observation, not a label; the terms used for this distinction are contested in the literature."]]},
-   {id:"il",name:"Illusions",terms:[
+   {id:"il",name:"Illusions",level:3,terms:[
      ["no illusions reported","No misperception of a real stimulus was reported. The line rests on report, so it claims what was said, not everything that happened.",1],
      ["describes misperceiving a real stimulus; resolved on looking again","A real stimulus misread is what makes it an illusion."],
      ["misperception reported in low light only","Context that keeps a common experience from becoming a finding.",1],
      ["misperception reported in an unfamiliar or noisy setting","Context that keeps an ordinary misperception from becoming a finding, the same way low light does."]]},
-   {id:"dd",name:"Derealisation and depersonalisation",terms:[
+   {id:"dd",name:"Derealisation and depersonalisation",level:2,terms:[
      ["no experience of detachment from self or surroundings reported","You asked and none were reported.",1],
      ["reports brief detachment during distress that settles afterwards","Common, and not on its own a clinical finding.",1],
      ["reports feeling detached from surroundings","Derealisation, described plainly."],
      ["reports feeling detached from self","Depersonalisation, described plainly."],
      ["client knew at the time that the experience was not real","Reality testing remaining intact during the experience is what separates detachment from a psychotic finding, and it is your conclusion to draw. Record it when you established it."]]},
-   {id:"ii",name:"Intrusive imagery and reliving",terms:[
+   {id:"ii",name:"Intrusive imagery and reliving",level:2,terms:[
      ["no intrusive images or reliving reported","You asked and none were reported. Ask before you record it.",1],
      ["reports intrusive images of a past event, recognised as memory","Intrusive imagery the client identifies as a memory. Naming that they recognise it as memory is what keeps it from being read as a perceptual disturbance."],
      ["reports reliving a past event as though it were happening now","Reliving in the present, rather than remembering, is the feature that marks a flashback. Record the fact, not the content of the event."],
      ["intrusion occurred in session and settled with a grounding exercise","What happened and what worked. Useful for continuity and it belongs in the note far more than the content does."]]},
-   {id:"mn",name:"Context and meaning",terms:[
+   {id:"mn",name:"Context and meaning",level:2,terms:[
      ["client reports the experience as not distressing","Distress is often the clinically decisive fact.",1],
      ["experience described by client as spiritual or cultural, and not distressing","Stops normative spiritual experience being pathologised.",1],
      ["recent bereavement; experience consistent with grief and reported as comforting","Sensing a deceased relative during grief is common and not a clinical finding.",1],
@@ -422,19 +422,19 @@ export const MSE_DOMAINS = [
      ["client describes some control over when the experience occurs","Control, alongside distress, is what most separates a clinical from a non-clinical perceptual experience. Record it in the client's own account."],
      ["experience reported in the context of substance use or withdrawal (client account)","Attributed to the client, not concluded by you. Substance and withdrawal context changes what the experience means and what happens next."]]}]},
  {id:"co",name:"Cognition",label:"Cognition",lead:"cognition",subs:[
-   {id:"lc",name:"Consciousness level",single:true,terms:[
+   {id:"lc",name:"Consciousness level",single:true,level:1,terms:[
      ["alert","Fully awake and responsive. The commonest opening to an Australian MSE line, and the default when nothing about alertness stood out.",1],
      ["alert and responsive throughout","The same finding, stated across the whole session.",1],
      ["drowsy","Sleepy but rousable and able to participate. Ask about sleep, medication and substances before the word is left to imply a clinical cause."],
      ["drowsy at the start, alert for the remainder","Records a change within the session rather than flattening it."],
      ["alertness fluctuated across the session","Fluctuation is a finding in its own right, not a midpoint between alert and drowsy. Note roughly when it varied."]]},
-   {id:"or",name:"Orientation",terms:[
+   {id:"or",name:"Orientation",level:2,terms:[
      ["oriented to person, place, time and situation","Only record this if you actually established it.",1],
      ["orientation not formally tested; client tracked the conversation throughout","The honest wording for most therapy sessions, where nothing was administered.",1],
      ["could not give the date or approximate time when asked","Disorientation to time. Consider first whether time is held differently in this client's cultural frame before recording this."],
      ["oriented to person and place; uncertain about the date","Partial orientation, which is far more common than full disorientation. Say what they could and could not give."],
      ["could not give the current place or the reason for the appointment","Disorientation to place and situation, with the observable attached."]]},
-   {id:"at",name:"Attention and concentration",terms:[
+   {id:"at",name:"Attention and concentration",level:2,terms:[
      ["attention and recall unremarkable in session","Passive observation, which is what a therapy session actually supports.",1],
      ["sustained attention through the session","What you observed, over the period you observed it.",1],
      ["client reports difficulty concentrating","Attributed to the client, not tested by you."],
@@ -442,22 +442,22 @@ export const MSE_DOMAINS = [
      ["attention pattern usual for this client; client describes it as longstanding","For clients with a longstanding attention difference, the pattern is their baseline and not a change. Records the client's own account alongside what you saw."],
      ["needed questions repeated; refocused with prompting","The need for redirection or repetition, which is the standard passive observation for attention during an interview."],
      ["client links concentration difficulty to sleep, pain or medication (client account)","The client's own explanation, attributed to them. Concentration difficulty with a stated cause reads very differently from concentration difficulty without one."]]},
-   {id:"me",name:"Memory",terms:[
+   {id:"me",name:"Memory",level:2,terms:[
      ["no memory difficulty reported or observed","Covers both what they told you and what you saw.",1],
      ["recalled recent events consistently within the session","Passive observation, which is what a session supports.",1],
      ["recall not formally tested; no difficulty apparent in conversation","Pairs the limit with what you did observe. Nothing was administered, and nothing in the conversation suggested difficulty.",1],
      ["client reports difficulty with recent memory","Attributed to the client, not tested by you."],
      ["client reports relying more on lists, notes or reminders than previously","A change in everyday memory strategy in the client's own account. An everyday observation, not a test result."],
      ["repeated the same account within the session","What you observed, over the period you observed it. Say roughly how often."]]},
-   {id:"eo",name:"Everyday organisation",terms:[
+   {id:"eo",name:"Everyday organisation",level:3,terms:[
      ["followed the structure of the session without difficulty","A passive observation about sequencing and holding the thread, which is what a session actually supports.",1],
      ["client reports increased difficulty planning or finishing multi-step tasks","The client's own account of everyday executive difficulty. Attributed to them, not tested by you."],
      ["needed more support than usual to keep track of the session","Baseline-relative and observable. Say what support you gave."]]},
-   {id:"su",name:"Substance use and presentation",terms:[
+   {id:"su",name:"Substance use and presentation",level:3,terms:[
      ["no indication of intoxication or withdrawal observed","A negative you actually looked for, meaning withdrawal from a substance, not social withdrawal. Pair it with the alertness term rather than using it alone.",1],
      ["client reports substance use before the session; other findings read in that context","The client's own report plus the qualification it places on the rest of the examination. Attributed to them, never inferred by you."],
      ["presentation may be affected by prescribed medication (client reported)","Stops sedation or blunting being recorded as a clinical finding when the client has told you what is causing it. Only use when they told you.",1]]},
-   {id:"sr",name:"Screening and referral",terms:[
+   {id:"sr",name:"Screening and referral",level:3,terms:[
      ["no formal cognitive screening indicated this session","States plainly that nothing was administered and nothing needed to be. The honest default for most therapy sessions.",1],
      ["formal cognitive screening indicated; discussed with client","Your conclusion that screening is now warranted, and the fact that you raised it. Alembic does not screen; this records the referral decision you made."],
      ["referral for medical review discussed; client agreed","Where cognitive change may have a medical cause, medical review comes first. Record what was discussed and what the client agreed to."],
@@ -466,7 +466,7 @@ export const MSE_DOMAINS = [
      ["cognitive observations limited this session; observed by video","Orientation and attention are harder to observe over video. Flags that the cognition findings are less reliable."],
      ["cognitive observations limited this session; interpreter present","Interpreted responses are not the client's responses. Latency, word finding and attention are not directly assessable."]]}]},
  {id:"in",name:"Insight",label:"Insight",lead:"",subs:[
-   {id:"aw",name:"Awareness of the difficulty",single:true,terms:[
+   {id:"aw",name:"Awareness of the difficulty",single:true,level:1,terms:[
      ["client describes the difficulty in terms consistent with the clinician's account","Replaces the free-floating adjective \"good insight\" with the evidence for it.",1],
      ["client identifies the difficulty and the reason for attending","A minimal, defensible statement.",1],
      ["client identifies the difficulty as a change from their own usual functioning","Baseline-relative awareness, which is the comparison a returning client can actually make. Prefer it where the client speaks in terms of \"not myself\".",1],
@@ -477,25 +477,25 @@ export const MSE_DOMAINS = [
      ["client account of the difficulty shifted during the session as it was discussed","Insight is not fixed, and DSM-5-TR says so. Record movement when you see it rather than averaging it into one verdict."],
      ["client re-examined a specific belief recorded above when it was discussed","Belief-specific insight, in the DSM-5-TR sense. Use with a Thought content entry, never on its own."],
      ["insight not specifically explored this session","An honest record that the question was not put. Insight is often not the work of a given session, and saying so is better than an implied finding."]]},
-   {id:"at",name:"Awareness of cause, as the client explains it",terms:[
+   {id:"at",name:"Awareness of cause, as the client explains it",level:2,terms:[
      ["client explains their experience within their own cultural or spiritual framework","A different explanatory model is not poor insight.",1],
      ["client attributes the difficulty to current circumstances","The most common explanatory model in general practice. Records what they said the cause was, not whether you agree.",1],
      ["client attributes the difficulty to longstanding patterns they recognise in themselves","A self-referential attribution. Common in returning clients and worth recording when it appears for the first time.",1],
      ["client attributes the difficulty to the actions of others or to events outside them","Neutral wording for what older notes called externalising. Page et al. treat this as an attribution finding, not an awareness one."],
      ["client attributes the difficulty to a physical health cause","Records the attribution and flags that medical review may be the client's own preferred path."],
      ["client does not offer an explanation for the difficulty at this stage","Absence of an explanatory model is a finding in itself, and a more honest one than inferring denial."]]},
-   {id:"im",name:"Awareness of impact",single:true,terms:[
+   {id:"im",name:"Awareness of impact",single:true,level:2,terms:[
      ["client links the difficulty to specific effects on daily functioning","Answers the Queensland guide question about functional impact, using the client's own account.",1],
      ["client describes the effect on people close to them as well as on themselves","Page et al. include effects on others in the definition of insight. Keep third parties unnamed.",1],
      ["client does not currently connect the difficulty to its effects on daily functioning","A specific, checkable observation, where \"limited insight\" would be a verdict."]]},
-   {id:"tx",name:"Attitude to help",single:true,terms:[
+   {id:"tx",name:"Attitude to help",single:true,level:2,terms:[
      ["client names what they want help with","The most useful single insight finding in a therapy session, and it doubles as the start of the plan.",1],
      ["client sees a place for therapy in addressing the difficulty","David's third component, worded as the client's view rather than as compliance.",1],
      ["client is undecided about continuing therapy, and discussed this openly","Neutral, and never the word resistant. The second clause records that it was raised."],
      ["client prefers a different form of help, and named it","A preference is not an insight deficit. Record the preference; it usually becomes a referral."],
      ["client recognises the difficulty and does not see a need for treatment at present","Separates recognising the problem from wanting help with it, which are different and often move independently. Records the client's position without judging it."]]}]},
  {id:"ju",name:"Judgement",label:"Judgement",lead:"",subs:[
-   {id:"dec",name:"Decisions and their consequences",single:true,terms:[
+   {id:"dec",name:"Decisions and their consequences",single:true,level:1,terms:[
      ["recent decisions consistent with the client's own stated goals and safety","Anchored to decisions rather than a bare adjective.",1],
      ["decision made in consultation with family or community, consistent with the client's stated values","Collective decision-making is not impaired judgement.",1],
      ["a specific recent decision inconsistent with the client's own stated goals, discussed in session","Names that there is a specific decision, and that you raised it."],
@@ -506,23 +506,23 @@ export const MSE_DOMAINS = [
      ["client described a safety plan they would follow if distress escalated","Judgement anchored to the decision that matters most. Only use if they actually described it."],
      ["judgement not specifically explored this session","An honest record that the topic was not covered. It is an answer, not a finding."],
      ["the concern is limited to one area of decision-making; other areas unremarkable","Scopes the finding, as Australian guidance asks. Stops one decision becoming a global verdict on the person."]]},
-   {id:"pr",name:"How the decision was reached",terms:[
+   {id:"pr",name:"How the decision was reached",level:2,terms:[
      ["client weighed options and reasons aloud before deciding","Answers the Queensland guide question about the decision-making process, from what you heard in the room.",1],
      ["based on decisions the client described, not on hypothetical questions","Records the provenance of the finding. Hypothetical test items are weak evidence and are not used here.",1],
      ["decision made under time pressure or high distress, by client account","Context that changes how a decision should be read, attributed to the client."],
      ["decision shaped by a belief or perceptual experience recorded above","Links judgement to Thought content or Perception without restating the content or asserting a mechanism."],
      ["a session observation only; no formal capacity assessment undertaken","Judgement in an MSE is not decision-making capacity, which is decision-specific and assessed against a legal standard. Use whenever you record a concern."]]}]},
  {id:"su",name:"Summary and qualifiers",label:"Summary and qualifiers",lead:"",subs:[
-   {id:"sum",name:"Overall summary",single:true,terms:[
+   {id:"sum",name:"Overall summary",single:true,level:1,terms:[
      ["overall presentation consistent with previous sessions","The summary clause the literature says an MSE should end with, in its baseline-relative form.",1],
      ["all other domains consistent with the client's previous presentation","For review sessions with a client you know. Covers everything not separately recorded above, in one line. Only use it when that is what you observed; anything that changed gets its own entry.",1],
      ["no findings outside this client's usual range this session","The plain all-clear, stated once rather than implied by twelve separate normal findings.",1],
      ["overall presentation changed from the last session; the changes are recorded above","Points the reader at the change without restating it."],
      ["first session; this record is a starting baseline rather than a comparison","Guards the first note from being read as a change finding, and tells the next reader what it is for.",1]]},
-   {id:"chg",name:"Change within the session",single:true,terms:[
+   {id:"chg",name:"Change within the session",single:true,level:2,terms:[
      ["presentation settled over the course of the session","Within-session change, which the domain entries can otherwise only express one domain at a time.",1],
      ["presentation became more distressed later in the session","The same device in the other direction. Say in the domain entries what changed."],
      ["the change during the session is recorded in the domains it affected","Use where more than one domain moved and you do not want to summarise the direction."]]},
-   {id:"lim",name:"Basis and limits",terms:[
+   {id:"lim",name:"Basis and limits",level:2,terms:[
      ["based on observation and client report within a single session","States the evidence base of the whole line. The honest default for a therapy MSE.",1],
      ["this section rests more on client report than on observation today","The line-level hedge. Clinicians editing AI drafts add hedges more often than they remove them; this gives them one to add."]]}]}]

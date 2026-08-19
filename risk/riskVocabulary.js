@@ -25,6 +25,11 @@
 //   'actions'  -> the Actions: line
 //   'reason'   -> the Outcome: line, on the not-assessed branch
 //
+// `level` is the detail level that offers a dimension: 1 Brief, 2 Standard,
+// 3 Comprehensive, cumulative. It changes what the panel OFFERS and nothing
+// else; every term that reaches a record is still one the clinician ticked
+// (change request B3, tags in docs/research-levels/).
+//
 // Every term is something the clinician asked, observed, concluded or did.
 
 export const ASSESSED = [
@@ -67,19 +72,19 @@ export const ASSESSED = [
  // used verbatim in the note. This is the exclusion most likely to be proposed again
  // in good faith as a usability improvement.
  {id:"enq",name:"What was asked",lane:"assessed",lead:"",subs:[
-  {id:"pr",name:"What prompted the enquiry",single:1,terms:[
+  {id:"pr",name:"What prompted the enquiry",single:1,level:1,terms:[
     ["asked because of a change in presentation observed this contact","Records that the enquiry followed something you saw. This is the half of the bridge between the mental state line and the risk line that usually goes missing."],
     ["asked because of something the client said earlier in this contact","Records that the enquiry followed something the client said rather than a routine sweep."],
     ["asked as routine screening; nothing in the contact prompted it","Records a routine screen with nothing behind it, which is a different clinical act from one you were driven to."],
     ["asked because a previous entry recorded something unresolved","Records that the file, rather than this contact, is what put the question."],
     ["asked because another person raised a concern","Records that the question came from outside the room. Where the information came from is recorded in the information-from-others dimension below."]]},
-  {id:"tf",name:"The time frame the enquiry covered",terms:[
+  {id:"tf",name:"The time frame the enquiry covered",level:1,terms:[
     ["this contact only","Records the window the questions covered. A later reader cannot reconstruct this from anything else in the note."],
     ["the interval since the last contact","Records that the questions covered the gap between appointments rather than the moment."],
     ["the past two months reviewed","Records a named recent window, which is more use to a later reader than the word recently."],
     ["lifetime history reviewed","Records that the enquiry went back over the whole history rather than the recent period."],
     ["presenting event walked through step by step with the client","Records a chronological enquiry through one event rather than a set of separate questions."]]},
-  {id:"ar",name:"Where this contact sits",terms:[
+  {id:"ar",name:"Where this contact sits",level:2,terms:[
     ["first contact with this client","Records that there is no earlier observation behind this entry."],
     ["ongoing contact within the current course of work","Records the ordinary position, which is worth stating once the other entries exist."],
     ["first contact after a gap longer than the agreed interval","Records that an interval nobody observed sits in front of this entry. You select the gap; nothing in the software works it out."],
@@ -88,13 +93,13 @@ export const ASSESSED = [
     ["final contact before a planned ending","Records the position a later reader turns to first when a file is read end to end."],
     ["contact has been less frequent than the agreed plan","Records the gap between the plan and what happened, named by you rather than inferred by a reader."],
     ["the client has declined the agreed frequency of contact","Records whose choice the frequency was, which the previous term on its own leaves open."]]},
-  {id:"bl",name:"The baseline this rests on",single:1,terms:[
+  {id:"bl",name:"The baseline this rests on",single:1,level:2,terms:[
     ["this contact is the first risk assessment on file and is the baseline","Records that this entry is the referent everything later will be compared with."],
     ["compared with the risk assessment recorded at intake","Names the document the comparison is against, so a stranger can check it."],
     ["compared with the last contact at which risk was assessed","Use rather than the previous assessment wherever contacts have intervened at which risk was not assessed."],
     ["no earlier risk assessment on file; nothing to compare with","Records the absence of a referent, which flags itself to the next reader."],
     ["assessed in full this contact; the detail is in a separate assessment on the file","Records that the short line here is pointing at a longer document, and says which."]]},
-  {id:"tl",name:"Structure, depth and tools used",terms:[
+  {id:"tl",name:"Structure, depth and tools used",level:1,terms:[
     ["brief risk screen completed; nothing raised that indicated a fuller enquiry this contact","Records the depth of what was done. A private practitioner writing this is not claiming to have administered any named screening instrument."],
     ["brief screen raised something; fuller risk enquiry completed this contact","Records both stages, which is the sequence a later reader most often wants to see."],
     ["fuller risk enquiry completed this contact","Records that the enquiry went past a screen."],
@@ -121,7 +126,7 @@ export const ASSESSED = [
   // the clinician's evidence. The forbidden form is "answer may reflect
   // acquiescence" or "reliability uncertain", which is the clinician recording
   // disbelief in the client's word, and is what retiring "denied" existed to avoid.
-  {id:"hw",name:"How the enquiry was conducted",terms:[
+  {id:"hw",name:"How the enquiry was conducted",level:3,terms:[
     ["risk enquiry conducted through a NAATI-credentialled interpreter","Records how the questions and the answers travelled. NAATI retired accreditation in 2018, so credentialled is the current word."],
     ["risk enquiry conducted through a Certified Specialist Health Interpreter","Records the specific credential where the interpreter held it."],
     ["risk enquiry conducted through an interpreter whose credential was not established","Records what was known about the credential at the time, rather than a claim that cannot be supported."],
@@ -155,7 +160,7 @@ export const ASSESSED = [
     ["asked about specific methods one at a time","Records the format of the enquiry without putting any method in the record."],
     ["returned to the question later in the contact after an earlier answer","Records a second pass, which is real clinical work and cannot be reconstructed by anyone afterwards."],
     ["asked again later in the contact after the client's manner changed","Records what prompted the second pass."]]},
-  {id:"cf",name:"Consent and confidentiality inside the enquiry",terms:[
+  {id:"cf",name:"Consent and confidentiality inside the enquiry",level:3,terms:[
     ["limits of confidentiality reviewed with the client before the enquiry went further","Records the confidentiality conversation that happened inside the risk enquiry, not the one at intake."],
     ["the client asked what would happen to what they said before answering","Records the question the client put. What a person understands about where their words are going shapes what they say."],
     ["capacity to consent to this decision considered with the young person","Records the consideration against this decision. It is never routine, and it states no conclusion about capacity."],
@@ -166,7 +171,7 @@ export const ASSESSED = [
     ["client informed of the nature and purpose of the disclosure before it was made","Records that the client was told before rather than after."],
     ["disclosure limited to what the receiving service needed to act","Records minimum necessary applied at the moment it is hardest to apply."],
     ["the client was told afterwards what had been shared and with whom","Records the step most often left out. The recipient, purpose, authority and date belong in the Disclosures and Coordination section."]]},
-  {id:"src",name:"Information from others, and whose account this is",terms:[
+  {id:"src",name:"Information from others, and whose account this is",level:1,terms:[
     ["assessment based on the client's account this contact","The ordinary case, stated rather than assumed, so that silence does not have to mean either this or its opposite."],
     ["assessment included observation of the client's presentation this contact","Records that observation was part of how the assessment was made."],
     ["collateral information sought, with consent","Records the consent alongside the act."],
@@ -197,7 +202,7 @@ export const ASSESSED = [
     ["client asked directly as well as the person who raised the concern","Records the step that turns a third-party report into an enquiry."],
     ["the client's account and the other account agreed","Records the comparison, which is worth stating once the disagreement term exists."],
     ["the client's account and the other account differed","The disagreement is the finding. Both positions belong in the free text below."]]},
-  {id:"cc",name:"Contact conditions",terms:[
+  {id:"cc",name:"Contact conditions",level:2,terms:[
     ["risk enquiry conducted by video; observation limited to what the camera showed","Records what the channel let you ask and see. The mental state line records what the mode let you observe; this records what it let you ask."],
     ["risk enquiry conducted by phone; no visual observation available this contact","Records that the questions and answers travelled intact and everything visual did not."],
     ["enquiry limited to the content of written messages; nothing observed this contact","Records that a written exchange is the whole of what this contact was."],
@@ -223,7 +228,7 @@ export const ASSESSED = [
   // 
   // PROVENANCE: the free-use position of the instrument in question is REPORTED only.
   // A single page load from an unblocked machine closes it.
-  {id:"si",name:"Suicidal ideation",single:1,lead:"suicidal ideation",terms:[
+  {id:"si",name:"Suicidal ideation",single:1,lead:"suicidal ideation",level:1,terms:[
     ["asked about directly; client reported none","You asked directly and the client said no. Records the asking as well as the answer, which is the part that matters if the note is ever reviewed. The same wording as the mental state line, so one note does not use two registers for one question."],
     ["passive ideation reported; no plan or intent described","Records what was described in the conversation. Nobody can know what was not there; what you can record is what was not described."],
     ["active ideation reported; no plan described","Records active thoughts with no plan described."],
@@ -231,19 +236,19 @@ export const ASSESSED = [
     ["active ideation with plan and intent","The most serious entry in this dimension. What was done about it lands on the Actions line."],
     ["asked; the client did not answer","A question that got no answer is not the same finding as a question answered no, and it is not the same as a question never put."],
     ["not asked this contact","Records that this was not asked, which is a different fact from an answer of no. A reader after the event can work with a recorded gap; an unexplained silence gives them nothing."]]},
-  {id:"idt",name:"Ideation detail",terms:[
+  {id:"idt",name:"Ideation detail",level:2,terms:[
     ["frequency of the thoughts established with the client","Records that how often was asked and settled. Their own words belong in the free text below."],
     ["how much of the day the thoughts occupy established","Records the second half of the same question, which a bare presence entry cannot carry."],
     ["client described being able to put the thoughts aside","Records the account of control as the client gave it."],
     ["client described the thoughts as hard to put aside","Records the same account in the other direction."],
     ["last occasion of suicidal thinking dated with the client","Turns a flat entry into a record with a timeline, and it is the question a later reader most often wishes had been put."]]},
-  {id:"in",name:"Intent",single:1,lead:"intent",terms:[
+  {id:"in",name:"Intent",single:1,lead:"intent",level:2,terms:[
     ["intent asked about directly; client reported none","Intent is a separate question from ideation and from plan. The same wording as the mental state line."],
     ["client stated no intent to act on the thoughts","Records the client's own position rather than the clinician's question."],
     ["client described some intent to act, without a timeframe","Records intent without a timeframe, which is a different account from one with a timeframe in it."],
     ["client described intent to act within a stated timeframe","Records that a timeframe was described. The timeframe itself belongs in the free text below."],
     ["intent not asked this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"dis",name:"Disclosure",terms:[
+  {id:"dis",name:"Disclosure",level:2,terms:[
     ["client answered some parts of the enquiry and declined others","A partial refusal is commoner than a total one and is invisible in a record that has only yes, no and not asked."],
     ["client disclosed thoughts this contact that they had not previously reported","Often the most significant thing that happened in the contact, and it has nowhere else to land."],
     ["client reported not having told anyone about this before","Records what the client said about who else knows."],
@@ -251,13 +256,13 @@ export const ASSESSED = [
     ["the client declined to discuss this further","Records a refusal inside an enquiry that otherwise went ahead, which the not-assessed branch cannot reach."],
     ["raised by a family member or support person, not by the client","Records where the disclosure came from, which changes what the entry means."],
     ["raised late in the session, with limited time to explore","Honest, and it explains to the next reader why the entry is thin."]]},
-  {id:"pl",name:"Plan detail",single:1,terms:[
+  {id:"pl",name:"Plan detail",single:1,level:2,terms:[
     ["no plan described on direct enquiry","Records what was described rather than what was concluded."],
     ["methods considered, no plan formed","Records the account at the point before a plan. This rung lives here and never in the ideation dimension above."],
     ["a method described, no place or timing","Records which elements of a plan were described. No term in this dimension names a method."],
     ["method and place described","Records two elements described."],
     ["method, place and timing described","Records all three elements described."]]},
-  {id:"prep",name:"Preparation and rehearsal",terms:[
+  {id:"prep",name:"Preparation and rehearsal",level:3,terms:[
     ["no preparatory steps reported on direct enquiry","Records the asking and the answer for a category that is neither thought nor act."],
     ["means gathered or stored, as reported by the client","Records a preparatory act as the client described it. No term here names any means."],
     ["a note, letter or message written","Records a preparatory act as the client reported it."],
@@ -265,7 +270,7 @@ export const ASSESSED = [
     ["the act imagined or rehearsed in the mind","Records mental rehearsal, which is neither a plan nor an act."],
     ["stopped themselves before acting","An aborted attempt. Without this term the record has only thoughts and attempts and loses the category entirely."],
     ["stopped by someone else or by circumstance before acting","An interrupted attempt, which is a different event from an aborted one."]]},
-  {id:"me",name:"Access to means",lead:"access to means",terms:[
+  {id:"me",name:"Access to means",lead:"access to means",level:2,terms:[
     ["discussed, no access identified","You asked about access and none was identified."],
     ["discussed, access identified","Access exists. What was done about it lands on the Actions line."],
     ["access described as immediate","Records how far away the access is, as the client described it."],
@@ -279,7 +284,7 @@ export const ASSESSED = [
     ["client declined to discuss access","Records a refusal to discuss, which is a different fact from a question that got no answer."],
     ["asked; the client did not answer","A question that got no answer is not the same finding as a question answered no."],
     ["not asked about this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"sh",name:"Self-harm",single:1,lead:"self-harm",terms:[
+  {id:"sh",name:"Self-harm",single:1,lead:"self-harm",level:1,terms:[
     ["asked about directly; client reported none","You asked directly and the client said no. Records the asking as well as the answer, which is the part that matters if the note is ever reviewed. The same wording as the mental state line, so one note does not use two registers for one question."],
     ["urges reported, no acts since last contact","Urges without acts. Their own words are worth adding underneath."],
     ["acts reported since the last contact","Records that acts occurred. Detail of method belongs in the record only where it is needed for care."],
@@ -288,14 +293,14 @@ export const ASSESSED = [
     ["past self-harm reported, none in the period discussed","Records what a contact can establish, which is that a period was named and nothing fell inside it."],
     ["asked; the client did not answer","A question that got no answer is not the same finding as a question answered no."],
     ["not asked this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"int",name:"Intent for the acts described",single:1,terms:[
+  {id:"int",name:"Intent for the acts described",single:1,level:2,terms:[
     ["intent asked about separately; client described no intent to die","The only place a record can say an act was not an attempt to die is the client's own account of what they meant."],
     ["client described the acts as coping, not as trying to end their life","Records the client's account of what they meant."],
     ["client described mixed or uncertain intent","Records the account as it was given, without resolving it."],
     ["client described intent to die at the time of the act","Records the client's account of intent at the time."],
     ["client was not able to say what the intent was","Records that the question was put and the account could not be given, which is not the same as not asking."],
     ["intent for the acts not asked about this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"pat",name:"The pattern this period",lead:"pattern",terms:[
+  {id:"pat",name:"The pattern this period",lead:"pattern",level:3,terms:[
     ["frequency increased since the last contact, as reported","Records change over time as the client reported it. No term here counts anything."],
     ["frequency decreased since the last contact, as reported","Records change in the other direction, as reported."],
     ["a method not previously described was reported this contact","Records the change without naming the method."],
@@ -305,7 +310,7 @@ export const ASSESSED = [
   // Every term begins from the client's own account of what they said it does for
   // them, and that framing is what keeps the dimension on the documentation side of
   // guardrail 1. It must not be relaxed.
-  {id:"fun",name:"What the client said it does for them",lead:"the client described",terms:[
+  {id:"fun",name:"What the client said it does for them",lead:"the client described",level:3,terms:[
     ["relief from a feeling that had become unbearable","Recorded as the client described it."],
     ["feeling something at a time when they felt numb or unreal","Recorded as the client described it."],
     ["punishing themselves","Recorded as the client described it, in their frame and not as a formulation."],
@@ -313,7 +318,7 @@ export const ASSESSED = [
     ["using it to hold off thoughts of ending their life","Recorded as the client described it."],
     ["discussed, and the client could not put it into words","Records the conversation and its outcome, which is a real answer rather than a blank."],
     ["not explored this contact","Records that this was not explored, which is a different fact from an answer of no."]]},
-  {id:"hx",name:"History reviewed",terms:[
+  {id:"hx",name:"History reviewed",level:2,terms:[
     ["previous attempt history reviewed","You went back over previous attempts with the client this contact."],
     ["previous self-harm history reviewed","Reviewed rather than assumed from the file."],
     ["attempt history asked item by item, not left to what the client volunteered","Records the format of the enquiry, which is what determines how much of a history it finds."],
@@ -332,26 +337,26 @@ export const ASSESSED = [
     ["file and previous notes reviewed before this contact","Records the preparation, which is the thing a later reader most often notes was not done."],
     ["records requested from another service; not yet received","Turns a gap in what you knew into a record of what you did about it."],
     ["history could not be reviewed this contact","Records the gap rather than leaving it to be inferred."]]},
-  {id:"ho",name:"Harm to others",single:1,lead:"thoughts of harm to others",terms:[
+  {id:"ho",name:"Harm to others",single:1,lead:"thoughts of harm to others",level:1,terms:[
     ["asked about directly; client reported none","You asked directly and the client said no. Records the asking as well as the answer, which is the part that matters if the note is ever reviewed. The same wording as the mental state line, so one note does not use two registers for one question."],
     ["thoughts reported, no target or plan","Reported thoughts without a named person or a plan."],
     ["thoughts reported about an identifiable person","Records that a person was described rather than named. Anything you did about it belongs on the Actions line, and the recipient, purpose, authority and date of any disclosure belong in the Disclosures and Coordination section."],
     ["asked; the client did not answer","A question that got no answer is not the same finding as a question answered no."],
     ["not asked this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"tg",name:"Target and awareness",lead:"the person at risk",terms:[
+  {id:"tg",name:"Target and awareness",lead:"the person at risk",level:3,terms:[
     ["a household or family member was described","Records the relationship by role and never by name. It also tells a later reader the family violence material may be in play."],
     ["a group or class of people was described, no individual identified","Records that no individual was described."],
     ["the clinician or the service was the subject","Records the subject where it is you or the service."],
     ["the person at risk is already aware","Changes what a protective step would add, and it is one of the facts a reviewer looks for."],
     ["the person at risk is not aware","The matching entry, recorded as a fact about what the client said."],
     ["not explored this contact","Records that this was not explored, which is a different fact from an answer of no."]]},
-  {id:"wm",name:"Weapons and access",terms:[
+  {id:"wm",name:"Weapons and access",level:3,terms:[
     ["access to a weapon discussed, none identified","Kept separate from the self-harm means dimension so neither line is ambiguous."],
     ["access to a weapon discussed, access identified","Records the finding. What was done about it lands on the Actions line."],
     ["firearm ownership or access discussed","Named specifically because a general means question misses it."],
     ["recent acquisition or preparation reported","Records what the client reported."],
     ["not discussed this contact","Records that this was not discussed, which is a different fact from an answer of no."]]},
-  {id:"cm",name:"Experiences and beliefs bearing on risk",terms:[
+  {id:"cm",name:"Experiences and beliefs bearing on risk",level:3,terms:[
     ["asked about directly; client reported none","Asked and none reported. The mental state panel sends you here when a command experience is recorded there, so this is where the enquiry gets its line."],
     ["client reported commands to harm themselves","Records the experience as the client reported it."],
     ["client reported commands to harm another person","Records the experience as reported. Any identified person stays a role, never a name."],
@@ -363,13 +368,13 @@ export const ASSESSED = [
     ["client described not eating or not taking prescribed medication because of a belief","Records the consequence the client described, which is the common version and carries real weight."],
     ["no such experience during this contact; client reported one since the last contact","Keeps the contact honest and still puts the report on the record. The same shape the mental state builder uses for perception."],
     ["not asked this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"sub",name:"Substance use at this contact",lead:"substance use at this contact",terms:[
+  {id:"sub",name:"Substance use at this contact",lead:"substance use at this contact",level:2,terms:[
     ["asked about; client reported no use before this contact","Records what was asked and what was reported about this contact, which is a different question from the pattern of use recorded under contributing factors."],
     ["client reported using a substance before this contact","Records the client's report and nothing more."],
     ["smell of alcohol or other signs noticed; raised with the client","Records what was noticed and that it was raised. The same wording as the mental state line. Intoxication is never recorded here as a conclusion and never graded."],
     ["client reported reducing or stopping a substance since the last contact","Records a change as the client reported it."],
     ["not asked this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"ph",name:"Physical health",terms:[
+  {id:"ph",name:"Physical health",level:3,terms:[
     ["asked about physical health; nothing of concern reported","Records the asking and the answer. Nothing in this dimension assesses physical stability."],
     ["client reported a physical symptom, in their own words","Records the report. Their words belong in the free text below."],
     ["eating and related behaviours asked about; client's account recorded in their words","Records the enquiry and points at where the account lives."],
@@ -382,7 +387,7 @@ export const ASSESSED = [
     ["client confirmed medical review is current","Records what the client confirmed."],
     ["no medical review in place at this contact","Records the absence of a medical review rather than leaving it to be inferred."],
     ["physical health not discussed this contact","Records that this was not discussed, which is a different fact from an answer of no."]]},
-  {id:"fv",name:"Family violence",single:1,lead:"family violence",terms:[
+  {id:"fv",name:"Family violence",single:1,lead:"family violence",level:2,terms:[
     ["asked about directly; client reported none","Records the asking and the answer. The same wording as the other enquiry lines."],
     ["client reported current family violence","Records the client's report. The dimension works in both directions because a client may be the person subjected to violence or the person using it."],
     ["client reported family violence, historical, none current","Records the period the client described."],
@@ -390,13 +395,13 @@ export const ASSESSED = [
     ["client reported using violence or controlling behaviour towards a family member","Records the client's own report about their own behaviour."],
     ["asked following indicators raised in this contact","Records the trigger as well as the question, so a later reader can see what put it."],
     ["not asked this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"vu",name:"Vulnerability to harm from others",single:1,lead:"vulnerability to harm from others",terms:[
+  {id:"vu",name:"Vulnerability to harm from others",single:1,lead:"vulnerability to harm from others",level:3,terms:[
     ["asked about directly; client reported no current concern","Records the asking and the answer."],
     ["client reported harm or exploitation by another person","Records the report and leaves the characterisation alone."],
     ["client reported financial control or exploitation by another person","Named separately because financial abuse is the easiest form to leave unnamed."],
     ["client reported pressure or coercion from a carer or support person","Records the report. A carer relationship can meet the legal definition of a family relationship; the term records what was said."],
     ["not asked this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"dep",name:"Children and dependants in the client's care",single:1,lead:"children or dependants in the client's care",terms:[
+  {id:"dep",name:"Children and dependants in the client's care",single:1,lead:"children or dependants in the client's care",level:2,terms:[
     ["asked about directly; client reported no concern for anyone in their care","Records that you turned your mind to the wellbeing of others in the client's care."],
     ["concern raised about a child in the client's care","Records the concern. What was done about it lands on the Actions line."],
     ["concern raised about an adult dependant in the client's care","Records the concern for an adult in their care."],
@@ -404,7 +409,7 @@ export const ASSESSED = [
     ["client reported children were exposed to violence in the home","Records the report. A child who hears or sees family violence is a person subjected to it, not a bystander."],
     ["no dependants identified","Records that the question was put and there was nobody in the frame."],
     ["not asked this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"ct",name:"Contributing factors reported",terms:[
+  {id:"ct",name:"Contributing factors reported",level:2,terms:[
     ["recent loss or separation reported","As reported by the client, not inferred."],
     ["sleep disturbance reported","Their report, in the risk context."],
     ["increased substance use reported","As reported. Avoid characterising it further here."],
@@ -444,17 +449,17 @@ export const ASSESSED = [
     ["caring for another person described as a strain, in the client's words","Their description, not an assessment of their caring."],
     ["client described decisions with a financial, work or relationship cost they now regret","As described by the client."],
     ["contributing factors asked about; none reported this contact","Records the asking as well as the answer, because this dimension has no lead of its own."]]},
-  {id:"sm",name:"Self-monitoring reported",terms:[
+  {id:"sm",name:"Self-monitoring reported",level:3,terms:[
     ["client's own mood or sleep tracking reviewed, as they described it","Records what the client said their own tracking showed. Nothing in Alembic receives, reads or analyses device or app data."],
     ["between-session self-monitoring discussed; client reported no change","Records the discussion and the report together."],
     ["client declined to share between-session monitoring","Records the position as the client took it."]]},
-  {id:"rs",name:"Recent contact with other services",terms:[
+  {id:"rs",name:"Recent contact with other services",level:3,terms:[
     ["client discharged from an inpatient unit within the past three months, as reported","Recorded as the client's report. Nothing in the software looks anything up or counts any days."],
     ["client attended an emergency department for a mental health presentation since the last contact","As reported."],
     ["client left a service before assessment or treatment was completed, as reported","As reported."],
     ["client is currently under the care of another mental health service","As reported."],
     ["no contact with other services reported since the last contact","The matching negative, recorded as a report."]]},
-  {id:"lg",name:"Legal and decision-making context",terms:[
+  {id:"lg",name:"Legal and decision-making context",level:3,terms:[
     ["capacity for this decision was considered this contact","Records the consideration, per contact, because capacity is decision-specific and can change. No term here states a conclusion about capacity."],
     ["the client described the risks and the alternatives back to me in their own words","An observation about what happened in the room rather than a conclusion about the person."],
     ["asked whether the client has a written statement of their treatment preferences","Records the question."],
@@ -468,7 +473,7 @@ export const ASSESSED = [
   // association between documented protective factors and subsequent suicide
   // (Saulnier et al, 2025). Say who named each one, and add their words underneath
   // where the words carry the weight.
-  {id:"pf",name:"Strengths and supports the client named",terms:[
+  {id:"pf",name:"Strengths and supports the client named",level:2,terms:[
     ["future-oriented plans described by the client","Records who named it. A strength inferred from the file is an assumption wearing clinical clothing."],
     ["responsibility for dependants or pets named by the client","Named by the client. The same fact can be a strength here and a safeguarding question in the dependants dimension."],
     ["engaged with supports and says they would use them","Records both halves as the client stated them."],
@@ -492,14 +497,14 @@ export const ASSESSED = [
     ["the client described dependants or family as better off without them","Records what the client said, which points the opposite way from the responsibility term above."],
     ["no strengths or supports named on enquiry this contact","A statement about a conversation, not a statement about the person's life."],
     ["not asked about this contact","Records that this was not asked, which is a different fact from an answer of no."]]},
-  {id:"cr",name:"What helps in a crisis, as the client describes it",terms:[
+  {id:"cr",name:"What helps in a crisis, as the client describes it",level:2,terms:[
     ["client described what helps when distress escalates","The content belongs in the free text below. This is the material a later reader most wants and the file most often lacks."],
     ["client described what does not help when distress escalates","Just as useful and more often omitted, recorded as their account and never as a judgement about the response they named."],
     ["client named who they would contact first in a crisis","By role rather than by name."],
     ["no support person identified as available before the next contact","Records reachability, which is not the same fact as having supports."],
     ["supports identified but not contactable within the timeframe discussed","Records the timeframe that makes reachability mean something."],
     ["not discussed this contact","Records that this was not discussed, which is a different fact from an answer of no."]]},
-  {id:"lim",name:"Limits on this assessment",terms:[
+  {id:"lim",name:"Limits on this assessment",level:2,terms:[
     ["the enquiry was not completed; the client ended the contact","A partial assessment for a real reason is not an omission, but only if the record says so."],
     ["findings limited; the client had used a substance before this contact","Records a limit on the evidence, which is a claim about what you have and never a doubt about the client."],
     ["findings limited; the client was too distressed or agitated to continue","Records why the enquiry stopped where it did."],
@@ -509,7 +514,7 @@ export const ASSESSED = [
     ["some risk questions were not reached this contact; listed in the Plan","Records the gap and points at where the outstanding questions live."],
     ["enquiry limited by the time available in this contact","Honest and very common."],
     ["enquiry to continue at the next contact, agreed with the client","A deliberate shared decision. The agreement is the part worth recording, and it is not the same fact as running out of time."]]},
-  {id:"ax",name:"Other areas asked about",terms:[
+  {id:"ax",name:"Other areas asked about",level:3,terms:[
     ["asked whether the client has been taking medication and eating as usual","Records an ordinary question that often finds something."],
     ["asked about living arrangements and contact with others between sessions","Records an ordinary question that often finds something."],
     ["bereavement asked about as its own subject","Records a question that is not the same as the general loss question and is usually not volunteered."],
@@ -517,7 +522,7 @@ export const ASSESSED = [
     ["the client raised voluntary assisted dying","Records that the client raised a lawful process. It is not suicidal ideation and is never recorded as such. In Victoria, as at August 2026, the Voluntary Assisted Dying Act 2017 prohibits a registered health practitioner from initiating this discussion; the amendment allowing psychologists to raise it commences 19 April 2027, which is why this term is worded around the client raising it."],
     ["asked about an area not listed here; recorded in my own words below","The headings above are a prompt and not a boundary. This term says so in the record."]]}]},
  {id:"out",name:"Outcome",lane:"outcome",lead:"",subs:[
-  {id:"o",name:"Outcome this contact",single:1,terms:[
+  {id:"o",name:"Outcome this contact",single:1,level:1,terms:[
     ["no risk indicators identified on the enquiry made this contact","The plainest outcome, and the most common. The wording ties the finding to what was actually asked this contact, so it cannot later be read as a claim that nothing was there."],
     ["risk indicators present, managed within this contact","Something was there and you dealt with it in the room."],
     ["risk unchanged from the last contact at which it was assessed","Explicitly comparing with the last entry that actually assessed risk, which is more useful than a bare rating and, unlike \"the previous assessment\", tells the reader which entry that was."],
@@ -534,21 +539,21 @@ export const ASSESSED = [
     ["the picture was unclear this contact; the plan reflects that uncertainty","Uncertainty stated as uncertainty. Much of what is unknown about an individual's risk is irreducible, and a note that says so is more honest than one that resolves it artificially."],
     ["agreed risk this contact in the interest of the client's autonomy and recovery","Dignity of risk, as framed by the Mental Health and Wellbeing Act 2022 (Vic). Records that you and the client deliberately accepted some risk this contact; what supports that decision lands on the Actions line."],
     ["presentation changed materially during this contact","Suicidal states can shift within hours. If it shifted in the room, that is a finding, and it belongs in the record rather than in your memory."]]},
-  {id:"bl",name:"Compared with this client's usual",single:1,terms:[
+  {id:"bl",name:"Compared with this client's usual",single:1,level:2,terms:[
     ["at this client's usual baseline","Says where they are relative to themselves rather than to a population. For a long-term client this is the most informative sentence in the block, and it shows the next reader that you know their pattern."],
     ["above this client's usual baseline","An acute change on a known background. The response to it lands on the Actions line, so the record carries the change and the response together."],
     ["below this client's usual baseline","Improvement stated as movement rather than as a score. Worth recording because it is evidence of the work."],
     ["first risk conversation; no baseline for comparison yet","Honest at intake. It also tells a later reader why no comparison was made."]]},
-  {id:"lt",name:"Long-term picture",single:1,terms:[
+  {id:"lt",name:"Long-term picture",single:1,level:3,terms:[
     ["long-standing ideation, at its usual level for this client","Long-standing risk stated as long-standing. Neither \"no indicators\" nor \"high\" is true for a client whose baseline includes some ideation, and this term is the sentence that is."],
     ["long-standing ideation, acutely worse this contact","Acute on a long-standing background, the case a single rating cannot express. Recording both halves is what shows you distinguished them."],
     ["history of attempt; long-term risk stays elevated whatever today's picture","The honest long-term statement for anyone with an attempt behind them. The RANZCP guideline says plainly that such clients should not be considered at low or no foreseeable risk."],
     ["long-standing pattern; a change in method or lethality was described","An unchanged pattern can still carry a changed method, and the change is the point. Records that a change was described, without naming what it was."]]},
-  {id:"fc",name:"What could change before next contact",single:1,terms:[
+  {id:"fc",name:"What could change before next contact",single:1,level:2,terms:[
     ["no changes foreseen before the next contact","You considered what is coming and nothing stood out. Recording the consideration is the point."],
     ["an upcoming event was identified that could raise risk","Anniversaries, court dates, results, discharge. The event itself is named in the Plan."],
     ["a support the client relies on is ending before the next contact","A departure, a discharge, a service ending. Foreseeable, and often actionable."]]},
-  {id:"ba",name:"What the conclusion rests on",terms:[
+  {id:"ba",name:"What the conclusion rests on",level:2,terms:[
     ["conclusion rests on what the client reported this contact","The Outcome line says what you concluded. This says what you had in front of you when you concluded it, which is what lets a later reader reconstruct the assessment rather than only its result."],
     ["conclusion rests on the client's report and what was observed in the room","Two sources, kept apart. The receiving clinician sorts on the reported-versus-observed axis, so the record marks which is which."],
     ["conclusion rests on the client's report and information from another person","Records that the conclusion was not formed on the client's account alone. Who the person was, and on what footing, belongs in the enquiry lane and in Disclosures and Coordination."],
@@ -562,11 +567,11 @@ export const ASSESSED = [
     ["assessment recorded as a description of the current picture rather than as a rating","Where you have deliberately not assigned a level, this records the choice. An empty field reads as an omission; this reads as a method. It is a statement about your own approach, not a claim about the client."],
     ["the conclusion above rests on the interview, not on an instrument score","A score never substitutes for the judgement. Says plainly what the conclusion was built on."],
     ["an instrument score was available this contact and did not change the conclusion reached","Records that the score was in front of you and weighed. An option considered and not acted on is a clinical act, and this is that shape applied to a number."]]},
-  {id:"bear",name:"Bearing of strengths on this outcome",single:1,terms:[
+  {id:"bear",name:"Bearing of strengths on this outcome",single:1,level:3,terms:[
     ["strengths recorded above were part of the reason for this outcome","This is the sentence a reviewer looks for when a client with ideation stays in ordinary outpatient care. It says the strengths named in the enquiry lane bore on the conclusion, rather than leaving a reader to infer the link."],
     ["strengths recorded above were considered and do not change this outcome","The honest-limits line. Protective factors do not cancel out concerns, and a note that implies they did is the one that reads badly later."],
     ["no strengths were relied on in reaching this outcome","Plainest of the three. The conclusion rests on what was asked and what was found, and nothing else."]]},
-  {id:"ob",name:"Reporting and sharing obligations",single:1,terms:[
+  {id:"ob",name:"Reporting and sharing obligations",single:1,level:2,terms:[
     ["no reporting or information sharing obligation engaged by this contact","The ordinary case. Records that you turned your mind to it, which is the part a later reader cannot otherwise tell from a silent line."],
     ["reporting threshold considered; assessed as not met on the information available","Your conclusion, stated affirmatively. The ground goes in your own line underneath; a conclusion with no visible reason is the entry most likely to be questioned later."],
     ["reporting threshold considered; assessed as met","Your conclusion that it was met, marked as yours. The report itself lands on the Actions line, so one line carries the decision and the other carries the act."],
@@ -590,16 +595,16 @@ export const ASSESSED = [
   // 
   // Multi-pick: the pattern statement and the baseline handover are different
   // facts and are ordinarily both true at a closure.
-  {id:"cl",name:"At the end of the episode",terms:[
+  {id:"cl",name:"At the end of the episode",level:3,terms:[
     ["risk enquiry was made at every attended contact across the service period","An episode-scoped statement of what was done, which is what makes an episode-scoped finding readable. Bounded to attended contacts, because the gaps between them are intervals nobody observed."],
     ["risk enquiry was made at some contacts and not at others across the period","The other half of the pair, for a period where the enquiry was not made every time. Which contacts, and why, is a fact for your own line underneath."],
     ["no risk indicators were identified at any attended contact","Deliberately bounded to attended contacts, because a claim across the whole period would cover every gap between appointments, which is an interval you did not observe."],
     ["risk could not be reassessed after the final attended contact","The honest line after a client stops coming, and the ceiling on what can be said about a period you had no contact in. An episode negative running past the date your information stopped asserts knowledge nobody had."],
     ["the picture described above is the baseline for whoever continues the care","A closing risk line does two jobs a session line never does: it states the pattern across the whole period, and it leaves a baseline for whoever reads next. This term is the second of the two."],
     ["the client's own account of what helps them in a crisis is recorded for the next reader","The one clinicians most often leave out and the receiving clinician most needs: anyone can look up a crisis number, but only your file knows what actually settles this person."]]},
-  {id:"sc",name:"Scope of this conclusion",single:1,terms:[
+  {id:"sc",name:"Scope of this conclusion",single:1,level:3,terms:[
     ["describes the client's state at this contact; no view formed about any later time","The honest scope of any risk conclusion. Nobody predicts individual suicide, and a note that claims only what it observed is the one that holds up. This scopes the conclusion in time; the enquiry-scoping is already carried by the first Outcome term, so a note does not say it twice."]]},
-  {id:"bd",name:"Read against the rest of this note",terms:[
+  {id:"bd",name:"Read against the rest of this note",level:3,terms:[
     ["the presentation and the client's account of risk point the same way","What you observed and what they told you agree. Worth stating once rather than leaving the reader to check two sections against each other."],
     ["the presentation and the client's account of risk differ; both are recorded and will be monitored","The honest entry when the mental state line and the risk answers pull apart. It names the tension rather than averaging it, and carries it forward as something to be watched rather than resolved on the page."],
     ["the risk answers were taken in the light of the mental state recorded above","Records the order in which you worked, where the observation came first and shaped the questions that followed."]]},
@@ -607,7 +612,7 @@ export const ASSESSED = [
   // is a fact and may be recorded; an interval is an inference and only the
   // clinician may draw it. No elapsed-time counter, overdue badge, suggested
   // interval or risk-over-time chart may ever attach to this dimension.
-  {id:"rv",name:"Review",terms:[
+  {id:"rv",name:"Review",level:2,terms:[
     ["to be reviewed at the next contact","The ordinary case."],
     ["to be reviewed before the next contact","Brings the review forward without escalating."],
     ["fuller risk assessment scheduled, date recorded in Plan","A full assessment is booked rather than done here. Saying where the date lives keeps the two sections agreeing with each other."],
@@ -631,14 +636,14 @@ export const ASSESSED = [
   // system, never a prediction about a person; this band instructs nothing,
   // which is precisely why it may exist. Withheld from the public build
   // (risk-051). A feature attaching behaviour to this value reopens risk-051.
-  {id:"lvl",name:"Categorical rating (only if your setting requires one)",single:1,lead:"risk level",terms:[
+  {id:"lvl",name:"Categorical rating (only if your setting requires one)",single:1,lead:"risk level",level:3,terms:[
     ["not rated; the Outcome line carries the finding in words","The default position, and the one the rest of this section is built for. Saying so in the line itself stops a reader treating an unrated note as an unassessed one, and stops another document in the file filling the gap with a level nobody chose. Categorical ratings have poor accuracy for individuals, and the guidelines have moved away from them; the words above carry more. No source consulted in building this vocabulary, whether regulator, panel, indemnity insurer or professional body, requires a categorical risk level."],
     ["low, on my clinical judgement this contact","Your determination. Nothing in Alembic computes, suggests or infers this value."],
     ["moderate, on my clinical judgement this contact","Your determination. A single recorded word is the thing an inquest can hold against a death, and it will be read as evidence about the clinician's whole approach."],
     ["high, on my clinical judgement this contact","Your determination."],
     ["rating recorded to meet a service requirement; the words above carry the assessment","Records that the level was entered because a service requires one, so the reasoning in the lines above is not read as a gloss on the rating."]]}]},
  {id:"act",name:"Actions taken",lane:"actions",lead:"",subs:[
-  {id:"sp",name:"Safety planning",terms:[
+  {id:"sp",name:"Safety planning",level:1,terms:[
     ["safety plan reviewed with the client","Gone through together, not just noted as existing."],
     ["safety plan created with the client","New this contact."],
     ["safety plan updated with the client","Changed this contact. Say what changed if it matters."],
@@ -649,7 +654,7 @@ export const ASSESSED = [
     ["a crisis service contacted together with the client during this contact","Dialled in the room, or on the call, with the client present. Different from advising them to ring later, and worth distinguishing."],
     ["the client agreed to continue treatment and to use the agreed crisis steps","A statement about engagement, which is a thing you both did. It is deliberately not a promise about what the client will not do."],
     ["no safety planning indicated this contact","An action in itself when you considered it and it was not needed. Recording the consideration is what separates a decision from an oversight."]]},
-  {id:"mr",name:"Means",terms:[
+  {id:"mr",name:"Means",level:2,terms:[
     ["means restriction discussed","Discussed, whatever the outcome. Keep method detail out of this line; put only what care actually needs into your own words."],
     ["means restriction actioned with the client","Something concrete changed."],
     ["support person engaged in means restriction, with consent","Records the consent alongside the action."],
@@ -658,18 +663,18 @@ export const ASSESSED = [
     ["means restriction agreed with a parent or carer","Records who agreed to do it. In work with young people this is nearly always the parent's act and not the client's."],
     ["means agreed to be locked or secured rather than removed","Locking and removing are different levels of restriction with different durability. A note recording only that means were discussed cannot tell a later reader what state the house is in."],
     ["means agreed to be removed from the home","The other half of the same distinction."]]},
-  {id:"mrv",name:"Medical review",terms:[
+  {id:"mrv",name:"Medical review",level:2,terms:[
     ["medical review advised this contact","Advised, whether or not it was taken up. What you said is the part that is yours to record."],
     ["same-day medical review advised","The stronger version, for the account that would not wait. It sits beside whatever the rest of the Actions line records."],
     ["client declined medical review; the advice was recorded and repeated","Their decision and your advice, both on the page. This is the entry that protects everyone."],
     ["no medical review indicated this contact","Considered and not indicated. An action in itself."]]},
-  {id:"lm",name:"What was discussed about limits",terms:[
+  {id:"lm",name:"What was discussed about limits",level:3,terms:[
     ["confidentiality limits revisited with the client before any disclosure was made","The second confidentiality conversation, the one that happens under pressure. It is the one a later reader will look for."],
     ["the client was told what would be disclosed and to whom, and agreed","Converts a disclosure made on another ground into a consented one, which is always the better footing."],
     ["the client was told, and did not agree; the disclosure proceeded on the ground below","Records both halves honestly. The ground goes on the disclosure line."],
     ["the client was not told beforehand; my reason is recorded in Disclosures","The entry clinicians most fear writing and the one whose absence looks worst. Recording the reason is what distinguishes a judgement from an omission."],
     ["explained to the client what I can and cannot do if their safety worsens","Records the conversation about the limits of your own role. It is the conversation that shapes what the client expects, and it is currently invisible in most records."]]},
-  {id:"su",name:"Supports and coordination",terms:[
+  {id:"su",name:"Supports and coordination",level:2,terms:[
     ["GP notified, with consent","Consent recorded in the same breath as the disclosure."],
     ["psychiatrist or prescriber notified, with consent","As above."],
     ["case worker notified, with consent","As above."],
@@ -684,12 +689,12 @@ export const ASSESSED = [
     ["parent or carer informed without the client's agreement; the client was told what was shared","The commonest serious disclosure in work with young people. The second clause is what distinguishes a considered override from a broken confidence."],
     ["the client's wishes about what may be shared with family were recorded","Records the boundary the client drew around a disclosure that did not happen. A wish a person expressed and did not withdraw can outlast them."],
     ["no external contact indicated this contact","Considered, not needed."]]},
-  {id:"ch",name:"Child safety and reporting",terms:[
+  {id:"ch",name:"Child safety and reporting",level:3,terms:[
     ["report made to child protection","Records the act. Channel, time, reference number and the person who took it belong underneath in your own words; they convert an assertion into a checkable fact."],
     ["report made to police","Some obligations run to police rather than child protection, and some run to both."],
     ["client informed that a report would be made, and what to expect","Records that the report was a kept promise rather than a surprise. Where you decided not to tell them, that goes in your own words instead."],
     ["no report indicated this contact","Considered and not indicated. An action in itself."]]},
-  {id:"es",name:"Escalation",terms:[
+  {id:"es",name:"Escalation",level:2,terms:[
     ["emergency services contacted; what I asked for is recorded in my own line below","Records the call. The Disclosures and Coordination section carries who was called and when."],
     ["outcome of the emergency services contact recorded","The second half of the pair. A request with no recorded outcome leaves the next reader unable to see what happened."],
     ["crisis or triage service contacted; the response is recorded in my own line below","Records the contact. Whether the service accepted, declined or advised is the part a later reader needs."],
@@ -700,24 +705,24 @@ export const ASSESSED = [
     ["client declined the recommendation to attend","Their choice, recorded neutrally and without any inference about why."],
     ["attendance confirmed by the client or a support person","The step almost nobody records. It is the difference between advice given and care continued."],
     ["no escalation indicated this contact","Considered and not indicated."]]},
-  {id:"pr",name:"Police and emergency response",terms:[
+  {id:"pr",name:"Police and emergency response",level:3,terms:[
     ["police asked to attend for a welfare check","Records the request. What was asked for, and of whom, is the substance of the action."],
     ["police asked to attend because of an immediate concern for safety","A different request from a welfare check, and the difference matters if the record is reviewed."],
     ["police attended; the outcome is recorded in my own line below","The second half. An attendance with no recorded outcome is half a record."],
     ["police were asked to attend and did not attend","Records what happened rather than what was requested."],
     ["an ambulance was called","Recorded separately from police, because they are different responses with different consequences for the client."]]},
-  {id:"hv",name:"Handover and onward information",terms:[
+  {id:"hv",name:"Handover and onward information",level:3,terms:[
     ["urgent same-day assessment requested from the service contacted","Records what you asked for, not just that you rang. It is the part most often left out of the record."],
     ["advice sought from the service; transfer of care not requested","A consultation is not a referral. Saying which one it was protects both you and the receiving service from a later disagreement about who was holding the client."],
     ["written summary provided to the receiving service, with consent","Consent recorded in the same breath as the disclosure, in the pattern the Supports dimension already uses."],
     ["crisis plan and the supports the client finds helpful included in what was sent","What the person finds helpful in a crisis is knowledge you hold and the receiving service does not."]]},
-  {id:"tf",name:"Handover",terms:[
+  {id:"tf",name:"Handover",level:3,terms:[
     ["referral sent; acceptance not confirmed at the time of writing","The honest state of most referrals when the note is written. It is also the state that carries the responsibility, so it is worth naming rather than leaving blank."],
     ["handover accepted by a named clinician at the receiving service","A handover is complete when responsibility has transferred, and your responsibility can continue until then. Naming the person who accepted is what closes it."],
     ["the service contacted advised the referral did not meet their threshold","Not a judgement about the service. A fact about where the client now stands, which is the fact the next reader needs."],
     ["attendance at the referred service confirmed","Confirmed rather than assumed. It dates the point at which somebody else was in fact seeing the client."],
     ["the client was given names of alternative practitioners; no referral was made","A legitimate ending, and not a transfer. Saying so is what stops a later reader assuming somebody else was holding the client."]]},
-  {id:"cs",name:"Consultation",terms:[
+  {id:"cs",name:"Consultation",level:2,terms:[
     ["raised with the supervisor the same day","Records your own act, and when you did it. Only pick a term whose event has already happened when you write the note."],
     ["to be raised at the next scheduled supervision","The ordinary case, since supervision usually comes after the contact it concerns."],
     ["supervisor contacted during this contact","Reached while the client was still with you, which is a different fact from reaching them afterwards."],
@@ -726,35 +731,35 @@ export const ASSESSED = [
     ["discussed with a colleague, client not identified","The de-identified discussion the confidentiality framework expressly permits without consent."],
     ["supervision sought, not yet held; proceeding on my own judgement in the meantime","Records that you decided it needed supervision, and that the decision in the room was still yours."],
     ["no consultation sought this contact","Considering whether to consult and deciding not to is a clinical act, and this is where it lands."]]},
-  {id:"tel",name:"Contact and location safety",terms:[
+  {id:"tel",name:"Contact and location safety",level:3,terms:[
     ["client's location confirmed at the start of this contact","The reason this field exists is dispatch. On any contact where you are not in the room, knowing where the client is turns a crisis into something that can be acted on."],
     ["client's current physical location confirmed before escalating","You cannot send help to a video window. The escalation moment is a different moment from the start of the contact, and this records that one."],
     ["emergency contact confirmed as current","Confirmed this contact, not assumed from intake. Contacts go stale in exactly the months nobody checks them."],
     ["crisis service local to the client identified","National lines travel with the client; the local triage service and nearest emergency department do not."],
     ["plan agreed for a dropped connection","Agreed before it is needed. If a connection did drop during this contact, the detail goes in your own line."],
     ["contact not re-established after the connection dropped","The harder outcome, and the one that has to show what followed. Each attempt and its time belong in your own line."]]},
-  {id:"msg",name:"Written contact between sessions",terms:[
+  {id:"msg",name:"Written contact between sessions",level:3,terms:[
     ["message actioned on the day it was received","The ordinary case, stated rather than assumed. Response time is a fact that becomes relevant later and a reader made to guess at it will guess against you."],
     ["message received out of hours and actioned at the next opportunity","Two clocks: when it arrived, and when you saw it. The gap is visible rather than inferred."],
     ["client contacted by another channel in response to the message","A written disclosure answered by voice. Records that the channel was judged rather than accepted."],
     ["the client's original message retained in the record","Safety-relevant words are on the short list for keeping verbatim. A risk-relevant message kept only on a phone is a record nobody can produce."]]},
-  {id:"fu",name:"Follow-up",terms:[
+  {id:"fu",name:"Follow-up",level:1,terms:[
     ["next appointment brought forward","Concrete and checkable."],
     ["additional contact scheduled before the next session","A call or a check-in between sessions."],
     ["between-session check-in agreed with the client","Agreed rather than imposed."],
     ["usual appointment schedule maintained","Also an action: you considered changing it and did not."],
     ["arranged to see the client alone at the next contact","The action that follows a third-party report. Concrete and checkable, and it closes the gap the report opened."]]},
-  {id:"fx",name:"Follow-up made",terms:[
+  {id:"fx",name:"Follow-up made",level:3,terms:[
     ["follow-up contact made as planned","The check-in happened. If it produced clinical content, it is its own contact and its own note."],
     ["follow-up contact attempted; no answer, message left","Method, time and outcome belong in your own words. The attempt is the part that must not go unrecorded."],
     ["follow-up contact attempted; no response to date","Records an open loop. It will read as an open loop to the next person too, which is the point."]]},
-  {id:"rec",name:"The client and the record",terms:[
+  {id:"rec",name:"The client and the record",level:3,terms:[
     ["told the client what would be recorded in this section","The record is accessible by right in Australia, and this line shows it was not written behind the person's back."],
     ["this section was read back to the client during the contact","Stronger than telling them, and just as checkable. It records that the words themselves were read out, not only their gist."],
     ["a copy of this note was provided to the client at their request","Records the request and the response together. In Australia the request is lawful by default, so the line is a routine one, not a special event."],
     ["the client asked for a correction to an earlier entry; addendum to follow","A correction request can arrive in a session, in ordinary words, and it starts a clock. The addendum is made separately; nothing above it is ever rewritten."],
     ["what would be recorded in this section explained to the client through the interpreter","The record will most likely be read in another language. This records that it was explained while there was still an interpreter in the room."]]},
-  {id:"cn",name:"Considered and not taken",terms:[
+  {id:"cn",name:"Considered and not taken",level:2,terms:[
     ["more frequent contact considered and not indicated this contact","An option you considered and did not take is a clinical act, and it is the act most often found missing when a record is reviewed after a death."],
     ["referral to a crisis or acute service considered and not indicated this contact","Records the consideration and its conclusion. The reasoning belongs in your own words underneath."],
     ["presentation to an emergency department considered and not indicated this contact","As above. Nothing here says the decision was safe or sufficient; it says it was considered and reasoned."],
@@ -772,7 +777,7 @@ export const NOT_ASSESSED = [
   // A contact where risk was not formally assessed is still a contact, and for
   // a client who dies between sessions it is often the last entry in the file.
   // Coronial findings locate and quote the last entry by name.
-  {id:"r",name:"Reason",single:1,terms:[
+  {id:"r",name:"Reason",single:1,level:1,terms:[
     ["the client was not present","Records a contact in which the client took no part, such as a coordination call with another service. Where the client was booked in and did not attend, the non-attendance terms carry that instead."],
     ["risk enquiry not indicated for this form of contact","The contact itself is not one in which risk can be asked about. The everyday case for a text confirming a time. Enquiry rather than screening, because screening claims an instrument that was not used."],
     ["appointment or administrative contact only, no clinical content","Scheduling, paperwork, reminders. Nothing clinical was exchanged."],
@@ -803,7 +808,7 @@ export const NOT_ASSESSED = [
     ["this entry closes the file after contact ended; the client was not present","Records a closure written after the client stopped attending. Nobody was there to assess, and the entry says so rather than leaving the risk line silent."],
     ["the client completed a measure between contacts; no clinical contact took place to discuss it","For the case where a questionnaire comes in and no session happened. Explains why there is a score on the file and no risk enquiry beside it."]]}]},
  {id:"nac",name:"Actions taken",lane:"actions",lead:"",subs:[
-  {id:"at",name:"Contact attempts",terms:[
+  {id:"at",name:"Contact attempts",level:1,terms:[
     ["contact attempted; message left","Records an attempt and what came of it."],
     ["contact attempted; no response","Records an attempt that reached nobody."],
     ["client responded and the appointment was rebooked","Records the response and the replacement appointment together."],
@@ -813,11 +818,11 @@ export const NOT_ASSESSED = [
     ["a decision was made not to attempt contact on this occasion","Records a decision rather than a silence. Nothing in Alembic sets or suggests a number of attempts."],
     ["a decision was recorded to stop attempting contact for the time being","Records the point at which attempts stopped, and that it was a decision rather than a lapse."],
     ["the decision about further contact attempts was made with the supervisor","Records who the decision was made with. It carries no view about the decision itself."]]},
-  {id:"bk",name:"Risk backdrop",single:1,terms:[
+  {id:"bk",name:"Risk backdrop",single:1,level:2,terms:[
     ["no prior risk concerns on record","Records the backdrop this contact sits against, as it stands in the record."],
     ["prior risk concerns on record, reviewed before responding","Records that the earlier entries were read before the response to this contact was settled."],
     ["risk position at the previous contact carried forward","The clinician's own statement that the position reached at the last contact still stands. Nothing is carried forward by the software."]]},
-  {id:"ad",name:"After a death",terms:[
+  {id:"ad",name:"After a death",level:3,terms:[
     ["the supervisor was informed of the client's death","Records that the supervisor was told. Like every term here, it describes an act that has already happened."],
     ["the professional indemnity insurer was contacted","Records that the insurer was contacted. It carries nothing about what was discussed."],
     ["a complete copy of the record was taken and secured","Records that a complete copy was taken and secured. That copy is the version of events available later."],
@@ -828,7 +833,7 @@ export const NOT_ASSESSED = [
     ["arrangements were considered for other clients affected by the death","Records that the effect on other clients was considered. It says nothing about what was decided for any of them."],
     ["contact was made with a family member; no information from the record was disclosed","Records that a conversation happened and that nothing from the record was disclosed in it."],
     ["a request for information was received from a family member and not answered at this contact","Records that a request was received and was not answered at this contact. Who may access a deceased person's record differs by state."]]},
-  {id:"ig",name:"Information given to another service",terms:[
+  {id:"ig",name:"Information given to another service",level:2,terms:[
     ["information given to another service about the client, with consent","Records the disclosure and the consent in the same term. The recipient, purpose, authority and date belong in the Disclosures and Coordination section."]]}]}
 ];
 export const RISK_AREAS = [...ASSESSED, ...NOT_ASSESSED]
