@@ -194,6 +194,20 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
   white-space:pre-wrap; min-height:54px; max-height:180px; overflow-y:auto;
 }
 .preview.placeholder{font-style:italic; color:var(--muted)}
+.preview[data-editable="1"]{cursor:text}
+
+/* the detail level: one segmented control above the cascade */
+.detail-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 12px}
+.detail-lab{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
+
+/* the preview, editable in place */
+.pv-edit{border:1px solid var(--border); border-radius:var(--r2); background:var(--panel); padding:14px 16px}
+.pv-edit textarea{width:100%; box-sizing:border-box; padding:8px 10px;
+  font:400 13.5px/1.6 inherit; color:var(--ink); background:var(--panel2);
+  border:1px solid var(--border); border-radius:var(--r1); resize:vertical}
+.pv-edit textarea:focus{border-color:var(--accent); outline:none}
+.pv-mark{display:inline-block; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:700;
+  letter-spacing:.05em; text-transform:uppercase; background:var(--accent-soft); color:var(--accent-text)}
 .copy-row{display:flex; justify-content:flex-end}
 .copy{
   padding:11px 26px; border-radius:999px; font-size:12.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
@@ -293,6 +307,11 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
     <button class="clear-btn" id="clearBtn">Start again</button>
   </div>
 
+  <div class="detail-row" id="detailRow">
+    <span class="detail-lab">Detail</span>
+    <div class="seg" id="detailSeg" role="group" aria-label="How much detail to offer"></div>
+  </div>
+
   <div class="cascade" id="cascade">
     <div class="crumbs" id="crumbs"></div>
     <div class="cols" id="cols"></div>
@@ -304,6 +323,8 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
       <span class="chars" id="chars"></span>
     </div>
     <div class="preview" id="preview" aria-live="polite"></div>
+    <div class="pv-edit" id="previewEdit" hidden></div>
+    <p class="hint" id="previewHint" style="color:var(--muted);font-size:11.5px;line-height:1.5;margin:6px 0 0">Click the text above to edit it in your own words.</p>
     <div class="copy-row"><button class="copy" id="copyBtn">Copy MSE</button></div>
   </div>
 </main>
@@ -319,7 +340,9 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 
 <script type="module">
 import { MSE_DOMAINS } from './mseVocabulary.js'
-import { emptyMseState, toggleTerm, setOwnWording, setOwnLine, effectiveWording, domainsRecorded, serialiseMse } from './mseState.js'
+import { emptyMseState, toggleTerm, setOwnWording, setOwnLine, effectiveWording, domainsRecorded, serialiseMse,
+         domainsForLevel, setEditedLine, clearEditedLine, isEdited } from './mseState.js'
+import { DETAIL_LEVELS, readDetailLevel, writeDetailLevel } from '../detailLevel.js'
 
 let state = emptyMseState()
 const past = []
@@ -339,13 +362,23 @@ let savedFormat = null
 try { savedFormat = localStorage.getItem('mse-format') } catch(e){}
 const ui = { domainId:null, subId:null, term:null, ownAt:null,
   format:['para','labelled','bullets'].includes(savedFormat) ? savedFormat : 'para',
-  level:'domains', sheetOpen:false }
+  level:'domains', sheetOpen:false,
+  /* ui.level is the cascade step on a phone, so the detail level gets its own
+     name. It changes what the tool OFFERS and nothing else: nothing is ever
+     ticked, pre-filled or suggested, and a dimension that already carries a
+     pick stays offered whatever the level says (the engine handles that), so
+     lowering the level can never hide something already recorded. */
+  detail: readDetailLevel(), editing:false }
 let mode = 'wide' // wide | three | phone
 
 const $ = id => document.getElementById(id)
 const cols = $('cols'), crumbs = $('crumbs'), sheet = $('sheet'), scrim = $('scrim')
 
 const dom = id => MSE_DOMAINS.find(d => d.id === id)
+/* Filtering comes from the engine, never a local copy: a panel that works out
+   vocabulary shape for itself drifts from the engine silently. */
+const offeredDomains = () => domainsForLevel(state, ui.detail)
+const offeredSubs = d => offeredDomains().find(x => x.id === d.id)?.subs || []
 const sub = (d, s) => dom(d)?.subs.find(x => x.id === s)
 
 /* Hover navigation (2026-08-16, Jean-Luc's direction; supersedes the handover's
@@ -395,7 +428,7 @@ const domainPickCount = d =>
 
 /* ---------- column builders ---------- */
 function buildDomainRows(container){
-  MSE_DOMAINS.forEach(d => {
+  offeredDomains().forEach(d => {
     const r = row({
       label:d.name, dotOn:domainHas(d.id), dotRisk:!!d.risk,
       open:ui.domainId === d.id && !ui.ownAt,
@@ -435,7 +468,7 @@ function quickConsistentRow(){
 }
 
 function buildSubRows(container, d){
-  d.subs.forEach(s => {
+  offeredSubs(d).forEach(s => {
     const r = row({
       label:s.name, dotOn:subHas(d.id, s.id), dotRisk:!!(s.risk || d.risk),
       open:ui.subId === s.id && !ui.ownAt,
@@ -572,6 +605,15 @@ function render(){
   $('copyBtn').disabled = !out
   $('undoBtn').disabled = !past.length
   renderSeg()
+  renderDetailSeg()
+
+  /* Click the text to type over it. */
+  pv.hidden = ui.editing
+  pv.dataset.editable = '1'
+  pv.setAttribute('role','button')
+  pv.tabIndex = 0
+  $('previewHint').hidden = ui.editing
+  renderPreviewEditor()
   if (mode === 'wide') sizeColumns()
   /* the fixed bottom bar must never hide content: measure it and pad the page to match */
   requestAnimationFrame(() => {
@@ -599,7 +641,7 @@ function renderThree(d, s){
   const [c1, s1] = colShell(d ? d.name : 'Dimension')
   const sel = el('select'); sel.setAttribute('aria-label','MSE domain'); sel.style.cssText = 'width:100%;margin:0 0 8px;background:var(--panel2);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px'
   const opt0 = el('option'); opt0.textContent = 'Choose a domain'; opt0.value = ''; sel.appendChild(opt0)
-  MSE_DOMAINS.forEach(x => {
+  offeredDomains().forEach(x => {
     const o = el('option'); o.value = x.id; o.textContent = x.name + (domainHas(x.id) ? ' ✓' : ''); if (ui.domainId === x.id) o.selected = true
     sel.appendChild(o)
   })
@@ -654,6 +696,73 @@ function renderPhone(d, s){
   }
 }
 scrim.addEventListener('click', () => { ui.sheetOpen = false; render() })
+
+/* The detail control, in the same idiom as the format segment above it.
+   No count of what is offered: on the public build a number beside a clinical
+   builder starts to read as a target, and this control is about the size of
+   the offer, never about the adequacy of anyone's examination. */
+function renderDetailSeg(){
+  const seg = $('detailSeg'); seg.innerHTML = ''
+  DETAIL_LEVELS.forEach(l => {
+    const b = txt('button', ui.detail === l.id ? 'on' : '', l.label)
+    b.title = l.hint
+    b.setAttribute('aria-pressed', ui.detail === l.id)
+    b.addEventListener('click', () => {
+      ui.detail = l.id
+      writeDetailLevel(l.id)
+      /* Never move the selection silently: if the dimension being read is no
+         longer offered, step back to the column rather than showing a
+         different dimension's wording under the same heading. */
+      if (ui.domainId && ui.subId){
+        const d = offeredDomains().find(x => x.id === ui.domainId)
+        if (!d || !d.subs.some(x => x.id === ui.subId)){ ui.subId = null; ui.term = null; ui.level = 'subs' }
+      }
+      render()
+    })
+    seg.appendChild(b)
+  })
+}
+
+/* The MSE line, editable in place. One box, because the MSE is one line in the
+   note. What is typed replaces the built line until Back to the built line is
+   pressed; the picks stay untouched underneath, so nothing is lost either way. */
+function renderPreviewEditor(){
+  const box = $('previewEdit')
+  box.hidden = !ui.editing
+  if (!ui.editing){ box.innerHTML = ''; return }
+  box.innerHTML = ''
+  const built = serialiseMse(state, ui.format)
+  if (isEdited(state)){
+    const head = el('div'); head.style.marginBottom = '6px'
+    head.appendChild(txt('span','pv-mark','edited by hand'))
+    box.appendChild(head)
+  }
+  const ta = document.createElement('textarea')
+  ta.rows = 4
+  ta.value = built || ''
+  ta.setAttribute('aria-label','Edit the MSE line')
+  /* Committed on blur, not on every keystroke, so the picks and the typed line
+     do not fight each other mid-sentence. */
+  ta.addEventListener('blur', () => {
+    if (ta.value !== built){ setState(setEditedLine(state, ta.value)); render() }
+  })
+  box.appendChild(ta)
+  const rowEl = el('div'); rowEl.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px'
+  const done = txt('button','b','Done editing')
+  done.style.cssText = 'padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;border:1px solid var(--border-strong,var(--border));color:var(--ink);background:var(--panel3,var(--panel2))'
+  done.addEventListener('click', () => { ta.blur(); ui.editing = false; render() })
+  rowEl.appendChild(done)
+  if (isEdited(state)){
+    const back = txt('button','b','Back to the built line')
+    back.style.cssText = done.style.cssText.replace('font-weight:700','font-weight:600')
+    back.addEventListener('click', () => { setState(clearEditedLine(state)); render() })
+    rowEl.appendChild(back)
+  }
+  const hint = txt('span', null, 'What you type here is what your note gets. Your picks are kept underneath.')
+  hint.style.cssText = 'color:var(--muted);font-size:11.5px;line-height:1.5'
+  rowEl.appendChild(hint)
+  box.appendChild(rowEl)
+}
 
 function renderSeg(){
   const seg = $('seg'); seg.innerHTML = ''
@@ -717,6 +826,13 @@ window.addEventListener('keydown', e => { if (e.key === 'Escape' && ui.sheetOpen
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.search-wrap')) hideResults() })
 
 /* ---------- undo ---------- */
+/* Wired once: the preview element itself is never replaced, only its text. */
+$('preview').addEventListener('click', ()=>{ ui.editing = true; render()
+  const ta = document.querySelector('#previewEdit textarea'); if (ta) ta.focus() })
+$('preview').addEventListener('keydown', (e)=>{
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ui.editing = true; render()
+    const ta = document.querySelector('#previewEdit textarea'); if (ta) ta.focus() } })
+
 $('undoBtn').addEventListener('click', undo)
 window.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z'){

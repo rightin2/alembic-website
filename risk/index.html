@@ -156,6 +156,28 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 .b.danger{border-color:var(--danger);color:var(--danger)}
 .hint{color:var(--muted);font-size:11.5px;line-height:1.5}
 
+/* the detail level: one segmented control above the cascade */
+.detail-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.detail-lab{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.seg button{padding:7px 14px;font-size:12.5px;color:var(--muted);background:var(--panel2);border:none;
+  border-right:1px solid var(--border)}
+.seg button:last-child{border-right:none}
+.seg button[aria-pressed="true"]{color:var(--ink);background:var(--panel3);font-weight:700}
+.seg button:hover{color:var(--ink)}
+
+/* the preview, editable in place */
+.pv-edit{border:1px solid var(--border);border-radius:var(--r2);background:var(--panel);padding:14px 16px}
+.pv-edit label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:4px}
+.pv-edit textarea{width:100%;box-sizing:border-box;padding:8px 10px;font:400 13.5px/1.6 var(--body,inherit);
+  color:var(--ink);background:var(--panel2);border:1px solid var(--border);border-radius:var(--r1);resize:vertical}
+.pv-edit textarea:focus{border-color:var(--accent);outline:none}
+.pv-field + .pv-field{margin-top:12px}
+.pv-mark{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;background:var(--accent-soft,var(--panel3));color:var(--accent-text,var(--ink2))}
+.preview[data-editable="1"]{cursor:text}
+
 /* output: the three lines */
 .output{margin-top:16px; display:flex; flex-direction:column; gap:10px}
 .out-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -253,6 +275,11 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
     <div class="branches" id="branches" role="group" aria-label="Contact type"></div>
   </div>
 
+  <div class="detail-row" id="detailRow" hidden>
+    <span class="detail-lab">Detail</span>
+    <div class="seg" id="detailSeg" role="group" aria-label="How much detail to offer"></div>
+  </div>
+
   <div class="cascade" id="cascade" hidden>
     <div class="crumbs" id="crumbs"></div>
     <div class="cols" id="cols" role="group" aria-label="Risk section builder"></div>
@@ -264,6 +291,8 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
     </div>
     <h2 id="previewLabel" style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)">What will go in your note</h2>
     <div class="preview" id="preview" role="region" aria-labelledby="previewLabel" aria-live="polite"></div>
+    <div class="pv-edit" id="previewEdit" hidden></div>
+    <p class="hint" id="previewHint" hidden>Click the text above to edit it in your own words.</p>
     <div class="copy-row"><button class="copy" id="copyBtn" disabled>Copy risk section</button></div>
   </div>
 </main>
@@ -280,8 +309,9 @@ button{font-family:inherit; color:inherit; background:none; border:none; cursor:
 import { RISK_AREAS } from './riskVocabulary.js'
 import { emptyRiskState, setBranch, toggleTerm, setOwnWording, setOwnLine,
          effectiveWording, areaHasContent, toRiskBlock, areasRecorded, areaCount,
-         areasFor } from './riskState.js'
+         areasFor, areasForLevel, setEditedLane, clearEditedLane, isLaneEdited } from './riskState.js'
 import { serialiseRiskBlock } from './riskBlock.js'
+import { DETAIL_LEVELS, readDetailLevel, writeDetailLevel } from '../detailLevel.js'
 
 /* The risk level dimension is deliberately NOT offered on the public site. It stays in the
    shared vocabulary so the data file matches the app byte for byte, but four buttons labelled
@@ -294,7 +324,8 @@ const past = []
 function setState(next){ if (next===state) return; past.push(state); if (past.length>30) past.shift(); state = next }
 function undo(){ if (!past.length) return; state = past.pop(); render() }
 
-const ui = { areaId:null, subId:null, term:null, ownAt:null, level:'dims' }
+const ui = { areaId:null, subId:null, term:null, ownAt:null, level:'dims',
+             detail: readDetailLevel(), editing:false }
 const $ = id => document.getElementById(id)
 const cols = $('cols'), crumbs = $('crumbs')
 let phone = false
@@ -310,7 +341,14 @@ const RISKY = new Set(['si','sh','ho'])
    the actions area stayed invisible on the not-assessed branch even once the engine
    carried it. The not-assessed branch now has its own Actions area (nac), written for
    a missed contact, which supersedes the interim fix that borrowed the assessed one. */
-const branchAreas = () => areasFor(state.branch)
+const branchAreas = () => areasForLevel(state, state.branch, ui.detail)
+
+/* The detail level changes what the tool OFFERS and nothing else. It never ticks,
+   pre-fills or suggests anything: every word that reaches a note is still one the
+   clinician chose. A dimension already carrying a pick stays offered whatever the
+   level says, which the engine handles, so lowering the level can never hide
+   something you have already recorded. Filtering comes from the engine's
+   areasForLevel for the same reason branch membership does: a local copy drifts. */
 
 const HOVER_OK = window.matchMedia('(hover: hover) and (pointer: fine)').matches
 let hoverTimer=null, lastClick=0
@@ -464,8 +502,103 @@ function buildExplain(container){
 }
 
 /* ---------- render ---------- */
+/* The detail control. Deliberately no count of what is offered: on the public
+   build any number beside a clinical builder starts to read as a target
+   (risk-080 item 6), and the control is about the size of the offer, not about
+   the adequacy of anyone's assessment. */
+function renderDetail(){
+  const seg = $('detailSeg')
+  $('detailRow').hidden = !state.branch
+  if (!state.branch) return
+  seg.innerHTML = ''
+  DETAIL_LEVELS.forEach(l => {
+    const b = txt('button', null, l.label)
+    b.type = 'button'
+    b.title = l.hint
+    b.setAttribute('aria-pressed', ui.detail === l.id ? 'true' : 'false')
+    b.addEventListener('click', () => {
+      ui.detail = l.id
+      writeDetailLevel(l.id)
+      /* Changing the level must never move the selection. If the dimension the
+         clinician was reading is no longer offered, step back to the column
+         rather than silently showing a different dimension's wording. */
+      if (ui.areaId && ui.subId){
+        const a = branchAreas().find(x => x.id === ui.areaId)
+        if (!a || !a.subs.some(x => x.id === ui.subId)){ ui.subId = null; ui.term = null; ui.level = 'dims' }
+      }
+      render()
+    })
+    seg.appendChild(b)
+  })
+}
+
+/* The three lines, editable in place. One box per line rather than one box for
+   the block: the note keeps three separate lines, and re-parsing an edited
+   block back into three would be a guess about which sentence belonged where.
+   What is typed is the clinician's own sentence, so it replaces the built line
+   until they press Back to the built line; the picks stay untouched underneath. */
+const EDIT_LANES = () => state.branch === 'not_assessed'
+  ? [ { lane:'reason', label:'Outcome' }, { lane:'actions', label:'Actions' } ]
+  : [ { lane:'assessed', label:'Assessed' }, { lane:'outcome', label:'Outcome' },
+      { lane:'actions', label:'Actions' } ]
+
+function renderPreviewEditor(){
+  const box = $('previewEdit')
+  box.hidden = !ui.editing
+  if (!ui.editing){ box.innerHTML = ''; return }
+  box.innerHTML = ''
+  const block = toRiskBlock(state)
+  const value = lane => lane === 'reason' ? block.notAssessedReason
+    : lane === 'assessed' ? block.assessedDetails
+    : lane === 'outcome' ? block.outcome : block.actions
+  EDIT_LANES().forEach(f => {
+    const field = el('div','pv-field')
+    const head = el('div')
+    const lab = txt('label', null, f.label)
+    lab.setAttribute('for', 'edit-' + f.lane)
+    head.appendChild(lab)
+    if (isLaneEdited(state, f.lane)) head.appendChild(txt('span','pv-mark','edited by hand'))
+    field.appendChild(head)
+    const ta = document.createElement('textarea')
+    ta.id = 'edit-' + f.lane
+    ta.rows = 2
+    ta.value = value(f.lane) || ''
+    ta.setAttribute('aria-label', 'Edit the ' + f.label + ' line')
+    /* Committed on blur rather than on every keystroke, so the picks and the
+       typed line do not fight each other mid-sentence. */
+    ta.addEventListener('blur', () => {
+      if (ta.value !== (value(f.lane) || '')){ setState(setEditedLane(state, f.lane, ta.value)); render() }
+    })
+    field.appendChild(ta)
+    if (isLaneEdited(state, f.lane)){
+      const back = txt('button','b','Back to the built line')
+      back.type = 'button'
+      back.style.marginTop = '6px'
+      back.addEventListener('click', () => { setState(clearEditedLane(state, f.lane)); render() })
+      field.appendChild(back)
+    }
+    box.appendChild(field)
+  })
+  const row2 = el('div','btn-row')
+  row2.style.marginTop = '12px'
+  const done = txt('button','b primary','Done editing')
+  done.type = 'button'
+  done.addEventListener('click', () => {
+    EDIT_LANES().forEach(f => {
+      const ta = $('edit-' + f.lane)
+      if (ta) ta.blur()
+    })
+    ui.editing = false
+    render()
+  })
+  row2.appendChild(done)
+  row2.appendChild(txt('span','hint','What you type here is what your note gets. Your picks are kept underneath.'))
+  box.appendChild(row2)
+}
+
 function render(){
   renderGate()
+  renderDetail()
   const hasBranch = !!state.branch
   $('cascade').hidden = !hasBranch
   $('output').hidden = !hasBranch
@@ -513,6 +646,17 @@ function render(){
           : 'Nothing recorded yet. The three lines build here as you pick.')
       : 'Choose a contact type above to begin.'
     pv.classList.add('placeholder') }
+
+  /* Click the text to type over it. Offered once a branch is chosen, because
+     before that there are no lines to edit and the branch is a safety gate
+     rather than a starting point. */
+  const canEdit = !!state.branch
+  pv.hidden = ui.editing
+  pv.dataset.editable = canEdit ? '1' : '0'
+  pv.setAttribute('role', canEdit ? 'button' : 'region')
+  pv.tabIndex = canEdit ? 0 : -1
+  $('previewHint').hidden = !canEdit || ui.editing
+  renderPreviewEditor()
   $('chars').textContent = out ? out.length+' characters' : ''
   $('copyBtn').disabled = !out
 }
@@ -551,6 +695,15 @@ searchInput.addEventListener('keydown', e=>{ if(e.key==='Escape'){ searchInput.v
 document.addEventListener('pointerdown', e=>{ if(!e.target.closest('.search-wrap')) hideResults() })
 
 /* ---------- undo, clear, copy ---------- */
+/* One listener, wired once: the preview element itself is never replaced, only
+   its text, so this survives every render. */
+$('preview').addEventListener('click', ()=>{ if (state.branch){ ui.editing = true; render()
+  const first = document.querySelector('#previewEdit textarea'); if (first) first.focus() } })
+$('preview').addEventListener('keydown', (e)=>{
+  if (!state.branch) return
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ui.editing = true; render()
+    const first = document.querySelector('#previewEdit textarea'); if (first) first.focus() } })
+
 $('undoBtn').addEventListener('click', undo)
 window.addEventListener('keydown', e=>{
   if ((e.metaKey||e.ctrlKey) && !e.shiftKey && e.key.toLowerCase()==='z'){
