@@ -1,0 +1,1751 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alembic · Practice software that keeps client records on your machine</title>
+<meta name="description" content="Alembic is a clinical workspace for Australian psychologists. Every client record lives on your own computer as plain files you can read, move, and keep. No cloud. No database.">
+<meta name="theme-color" content="#101310">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Alembic · A second brain for psychologists">
+<meta property="og:description" content="Practice software for Australian psychologists where every client record lives on your own computer. No cloud, no database, no vendor holding your data.">
+<meta property="og:image" content="https://alembiclabs.com.au/assets/alembic-icon-1024.png">
+<meta property="og:url" content="https://alembiclabs.com.au/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="/assets/favicon-64.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/fonts.css">
+<style>
+:root{
+  --page:#101310; --page-2:#141715; --page-3:#1a1d1b; --page-4:#21241f;
+  --ink:#ece8e0; --ink-soft:#c9c3b6; --ink-mid:#b0aa9e; --ink-muted:#9a948a; --ink-faint:#6c665d;
+  --green:#8fb28a; --green-deep:#4a6741; --green-soft:#a6c5a0;
+  --gold:#c9a45c; --gold-soft:#e0c9a0;
+  --amber:#d89a5e; --red:#d67a6f;
+  --line:rgba(236,232,224,0.13);
+  --line-soft:rgba(236,232,224,0.075);
+  --serif:'Fraunces',Georgia,'Times New Roman',serif;
+  --sans:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  --ease:cubic-bezier(0.16,1,0.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html:focus-within{scroll-behavior:smooth}
+body{
+  position:relative;
+  font-family:var(--sans);
+  background:var(--page);
+  color:var(--ink);
+  font-size:17px; line-height:1.72;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+}
+img{max-width:100%;display:block}
+::selection{background:rgba(201,164,92,0.30)}
+
+/* ---------- the ground: a still, warm dark ---------- */
+#ground{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 70vw 46vh at 78% 4%, rgba(201,164,92,0.13), transparent 66%),
+    radial-gradient(ellipse 80vw 50vh at 14% 22%, rgba(74,103,65,0.22), transparent 68%),
+    radial-gradient(ellipse 70vw 44vh at 88% 72%, rgba(201,164,92,0.09), transparent 66%),
+    linear-gradient(180deg,#151815 0%,#101310 42%,#0d100d 78%,#101310 100%);
+}
+#ground::after{
+  content:""; position:absolute; inset:0; opacity:.5;
+  background-image:radial-gradient(circle at 30% 18%, rgba(236,232,224,0.035), transparent 45%);
+}
+#still{position:fixed; inset:0; z-index:1; width:100%; height:100%; pointer-events:none}
+.site-header,main,.site-footer{position:relative; z-index:2}
+
+/* anchors that give the canvas its geometry */
+#anchors{position:absolute; inset:0; z-index:0; pointer-events:none}
+#railSlot{position:absolute; top:0; bottom:0; width:24px; right:18px}
+@media(min-width:760px){#railSlot{width:34px; right:clamp(28px,5vw,90px)}}
+@media(min-width:1200px){#railSlot{width:44px; right:clamp(60px,11vw,190px)}}
+
+/* ---------- layout ---------- */
+.wrap{
+  width:100%; max-width:1320px; margin:0 auto;
+  padding-left:clamp(20px,5vw,48px);
+  padding-right:clamp(52px,12vw,80px);
+}
+@media(min-width:760px){.wrap{padding-right:clamp(110px,16vw,240px)}}
+@media(min-width:1200px){.wrap{padding-right:clamp(200px,20vw,320px)}}
+.col{max-width:660px}
+.stage{padding:clamp(70px,9vh,118px) 0 clamp(34px,4.5vh,58px); position:relative}
+#hero{padding-top:clamp(28px,5vh,58px); padding-bottom:clamp(40px,7vh,90px)}
+
+/* ---------- skip link ---------- */
+.skip{
+  position:absolute; left:12px; top:-70px; z-index:60;
+  background:var(--page-4); color:var(--ink);
+  padding:12px 18px; border-radius:10px; border:1px solid var(--line);
+  font-size:15px; text-decoration:none; transition:top .18s ease;
+}
+.skip:focus{top:12px}
+a{color:var(--gold-soft)}
+:focus-visible{outline:2px solid var(--gold); outline-offset:3px}
+/* a gold ring vanishes on a gold button, so those get a dark inner ring plus a cream halo */
+.btn-gold:focus-visible,.mainnav a.cta:focus-visible{
+  outline:2px solid #141715; outline-offset:-4px;
+  box-shadow:0 0 0 3px rgba(236,232,224,0.92);
+}
+
+/* ---------- header ---------- */
+.site-header{
+  position:sticky; top:0; z-index:30;
+  background:rgba(16,19,16,0.72);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  backdrop-filter:blur(18px) saturate(150%);
+  border-bottom:1px solid var(--line-soft);
+}
+.bar{
+  max-width:1320px; margin:0 auto;
+  padding:0 clamp(14px,3vw,28px);
+  display:flex; align-items:center; gap:10px; min-height:60px;
+}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink); flex:none; padding:8px 4px}
+.brand .mark{width:30px;height:30px;border-radius:8px;flex:none}
+.brand b{font-family:var(--serif); font-weight:500; font-size:20px; letter-spacing:.005em}
+.mainnav{
+  flex:1 1 auto; min-width:0;
+  display:flex; align-items:center; gap:2px;
+  overflow-x:auto; overflow-y:hidden;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  justify-content:flex-end;
+  padding-block:6px;
+}
+.navtoggle{
+  display:none; align-items:center; gap:9px;
+  min-height:44px; padding:0 15px; border-radius:999px;
+  background:rgba(236,232,224,0.06); border:1px solid var(--line);
+  color:var(--ink); font-family:var(--sans); font-size:14.5px; letter-spacing:.02em;
+  cursor:pointer; flex:none;
+}
+.navtoggle .bars{position:relative; width:15px; height:9px; flex:none}
+.navtoggle .bars::before,.navtoggle .bars::after{
+  content:""; position:absolute; left:0; right:0; height:1.5px; background:var(--gold); border-radius:2px;
+}
+.navtoggle .bars::before{top:0}
+.navtoggle .bars::after{bottom:0}
+.site-header.open .navtoggle{background:rgba(201,164,92,0.16); border-color:rgba(201,164,92,0.5)}
+
+/* the inline row only appears where all seven links fit; below that it is a disclosure */
+@media(max-width:959px){
+  .navtoggle{display:inline-flex; margin-left:auto}
+  .mainnav{
+    display:none;
+    position:absolute; left:0; right:0; top:100%;
+    flex:none; flex-direction:column; align-items:stretch; justify-content:flex-start;
+    gap:2px; padding:10px clamp(14px,3vw,28px) 16px; overflow:visible;
+    background:#141715;
+    border-top:1px solid var(--line-soft);
+    border-bottom:1px solid var(--line);
+    box-shadow:0 22px 44px rgba(0,0,0,0.5);
+  }
+  .site-header.open .mainnav{display:flex}
+  .mainnav a{width:100%; min-height:48px; font-size:16px; padding:0 14px; border-radius:12px}
+  .mainnav a.cta{margin:8px 0 0; justify-content:center}
+}
+.mainnav::-webkit-scrollbar{display:none}
+.mainnav a{
+  flex:none; display:inline-flex; align-items:center; min-height:44px;
+  padding:0 12px; border-radius:999px;
+  color:var(--ink-soft); text-decoration:none; font-size:14.5px; letter-spacing:.012em;
+  white-space:nowrap; transition:color .2s ease, background-color .2s ease;
+}
+.mainnav a:hover{color:var(--ink); background:rgba(236,232,224,0.06)}
+.mainnav a.tool{color:var(--green-soft)}
+.mainnav a.cta{
+  color:var(--page); background:var(--gold); font-weight:600; padding:0 16px; margin-left:6px;
+}
+.mainnav a.cta:hover{background:var(--gold-soft); color:var(--page)}
+
+/* ---------- stage kickers ---------- */
+.kicker{
+  display:flex; align-items:center; gap:12px;
+  font-size:12px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--gold); font-weight:600; margin-bottom:22px;
+}
+.kicker .num{
+  font-family:var(--serif); font-size:13px; letter-spacing:.1em;
+  color:var(--gold-soft); border:1px solid rgba(201,164,92,0.42);
+  border-radius:999px; padding:3px 11px; line-height:1.4;
+}
+.kicker .lbl{white-space:nowrap}
+.kicker .rule{flex:1 1 auto; min-width:0; height:1px; background:linear-gradient(90deg,rgba(201,164,92,0.42),transparent); max-width:180px}
+
+/* ---------- type ---------- */
+h1,h2,h3{font-family:var(--serif); font-weight:400; line-height:1.08; letter-spacing:-0.012em; text-wrap:balance}
+h1{font-size:clamp(42px,8.4vw,86px)}
+h1 .lead-word{display:block; color:var(--ink)}
+h1 .sub{display:block; font-size:clamp(23px,4.1vw,42px); color:var(--gold-soft); font-style:italic; line-height:1.16; margin-top:.16em; letter-spacing:-0.004em}
+h2{font-size:clamp(29px,4.6vw,50px); line-height:1.12}
+h3{font-size:20px; line-height:1.3; letter-spacing:0}
+.lede{font-size:clamp(17.5px,2.1vw,21px); color:var(--ink-soft); margin-top:26px; line-height:1.66}
+.lede,.body-copy,.tenet p,.feat p,.plate .cap,.loyalties,.fineprint,.tool .td{text-wrap:pretty}
+.body-copy{color:var(--ink-soft); margin-top:22px}
+.body-copy + .body-copy{margin-top:18px}
+.tiny{font-size:13.5px; color:var(--ink-muted); line-height:1.6}
+
+/* ---------- buttons ---------- */
+.btns{display:flex; flex-wrap:wrap; gap:12px; margin-top:34px}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  min-height:50px; padding:0 24px; border-radius:999px;
+  font-size:16px; font-weight:600; text-decoration:none; letter-spacing:.005em;
+  border:1px solid transparent; transition:transform .25s var(--ease), background-color .25s ease, border-color .25s ease, color .25s ease;
+}
+.btn-gold{background:var(--gold); color:#141715}
+.btn-gold:hover{background:var(--gold-soft)}
+.btn-ghost{border-color:rgba(236,232,224,0.24); color:var(--ink)}
+.btn-ghost:hover{border-color:var(--gold); color:var(--gold-soft)}
+.btn:hover{transform:translateY(-2px)}
+.btn .drop{width:7px;height:7px;border-radius:50% 50% 60% 60%/60% 60% 50% 50%; background:currentColor; opacity:.7; flex:none}
+
+/* ---------- hero ---------- */
+.hero-grid{display:grid; gap:clamp(20px,4vw,60px); align-items:center}
+@media(min-width:900px){.hero-grid{grid-template-columns:minmax(0,1fr) clamp(230px,25vw,340px)}}
+#flaskSlot{width:min(64%,224px); aspect-ratio:1/1.55; margin-inline:auto}
+@media(min-width:900px){#flaskSlot{width:min(100%,320px)}}
+.hero-tag{
+  margin-top:30px; font-size:13px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-muted);
+}
+
+/* ---------- principle list ---------- */
+.tenets{margin-top:46px; display:grid; gap:0; max-width:660px}
+.tenet{
+  display:grid; grid-template-columns:auto 1fr; gap:0 18px;
+  padding:26px 0; border-top:1px solid var(--line-soft);
+}
+.tenet:last-child{border-bottom:1px solid var(--line-soft)}
+.tenet .rn{
+  font-family:var(--serif); font-style:italic; font-size:19px; color:var(--gold);
+  line-height:1.35; width:2.1em;
+}
+.tenet h3{margin-bottom:7px}
+.tenet p{color:var(--ink-soft); font-size:16.5px; grid-column:2}
+
+/* ---------- readings plate ---------- */
+.plate{
+  margin-top:56px; border:1px solid var(--line); border-radius:20px;
+  background:linear-gradient(180deg,rgba(236,232,224,0.05),rgba(236,232,224,0.015));
+  padding:clamp(20px,3vw,32px);
+  display:grid; gap:clamp(18px,2.4vw,26px);
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+}
+.plate .rd{border-left:2px solid rgba(201,164,92,0.4); padding-left:16px}
+.plate .fig{font-family:var(--serif); font-size:clamp(32px,4.4vw,44px); line-height:1; color:var(--gold-soft); letter-spacing:-0.02em}
+.plate .cap{margin-top:9px; font-size:14.5px; color:var(--ink-mid); line-height:1.5}
+
+/* ---------- product ---------- */
+.feature-grid{
+  margin-top:48px; display:grid; gap:1px;
+  background:var(--line-soft);
+  border:1px solid var(--line-soft); border-radius:18px; overflow:hidden;
+}
+@media(min-width:840px){.feature-grid{grid-template-columns:1fr 1fr}}
+.feat{background:rgba(20,23,21,0.55); padding:clamp(22px,3vw,32px)}
+.feat .tag{
+  font-size:11.5px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--green); font-weight:600; display:block; margin-bottom:12px;
+}
+.feat h3{color:var(--ink)}
+.feat p{margin-top:11px; color:var(--ink-soft); font-size:16px}
+
+/* ---------- screenshot strip ---------- */
+.shots{
+  margin-top:44px; display:grid; gap:16px;
+  grid-auto-flow:column; grid-auto-columns:minmax(250px,1fr);
+  overflow-x:auto; padding-bottom:12px;
+  scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+}
+@media(min-width:760px){.shots{grid-auto-flow:row; grid-template-columns:repeat(2,1fr); gap:22px; overflow:visible}}
+.shot{scroll-snap-align:start}
+.shot figure{margin:0}
+.shot .frame{
+  border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  background:var(--page-3); aspect-ratio:16/10;
+  box-shadow:0 16px 40px rgba(0,0,0,0.4);
+}
+.shot img{width:100%; height:100%; object-fit:cover; object-position:top left}
+.shot figcaption{
+  margin-top:11px; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-muted);
+}
+.fineprint{margin-top:22px; font-size:13.5px; color:var(--ink-muted); max-width:620px}
+
+/* ---------- philosophy ---------- */
+.pullquote{
+  margin-top:52px; max-width:820px;
+  border-left:2px solid rgba(201,164,92,0.5); padding:6px 0 6px clamp(20px,3.4vw,34px);
+}
+.pullquote p{
+  font-family:var(--serif); font-style:italic; font-weight:300;
+  font-size:clamp(21px,3.1vw,32px); line-height:1.34; color:var(--gold-soft);
+  letter-spacing:-0.008em;
+}
+
+/* ---------- founder ---------- */
+.founder-grid{display:grid; gap:clamp(24px,4vw,52px); margin-top:44px; align-items:start}
+@media(min-width:840px){.founder-grid{grid-template-columns:clamp(190px,22vw,260px) minmax(0,1fr)}}
+.portrait{
+  border-radius:16px; overflow:hidden; border:1px solid var(--line);
+  background:var(--page-3); max-width:260px; aspect-ratio:4/5;
+  box-shadow:0 18px 44px rgba(0,0,0,0.42);
+}
+.portrait img{width:100%;height:100%;object-fit:cover}
+.byline{margin-top:16px}
+.byline .nm{font-family:var(--serif); font-size:19px; color:var(--ink)}
+.byline .rl{font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-muted); margin-top:5px}
+.founder-quote{
+  margin-top:26px; font-family:var(--serif); font-style:italic; font-weight:300;
+  font-size:clamp(19px,2.4vw,25px); line-height:1.42; color:var(--green-soft);
+}
+.loyalties{
+  margin-top:26px; padding:18px 22px; border-radius:14px;
+  background:rgba(236,232,224,0.04); border:1px solid var(--line-soft);
+  color:var(--ink-soft); font-size:16px;
+}
+
+/* ---------- tools ---------- */
+.tool-links{display:grid; gap:14px; margin-top:36px; max-width:660px}
+@media(min-width:640px){.tool-links{grid-template-columns:1fr 1fr}}
+.tool{
+  display:block; text-decoration:none; color:var(--ink);
+  border:1px solid var(--line); border-radius:16px; padding:22px 24px; min-height:44px;
+  background:rgba(236,232,224,0.03);
+  transition:border-color .25s ease, background-color .25s ease, transform .25s var(--ease);
+}
+.tool:hover{border-color:rgba(201,164,92,0.55); background:rgba(201,164,92,0.07); transform:translateY(-2px)}
+.tool .tn{font-family:var(--serif); font-size:22px; display:block}
+.tool .td{display:block; margin-top:7px; font-size:14.5px; color:var(--ink-muted)}
+.tool .go{display:block; margin-top:13px; font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold)}
+
+/* ---------- closing ---------- */
+.close-grid{display:grid; gap:clamp(20px,4vw,56px); align-items:end}
+@media(min-width:900px){.close-grid{grid-template-columns:minmax(0,1fr) clamp(190px,21vw,270px)}}
+#receiverSlot{width:min(58%,190px); aspect-ratio:1/1.15; margin-inline:auto 4px}
+@media(min-width:900px){#receiverSlot{width:min(100%,260px); margin-inline:auto}}
+
+/* ---------- footer ---------- */
+.site-footer{border-top:1px solid var(--line-soft); padding:clamp(46px,7vh,80px) 0 clamp(38px,6vh,60px); margin-top:clamp(40px,6vh,80px)}
+.foot-top{display:flex; flex-wrap:wrap; gap:28px 40px; justify-content:space-between; align-items:flex-start}
+.foot-brand b{font-family:var(--serif); font-weight:500; font-size:24px; display:block}
+.foot-brand span{display:block; margin-top:7px; font-size:13.5px; color:var(--ink-muted); letter-spacing:.04em}
+.footnav{display:flex; flex-wrap:wrap; gap:2px 6px; max-width:520px}
+.footnav a{
+  display:inline-flex; align-items:center; min-height:44px; padding:0 12px;
+  color:var(--ink-soft); text-decoration:none; font-size:14.5px; border-radius:999px;
+}
+.footnav a:hover{color:var(--gold-soft); background:rgba(236,232,224,0.05)}
+.foot-legal{margin-top:40px; padding-top:26px; border-top:1px solid var(--line-soft); display:grid; gap:10px}
+.foot-legal p{font-size:13.5px; color:var(--ink-muted); max-width:720px}
+
+/* ---------- reveal ---------- */
+.js .rv{opacity:0; transform:translate3d(0,14px,0); transition:opacity .34s var(--ease), transform .34s var(--ease)}
+.js .rv.in{opacity:1; transform:none}
+.js .rv.d1{transition-delay:.05s}
+.js .rv.d2{transition-delay:.10s}
+.js .rv.d3{transition-delay:.15s}
+
+/* ---------- reduced motion: complete, static, finished ---------- */
+@media (prefers-reduced-motion: reduce){
+  html:focus-within{scroll-behavior:auto}
+  .js .rv, .rv{opacity:1 !important; transform:none !important; transition:none !important}
+  .btn, .tool, .mainnav a, .footnav a, .skip{transition:none !important}
+  .btn:hover, .tool:hover{transform:none !important}
+  *,*::before,*::after{animation:none !important}
+}
+
+/* ---------- small screens ---------- */
+@media(max-width:420px){
+  body{font-size:16px}
+  .kicker{font-size:11px; letter-spacing:.18em; gap:9px}
+  .plate{padding:18px}
+  .tenet{grid-template-columns:auto 1fr; gap:0 12px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<div id="ground" aria-hidden="true"></div>
+<canvas id="still" aria-hidden="true"></canvas>
+<div id="anchors" aria-hidden="true"><div id="railSlot"></div></div>
+
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="#top">
+      <img class="mark" src="/assets/alembic-mark-256.png" alt="" width="30" height="30">
+      <b>Alembic</b>
+    </a>
+    <button class="navtoggle" id="navToggle" type="button" aria-expanded="false" aria-controls="primaryNav">
+      <span class="bars" aria-hidden="true"></span>Menu
+    </button>
+    <nav class="mainnav" id="primaryNav" aria-label="Primary">
+      <a href="#principle">Principle</a>
+      <a href="#product">Product</a>
+      <a href="#philosophy">Philosophy</a>
+      <a href="#founder">Founder</a>
+      <a class="tool" href="/mse/">MSE Builder</a>
+      <a class="tool" href="/risk/">Risk Writer</a>
+      <a class="cta" href="mailto:hello@alembiclabs.com.au">Get in touch</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- I. THE CHARGE -->
+  <section id="hero" class="stage" data-stage>
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <p class="kicker rv"><span class="num">I</span> <span class="lbl">The charge</span> <span class="rule"></span></p>
+          <h1 class="rv d1">
+            <span class="lead-word">Alembic.</span>
+            <span class="sub">A second brain for psychologists.</span>
+          </h1>
+          <p class="lede rv d2">A clinical workspace for Australian psychologists where every client record lives on your own computer, as plain files you can read, move, and keep. No cloud. No database. Alembic Labs never holds your clients' data.</p>
+          <div class="btns rv d3">
+            <a class="btn btn-gold" href="#product"><span class="drop" aria-hidden="true"></span>See what it holds</a>
+            <a class="btn btn-ghost" href="#philosophy">Why it exists</a>
+          </div>
+          <p class="hero-tag rv d3">Alembic Labs · Melbourne, Australia</p>
+        </div>
+        <div id="flaskSlot" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- II. THE VESSEL -->
+  <section id="principle" class="stage" data-stage>
+    <div class="wrap">
+      <p class="kicker rv"><span class="num">II</span> <span class="lbl">The vessel</span> <span class="rule"></span></p>
+      <div class="col">
+        <h2 class="rv">Your practice, on your machine, in plain text.</h2>
+        <p class="body-copy rv d1">Everything you write in Alembic is a file in a folder on your own computer. The app is a reader and dashboard over that folder. If you stopped using Alembic tomorrow, your records would still be sitting there, legible, portable, and yours.</p>
+      </div>
+      <div class="tenets">
+        <div class="tenet rv">
+          <span class="rn" aria-hidden="true">i.</span>
+          <div><h3>No cloud</h3></div>
+          <p>There is no server in another state, country, or company. Your computer is the whole system. Client data is never transmitted to Alembic Labs or stored by us, because there is nowhere for it to go.</p>
+        </div>
+        <div class="tenet rv">
+          <span class="rn" aria-hidden="true">ii.</span>
+          <div><h3>No database</h3></div>
+          <p>A client is a folder. A note is a document. Your whole practice is readable in Finder without Alembic open. A client who requests their file receives a clean, human-readable package.</p>
+        </div>
+        <div class="tenet rv">
+          <span class="rn" aria-hidden="true">iii.</span>
+          <div><h3>No lock-in</h3></div>
+          <p>Plain text is the most durable, portable, legible format for long-lived clinical records ever invented. Your records never need exporting, because they were never trapped to begin with.</p>
+        </div>
+      </div>
+      <div class="plate rv" role="list" aria-label="Readings">
+        <div class="rd" role="listitem"><p class="fig">0</p><p class="cap">servers holding your clients' data. Your computer is the whole system.</p></div>
+        <div class="rd" role="listitem"><p class="fig">5,000+</p><p class="cap">automated tests run green behind every build.</p></div>
+        <div class="rd" role="listitem"><p class="fig">7</p><p class="cap">licence-verified assessment instruments, published scoring only.</p></div>
+        <div class="rd" role="listitem"><p class="fig">47.5</p><p class="cap">hours of built-in self-directed CPD across 16 courses.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- III. THE STILL -->
+  <section id="product" class="stage" data-stage>
+    <div class="wrap">
+      <p class="kicker rv"><span class="num">III</span> <span class="lbl">The still</span> <span class="rule"></span></p>
+      <div class="col">
+        <h2 class="rv">One quiet place for the whole practice.</h2>
+      </div>
+      <div class="feature-grid">
+        <article class="feat rv">
+          <span class="tag">Notes</span>
+          <h3>Structured clinical notes</h3>
+          <p>A composer that renders any note style as a form and enforces compliant formatting in code. Mental state and risk are always authored by you; the software never writes clinical judgement on your behalf.</p>
+        </article>
+        <article class="feat rv">
+          <span class="tag">Assessments</span>
+          <h3>Score-only psychometrics</h3>
+          <p>Seven licence-verified instruments (PHQ-9, GAD-7, DASS-21 and more) with published scoring rules and published bands only, trend charts across sessions, and printable paper forms. Never an interpretation, never a diagnosis.</p>
+        </article>
+        <article class="feat rv">
+          <span class="tag">CPD</span>
+          <h3>Logbook and Learn</h3>
+          <p>Hour tracking against PsyBA internship and CPD targets with an official-layout spreadsheet mirror, plus a built-in library of 16 self-directed CPD courses totalling 47.5 computed hours, with quizzes and certificates.</p>
+        </article>
+        <article class="feat rv">
+          <span class="tag">Records</span>
+          <h3>Reports, genograms, calendar</h3>
+          <p>A deterministic report builder that assembles referral and GP letters purely from what the record already says, a manual-first genogram editor, and a calendar that sits beside the client list.</p>
+        </article>
+        <article class="feat rv">
+          <span class="tag">Practice</span>
+          <h3>The Dojo</h3>
+          <p>A walkable 3D therapy room for rehearsing clinical skills: sit across from a patient, practise your opening, step out into the garden between rounds. No AI, no client data, just a room that is always available.</p>
+        </article>
+        <article class="feat rv">
+          <span class="tag">Craft</span>
+          <h3>Made to be lived in</h3>
+          <p>Eight theme packs, five materials, a full accessibility pass to WCAG AA in both light and dark, bundled fonts, an offline radio station, and small touches everywhere, because you will spend your working life inside it.</p>
+        </article>
+      </div>
+
+      <div class="shots rv">
+        <div class="shot"><figure>
+          <div class="frame"><img src="/assets/screenshots/01-dashboard.jpg" alt="The Alembic dashboard, showing fictional demonstration data." loading="lazy" decoding="async" width="1200" height="750"></div>
+          <figcaption>Dashboard</figcaption>
+        </figure></div>
+        <div class="shot"><figure>
+          <div class="frame"><img src="/assets/screenshots/02-caseload.jpg" alt="The caseload list in Alembic, showing fictional demonstration data." loading="lazy" decoding="async" width="1200" height="750"></div>
+          <figcaption>Caseload</figcaption>
+        </figure></div>
+        <div class="shot"><figure>
+          <div class="frame"><img src="/assets/screenshots/04-alex-sessions.jpg" alt="A client's session history in Alembic, showing fictional demonstration data." loading="lazy" decoding="async" width="1200" height="750"></div>
+          <figcaption>Sessions</figcaption>
+        </figure></div>
+        <div class="shot"><figure>
+          <div class="frame"><img src="/assets/screenshots/09-calendar.jpg" alt="The Alembic calendar, showing fictional demonstration data." loading="lazy" decoding="async" width="1200" height="750"></div>
+          <figcaption>Calendar</figcaption>
+        </figure></div>
+      </div>
+      <p class="fineprint rv">All screenshots show fictional demonstration data. No real client information appears anywhere on this site.</p>
+    </div>
+  </section>
+
+  <!-- IV. THE VAPOUR -->
+  <section id="philosophy" class="stage" data-stage>
+    <div class="wrap">
+      <p class="kicker rv"><span class="num">IV</span> <span class="lbl">The vapour</span> <span class="rule"></span></p>
+      <div class="col">
+        <h2 class="rv">Software in service of attention.</h2>
+        <p class="body-copy rv d1">Therapy is not primarily a matter of technique. It is a matter of attention: being able to arrive in a room and keep the whole person in view, week after week, year after year, without losing track of who they are becoming. The software a therapist uses should make that easier. Most of the software we encountered makes it harder.</p>
+        <p class="body-copy rv d1">So Alembic is opinionated. It treats therapy as more than symptom relief. It assumes the clinician wants to think seriously about the person in front of them, and it structures itself around supporting that kind of thinking rather than replacing it with a form. It keeps records on the clinician's own hardware, because anything else is an abdication of a responsibility that is ours, not a vendor's.</p>
+      </div>
+      <blockquote class="pullquote rv">
+        <p>"The software should serve the therapist. The therapist serves the person in front of them. If the software gets those two orders of business reversed, everyone suffers."</p>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- V. THE HAND ON THE GLASS -->
+  <section id="founder" class="stage" data-stage>
+    <div class="wrap">
+      <p class="kicker rv"><span class="num">V</span> <span class="lbl">The hand on the glass</span> <span class="rule"></span></p>
+      <div class="col">
+        <h2 class="rv">Built by a clinician, for clinical work.</h2>
+      </div>
+      <div class="founder-grid">
+        <div class="rv">
+          <div class="portrait">
+            <img src="/assets/jean-luc-headshot.jpg" alt="Jean-Luc Alder, founder of Alembic Labs." loading="lazy" decoding="async" width="640" height="800">
+          </div>
+          <div class="byline">
+            <p class="nm">Jean-Luc Alder</p>
+            <p class="rl">Founder, Alembic Labs</p>
+          </div>
+        </div>
+        <div class="rv d1">
+          <p class="body-copy" style="margin-top:0">Alembic was developed by a provisional psychologist, because what he wanted did not exist and he could no longer work the way he wanted to work without it.</p>
+          <p class="body-copy">Jean-Luc came to psychology through philosophy, and the two backgrounds have never stopped arguing with each other productively. What survived that argument is a commitment to clinical records that are not shallow: records that hold a person's history, their patterns, their values, the small specific things that make a case this case and not a generic one.</p>
+          <p class="founder-quote">"I believe a good formulation is an epistemic act as much as a clinical one. And I believe the software we use should be able to hold complexity rather than flattening it."</p>
+          <p class="loyalties">Every feature is built against the standards a clinical record actually has to meet, and demonstrated only on fictional data. The order of loyalties is fixed: the client's privacy first, the clinician's thinking second, the software's convenience last.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VI. FIRST RUNNINGS -->
+  <section id="tools" class="stage" data-stage>
+    <div class="wrap">
+      <p class="kicker rv"><span class="num">VI</span> <span class="lbl">First runnings</span> <span class="rule"></span></p>
+      <div class="col">
+        <h2 class="rv">Free tools for clinicians.</h2>
+        <p class="body-copy rv d1">Two free tools built from the same curated clinical vocabulary Alembic uses. The MSE Builder composes a mental state examination from 429 signed-off descriptors. The Risk Writer helps you word the Risk section of a case note you have already decided: it assesses nothing, scores nothing and suggests nothing. Both run entirely in your browser, with nothing stored or sent anywhere.</p>
+      </div>
+      <div class="tool-links">
+        <a class="tool rv" href="/mse/">
+          <span class="tn">MSE Builder</span>
+          <span class="td">A mental state examination composed from 429 signed-off descriptors.</span>
+          <span class="go">Open the builder</span>
+        </a>
+        <a class="tool rv d1" href="/risk/">
+          <span class="tn">Risk Writer</span>
+          <span class="td">Wording for the Risk section of a case note you have already decided.</span>
+          <span class="go">Open the writer</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- VII. THE DISTILLATE -->
+  <section id="closing" class="stage" data-stage>
+    <div class="wrap">
+      <p class="kicker rv"><span class="num">VII</span> <span class="lbl">The distillate</span> <span class="rule"></span></p>
+      <div class="close-grid">
+        <div>
+          <h2 class="rv">Alembic arrives in 2026.</h2>
+          <p class="lede rv d1">It is local when everything is cloud. It is patient when everything is instant. It treats one clinician at a time when the market rewards scale. If that sounds like your kind of software, say hello.</p>
+          <div class="btns rv d2">
+            <a class="btn btn-gold" href="mailto:hello@alembiclabs.com.au"><span class="drop" aria-hidden="true"></span>Say hello</a>
+          </div>
+        </div>
+        <div id="receiverSlot" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <b>Alembic.</b>
+        <span>Alembic Labs · Melbourne, Australia</span>
+      </div>
+      <nav class="footnav" aria-label="Footer">
+        <a href="#principle">Principle</a>
+        <a href="#product">Product</a>
+        <a href="#philosophy">Philosophy</a>
+        <a href="#founder">Founder</a>
+        <a href="/mse/">MSE Builder</a>
+        <a href="/risk/">Risk Writer</a>
+        <a href="mailto:hello@alembiclabs.com.au">Get in touch</a>
+      </nav>
+    </div>
+    <div class="foot-legal">
+      <p>Alembic Labs · ABN 58 247 784 426 · Melbourne, Australia</p>
+      <p>Alembic is practice software. It does not provide clinical advice, diagnosis, or treatment recommendations.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.documentElement.className += ' js';
+(function(){
+  "use strict";
+
+  var TAU = Math.PI * 2;
+  var mqReduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : {matches:false, addEventListener:null};
+
+  /* ---------------- reveal on scroll ---------------- */
+  var rvs = [].slice.call(document.querySelectorAll('.rv'));
+  function revealAll(){ for (var i=0;i<rvs.length;i++) rvs[i].classList.add('in'); }
+  if (mqReduce.matches || !('IntersectionObserver' in window)) {
+    revealAll();
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      for (var i=0;i<entries.length;i++){
+        if (entries[i].isIntersecting){ entries[i].target.classList.add('in'); io.unobserve(entries[i].target); }
+      }
+    }, {rootMargin:'0px 0px -2% 0px', threshold:0.01});
+    for (var i=0;i<rvs.length;i++) io.observe(rvs[i]);
+  }
+
+  /* ---------------- the nav disclosure on small screens ---------------- */
+  var navBtn = document.getElementById('navToggle');
+  var hdr = document.querySelector('.site-header');
+  if (navBtn && hdr){
+    var closeNav = function(){
+      hdr.classList.remove('open');
+      navBtn.setAttribute('aria-expanded', 'false');
+    };
+    navBtn.addEventListener('click', function(){
+      var open = hdr.classList.toggle('open');
+      navBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    hdr.addEventListener('click', function(e){
+      var t = e.target;
+      while (t && t !== hdr){
+        if (t.tagName === 'A'){ closeNav(); return; }
+        t = t.parentNode;
+      }
+    });
+    document.addEventListener('keydown', function(e){
+      if ((e.key === 'Escape' || e.keyCode === 27) && hdr.classList.contains('open')){
+        closeNav(); navBtn.focus();
+      }
+    });
+    var mqWide = window.matchMedia('(min-width:960px)');
+    var onWide = function(e){ if (e.matches) closeNav(); };
+    if (mqWide.addEventListener) mqWide.addEventListener('change', onWide);
+    else if (mqWide.addListener) mqWide.addListener(onWide);
+  }
+
+  /* ---------------- the still ---------------- */
+  var cv = document.getElementById('still');
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  if (!ctx) return;
+
+  var flaskSlot = document.getElementById('flaskSlot');
+  var railSlot  = document.getElementById('railSlot');
+  var recvSlot  = document.getElementById('receiverSlot');
+  var stages    = [].slice.call(document.querySelectorAll('[data-stage]'));
+
+  var dpr = 1, W = 0, H = 0, SD = 1;
+  var G = null;
+  var sy = 0, syTarget = 0, docSpan = 1, prog = 0, progSmooth = 0, progFlask = 0, progRecv = 0;
+  var raf = 0, lastT = 0, acc = 0, T = 0;
+  var STEP = 1 / 60;
+  var reduced = mqReduce.matches;
+  var lowPower = false;
+
+  /* deterministic noise, used for the static composition */
+  function rnd(seed){
+    var t = (seed + 0x6D2B79F5) | 0;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
+  /* ---------------- geometry ---------------- */
+  function measure(){
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    SD  = Math.min(dpr, 2);
+    W = vw; H = vh;
+    cv.width  = Math.round(vw * dpr);
+    cv.height = Math.round(vh * dpr);
+    cv.style.width = vw + 'px';
+    cv.style.height = vh + 'px';
+
+    lowPower = vw < 700;
+
+    var pageY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var docH = Math.max(
+      document.body.scrollHeight, document.documentElement.scrollHeight,
+      document.body.offsetHeight, document.documentElement.offsetHeight
+    );
+    docSpan = Math.max(1, docH - vh);
+
+    var f = flaskSlot.getBoundingClientRect();
+    var r = railSlot.getBoundingClientRect();
+    var v = recvSlot.getBoundingClientRect();
+
+    var g = {};
+    g.railX = r.left + r.width / 2;
+    g.tubeR = Math.max(9, r.width / 2);
+
+    g.fcx = f.left + f.width / 2;
+    var ftop = f.top + pageY;
+    g.fr = Math.min(f.width * 0.455, f.height * 0.30);
+    g.fcy = ftop + f.height - g.fr - 6;
+    g.ftop = g.fcy - g.fr;
+    g.neckTop = ftop + 6;
+    if (g.neckTop > g.ftop - 26) g.neckTop = g.ftop - 26;
+    g.neckR = Math.max(7, Math.min(g.tubeR, g.fr * 0.20));
+
+    g.tubeTop = g.neckTop + Math.max(96, g.fr * 0.62);
+
+    g.rcx = v.left + v.width / 2;
+    g.rtop = v.top + pageY;
+    g.rw = v.width;
+    g.rh = v.height;
+
+    g.dripY = g.rtop - Math.max(14, g.rh * 0.10);
+    /* the receiving flask fills over the run it actually has, so it lands full */
+    g.recvStart = Math.max(0, g.rtop - vh * 0.88);
+    g.recvSpan = Math.max(140, Math.min(g.rh * 1.6, docSpan - g.recvStart));
+    g.bendStart = Math.max(g.tubeTop + 80, g.dripY - Math.min(280, g.rh * 1.5));
+
+    /* receiving flask interior, an Erlenmeyer profile */
+    g.rNeckHalf = Math.max(6, g.rw * 0.115);
+    g.rShoulderY = g.rtop + g.rh * 0.24;
+    g.rBodyY = g.rtop + g.rh * 0.80;
+    g.rBottomY = g.rtop + g.rh;
+    g.rHalf = g.rw * 0.46;
+
+    /* ground-glass joints where each stage begins */
+    g.joints = [];
+    for (var i = 0; i < stages.length; i++){
+      var y = stages[i].getBoundingClientRect().top + pageY;
+      if (y > g.tubeTop + 40 && y < g.bendStart - 30) g.joints.push(y);
+    }
+
+    /* cached gradients (they only vary across x) */
+    var tg = ctx.createLinearGradient(g.railX - g.tubeR, 0, g.railX + g.tubeR, 0);
+    tg.addColorStop(0.00, 'rgba(236,232,224,0.16)');
+    tg.addColorStop(0.14, 'rgba(236,232,224,0.03)');
+    tg.addColorStop(0.34, 'rgba(236,232,224,0.11)');
+    tg.addColorStop(0.46, 'rgba(236,232,224,0.03)');
+    tg.addColorStop(0.78, 'rgba(201,164,92,0.05)');
+    tg.addColorStop(1.00, 'rgba(236,232,224,0.19)');
+    g.tubeGrad = tg;
+
+    var jr = g.tubeR * 1.9;
+    var jg = ctx.createLinearGradient(g.railX - jr, 0, g.railX + jr, 0);
+    jg.addColorStop(0.00, 'rgba(236,232,224,0.10)');
+    jg.addColorStop(0.30, 'rgba(236,232,224,0.015)');
+    jg.addColorStop(0.72, 'rgba(236,232,224,0.02)');
+    jg.addColorStop(1.00, 'rgba(236,232,224,0.11)');
+    g.jacketGrad = jg;
+    g.jacketR = jr;
+
+    G = g;
+    buildSprites();
+    resetSim();
+
+    /* arrive with the run already under way rather than with cold glass */
+    sy = syTarget;
+    updateProgress(true);
+    if (!reduced){
+      for (var w = 0; w < 210; w++) stepSim(STEP);
+    }
+  }
+
+  /* ---------------- sprite helper ---------------- */
+  function sprite(x0, y0, w, h, fn){
+    w = Math.max(2, Math.ceil(w)); h = Math.max(2, Math.ceil(h));
+    var c = document.createElement('canvas');
+    c.width = Math.ceil(w * SD); c.height = Math.ceil(h * SD);
+    var g = c.getContext('2d');
+    g.setTransform(SD, 0, 0, SD, -x0 * SD, -y0 * SD);
+    fn(g);
+    return {c: c, x: x0, y: y0, w: w, h: h};
+  }
+  function blit(s){ if (s) ctx.drawImage(s.c, s.x, s.y, s.w, s.h); }
+
+  /* ---------------- glass band along a polyline ---------------- */
+  function bez(p0, c1, c2, p3, t){
+    var u = 1 - t, a = u*u*u, b = 3*u*u*t, c = 3*u*t*t, d = t*t*t;
+    return {x: a*p0.x + b*c1.x + c*c2.x + d*p3.x, y: a*p0.y + b*c1.y + c*c2.y + d*p3.y};
+  }
+  function sampleBez(p0, c1, c2, p3, n){
+    var pts = [];
+    for (var i = 0; i <= n; i++) pts.push(bez(p0, c1, c2, p3, i / n));
+    return pts;
+  }
+  function offsetPoly(pts, o){
+    var out = [], n = pts.length;
+    for (var i = 0; i < n; i++){
+      var a = pts[i > 0 ? i - 1 : 0], b = pts[i < n - 1 ? i + 1 : n - 1];
+      var dx = b.x - a.x, dy = b.y - a.y, l = Math.sqrt(dx*dx + dy*dy) || 1;
+      out.push({x: pts[i].x - dy / l * o, y: pts[i].y + dx / l * o});
+    }
+    return out;
+  }
+  function tracePoly(g, pts){
+    g.beginPath();
+    g.moveTo(pts[0].x, pts[0].y);
+    for (var i = 1; i < pts.length; i++) g.lineTo(pts[i].x, pts[i].y);
+  }
+  function bandPath(g, L, R){
+    g.beginPath();
+    g.moveTo(L[0].x, L[0].y);
+    for (var i = 1; i < L.length; i++) g.lineTo(L[i].x, L[i].y);
+    for (var j = R.length - 1; j >= 0; j--) g.lineTo(R[j].x, R[j].y);
+    g.closePath();
+  }
+  function drawGlassBand(g, pts, d, x0, x1){
+    var L = offsetPoly(pts, -d / 2), R = offsetPoly(pts, d / 2);
+    var grd = g.createLinearGradient(x0, 0, x1, 0);
+    grd.addColorStop(0.00, 'rgba(236,232,224,0.13)');
+    grd.addColorStop(0.30, 'rgba(236,232,224,0.025)');
+    grd.addColorStop(0.62, 'rgba(236,232,224,0.05)');
+    grd.addColorStop(1.00, 'rgba(236,232,224,0.13)');
+    bandPath(g, L, R);
+    g.fillStyle = grd; g.fill();
+
+    g.save(); g.clip();
+    var S = offsetPoly(pts, -d * 0.19);
+    tracePoly(g, S);
+    g.lineWidth = Math.max(1, d * 0.16); g.strokeStyle = 'rgba(236,232,224,0.20)'; g.stroke();
+    var S2 = offsetPoly(pts, d * 0.30);
+    tracePoly(g, S2);
+    g.lineWidth = Math.max(0.8, d * 0.09); g.strokeStyle = 'rgba(236,232,224,0.10)'; g.stroke();
+    g.restore();
+
+    tracePoly(g, L);
+    g.lineWidth = 1.2; g.strokeStyle = 'rgba(236,232,224,0.34)'; g.stroke();
+    tracePoly(g, R);
+    g.lineWidth = 1.2; g.strokeStyle = 'rgba(236,232,224,0.42)'; g.stroke();
+  }
+
+  /* ---------------- sprites: neck, bend, flask shell, receiver shell ---------------- */
+  var spNeck = null, spBend = null, spFlask = null, spRecv = null;
+  var neckPts = null, bendPts = null;
+
+  function buildSprites(){
+    var g = G, d = g.tubeR * 2, nd = g.neckR * 2;
+
+    /* the swan neck: up out of the flask, over, and down onto the rail */
+    var lift = Math.min(90, (g.tubeTop - g.neckTop) * 0.7);
+    neckPts = sampleBez(
+      {x: g.fcx, y: g.neckTop + 6},
+      {x: g.fcx, y: g.neckTop - lift},
+      {x: g.railX, y: g.tubeTop - lift * 1.25},
+      {x: g.railX, y: g.tubeTop + 2},
+      40
+    );
+    var nx0 = Math.min(g.fcx, g.railX) - d, nx1 = Math.max(g.fcx, g.railX) + d;
+    var ny0 = g.neckTop - lift - d, ny1 = g.tubeTop + d;
+    spNeck = sprite(nx0, ny0, nx1 - nx0, ny1 - ny0, function(gg){
+      drawGlassBand(gg, neckPts, (nd + d) / 2, nx0, nx1);
+    });
+
+    /* the delivery bend into the receiving flask */
+    bendPts = sampleBez(
+      {x: g.railX, y: g.bendStart},
+      {x: g.railX, y: g.bendStart + (g.dripY - g.bendStart) * 0.55},
+      {x: g.rcx, y: g.dripY - (g.dripY - g.bendStart) * 0.42},
+      {x: g.rcx, y: g.dripY},
+      36
+    );
+    var bx0 = Math.min(g.railX, g.rcx) - d, bx1 = Math.max(g.railX, g.rcx) + d;
+    spBend = sprite(bx0, g.bendStart - d, bx1 - bx0, (g.dripY - g.bendStart) + d * 2, function(gg){
+      drawGlassBand(gg, bendPts, d, bx0, bx1);
+      /* the drip tip */
+      gg.beginPath();
+      gg.moveTo(g.rcx - g.tubeR * 0.55, g.dripY - 2);
+      gg.lineTo(g.rcx, g.dripY + g.tubeR * 0.9);
+      gg.lineTo(g.rcx + g.tubeR * 0.55, g.dripY - 2);
+      gg.closePath();
+      gg.fillStyle = 'rgba(236,232,224,0.10)'; gg.fill();
+      gg.lineWidth = 1.1; gg.strokeStyle = 'rgba(236,232,224,0.34)'; gg.stroke();
+    });
+
+    /* the boiling flask shell */
+    var fx0 = g.fcx - g.fr - 10, fy0 = g.neckTop - 4;
+    spFlask = sprite(fx0, fy0, (g.fr + 10) * 2, (g.fcy + g.fr + 10) - fy0, function(gg){
+      /* the vertical neck */
+      var np = [{x: g.fcx, y: g.neckTop + 2}, {x: g.fcx, y: g.ftop + g.fr * 0.30}];
+      drawGlassBand(gg, np, g.neckR * 2, g.fcx - g.neckR, g.fcx + g.neckR);
+      /* a ground glass joint on the neck */
+      var jy = g.neckTop + (g.ftop - g.neckTop) * 0.34;
+      gg.fillStyle = 'rgba(236,232,224,0.09)';
+      gg.fillRect(g.fcx - g.neckR - 2, jy, (g.neckR + 2) * 2, 16);
+      gg.strokeStyle = 'rgba(236,232,224,0.26)'; gg.lineWidth = 1;
+      gg.strokeRect(g.fcx - g.neckR - 2, jy, (g.neckR + 2) * 2, 16);
+
+      /* the bulb */
+      var rr = g.fr;
+      gg.save();
+      gg.beginPath(); gg.arc(g.fcx, g.fcy, rr, 0, TAU); gg.clip();
+      var sh = gg.createRadialGradient(g.fcx - rr * 0.3, g.fcy - rr * 0.35, rr * 0.1, g.fcx, g.fcy, rr * 1.02);
+      sh.addColorStop(0, 'rgba(236,232,224,0.012)');
+      sh.addColorStop(0.62, 'rgba(236,232,224,0.03)');
+      sh.addColorStop(0.90, 'rgba(236,232,224,0.09)');
+      sh.addColorStop(1, 'rgba(236,232,224,0.18)');
+      gg.fillStyle = sh; gg.fillRect(g.fcx - rr, g.fcy - rr, rr * 2, rr * 2);
+      /* the long specular crescent */
+      gg.lineCap = 'round';
+      gg.beginPath(); gg.arc(g.fcx, g.fcy, rr * 0.86, Math.PI * 1.10, Math.PI * 1.44);
+      gg.lineWidth = Math.max(2, rr * 0.075); gg.strokeStyle = 'rgba(255,252,244,0.34)'; gg.stroke();
+      gg.beginPath(); gg.arc(g.fcx, g.fcy, rr * 0.72, Math.PI * 1.14, Math.PI * 1.34);
+      gg.lineWidth = Math.max(1, rr * 0.03); gg.strokeStyle = 'rgba(255,252,244,0.22)'; gg.stroke();
+      /* the cool reflected arc on the far side */
+      gg.beginPath(); gg.arc(g.fcx, g.fcy, rr * 0.88, Math.PI * 0.10, Math.PI * 0.40);
+      gg.lineWidth = Math.max(1, rr * 0.035); gg.strokeStyle = 'rgba(166,197,160,0.16)'; gg.stroke();
+      gg.restore();
+      /* the rim */
+      gg.beginPath(); gg.arc(g.fcx, g.fcy, rr, 0, TAU);
+      gg.lineWidth = 1.4; gg.strokeStyle = 'rgba(236,232,224,0.34)'; gg.stroke();
+    });
+
+    /* the receiving flask shell */
+    var vx0 = g.rcx - g.rHalf - 12, vy0 = g.rtop - 8;
+    spRecv = sprite(vx0, vy0, (g.rHalf + 12) * 2, (g.rBottomY + 12) - vy0, function(gg){
+      recvPath(gg, 0);
+      var sh = gg.createLinearGradient(g.rcx - g.rHalf, 0, g.rcx + g.rHalf, 0);
+      sh.addColorStop(0.00, 'rgba(236,232,224,0.15)');
+      sh.addColorStop(0.20, 'rgba(236,232,224,0.03)');
+      sh.addColorStop(0.42, 'rgba(236,232,224,0.07)');
+      sh.addColorStop(0.70, 'rgba(236,232,224,0.02)');
+      sh.addColorStop(1.00, 'rgba(236,232,224,0.16)');
+      gg.fillStyle = sh; gg.fill();
+      gg.lineWidth = 1.4; gg.strokeStyle = 'rgba(236,232,224,0.36)'; gg.stroke();
+      /* the mouth ring */
+      gg.beginPath();
+      gg.ellipse(g.rcx, g.rtop + 2, g.rNeckHalf + 2.5, Math.max(2.5, g.rNeckHalf * 0.34), 0, 0, TAU);
+      gg.lineWidth = 1.2; gg.strokeStyle = 'rgba(236,232,224,0.42)'; gg.stroke();
+      /* graduation marks */
+      gg.strokeStyle = 'rgba(236,232,224,0.16)'; gg.lineWidth = 1;
+      for (var k = 1; k <= 4; k++){
+        var yy = g.rBodyY - (g.rBodyY - g.rShoulderY) * (k / 5.2);
+        var hw = halfWidthAt(yy) - 3;
+        gg.beginPath(); gg.moveTo(g.rcx + hw - (k % 2 ? 11 : 7), yy); gg.lineTo(g.rcx + hw, yy); gg.stroke();
+      }
+    });
+  }
+
+  function halfWidthAt(y){
+    var g = G;
+    if (y <= g.rShoulderY) return g.rNeckHalf;
+    if (y >= g.rBodyY) return g.rHalf;
+    var t = (y - g.rShoulderY) / (g.rBodyY - g.rShoulderY);
+    return g.rNeckHalf + (g.rHalf - g.rNeckHalf) * (t * t * (3 - 2 * t));
+  }
+  function recvPath(g2, inset){
+    var g = G, i = inset || 0;
+    var nh = g.rNeckHalf - i, hh = g.rHalf - i;
+    g2.beginPath();
+    g2.moveTo(g.rcx - nh, g.rtop + i);
+    g2.lineTo(g.rcx - nh, g.rShoulderY);
+    g2.bezierCurveTo(g.rcx - nh, g.rShoulderY + (g.rBodyY - g.rShoulderY) * 0.55,
+                     g.rcx - hh, g.rBodyY - (g.rBodyY - g.rShoulderY) * 0.32,
+                     g.rcx - hh, g.rBodyY);
+    g2.lineTo(g.rcx - hh, g.rBottomY - 8 - i);
+    g2.quadraticCurveTo(g.rcx - hh, g.rBottomY - i, g.rcx - hh + 9, g.rBottomY - i);
+    g2.lineTo(g.rcx + hh - 9, g.rBottomY - i);
+    g2.quadraticCurveTo(g.rcx + hh, g.rBottomY - i, g.rcx + hh, g.rBottomY - 8 - i);
+    g2.lineTo(g.rcx + hh, g.rBodyY);
+    g2.bezierCurveTo(g.rcx + hh, g.rBodyY - (g.rBodyY - g.rShoulderY) * 0.32,
+                     g.rcx + nh, g.rShoulderY + (g.rBodyY - g.rShoulderY) * 0.55,
+                     g.rcx + nh, g.rShoulderY);
+    g2.lineTo(g.rcx + nh, g.rtop + i);
+    g2.closePath();
+  }
+
+  /* ---------------- mote sprites ---------------- */
+  function moteSprite(r, g_, b_){
+    var s = 64, c = document.createElement('canvas');
+    c.width = s; c.height = s;
+    var g2 = c.getContext('2d');
+    var gr = g2.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+    gr.addColorStop(0, 'rgba(' + r + ',' + g_ + ',' + b_ + ',0.55)');
+    gr.addColorStop(0.35, 'rgba(' + r + ',' + g_ + ',' + b_ + ',0.20)');
+    gr.addColorStop(1, 'rgba(' + r + ',' + g_ + ',' + b_ + ',0)');
+    g2.fillStyle = gr; g2.fillRect(0, 0, s, s);
+    return c;
+  }
+  var mSprA = moteSprite(196, 218, 190);
+  var mSprB = moteSprite(224, 201, 160);
+
+  /* one baked droplet, scaled per drop, so no gradient is built inside the loop */
+  var DROP_S = 96, DROP_R = DROP_S / 2 - 3;
+  var dropSpr = (function(){
+    var c = document.createElement('canvas');
+    c.width = DROP_S; c.height = DROP_S;
+    var g = c.getContext('2d'), h = DROP_S / 2, R = DROP_R;
+    var gr = g.createRadialGradient(h - R * 0.34, h - R * 0.42, R * 0.08, h, h, R * 1.3);
+    gr.addColorStop(0, 'rgba(248,234,202,0.97)');
+    gr.addColorStop(0.34, 'rgba(203,166,94,0.66)');
+    gr.addColorStop(1, 'rgba(70,55,24,0.34)');
+    g.beginPath(); g.arc(h, h, R, 0, TAU); g.fillStyle = gr; g.fill();
+    g.lineWidth = R * 0.13; g.strokeStyle = 'rgba(255,244,220,0.30)'; g.stroke();
+    g.beginPath(); g.ellipse(h - R * 0.33, h - R * 0.40, R * 0.24, R * 0.17, -0.5, 0, TAU);
+    g.fillStyle = 'rgba(255,250,236,0.88)'; g.fill();
+    return c;
+  })();
+
+  /* ---------------- the simulation ---------------- */
+  var motes = [], bubbles = [], tubeDrops = [], bendDrops = [], falling = [], splash = [];
+  var flaskWave = null, recvWave = null, dripClock = 0, spawnClock = 0;
+
+  function makeWave(n){
+    var h = new Float32Array(n), v = new Float32Array(n);
+    return {n: n, h: h, v: v};
+  }
+  function stepWave(w, damp){
+    var n = w.n, h = w.h, v = w.v;
+    for (var i = 0; i < n; i++){
+      var l = h[i > 0 ? i - 1 : 0], r = h[i < n - 1 ? i + 1 : n - 1];
+      v[i] += (l + r - 2 * h[i]) * 0.34 - h[i] * 0.024;
+      v[i] *= damp;
+    }
+    for (var j = 0; j < n; j++) h[j] += v[j];
+  }
+  function hitWave(w, t, amp){
+    var i = Math.round(t * (w.n - 1));
+    if (i < 0) i = 0; if (i > w.n - 1) i = w.n - 1;
+    w.v[i] -= amp;
+    if (i > 0) w.v[i - 1] -= amp * 0.5;
+    if (i < w.n - 1) w.v[i + 1] -= amp * 0.5;
+  }
+
+  function resetSim(){
+    motes.length = 0; bubbles.length = 0; tubeDrops.length = 0;
+    bendDrops.length = 0; falling.length = 0; splash.length = 0;
+    flaskWave = makeWave(lowPower ? 26 : 40);
+    recvWave  = makeWave(lowPower ? 24 : 36);
+    dripClock = 0; spawnClock = 0;
+    if (reduced) buildStatic();
+  }
+
+  function updateProgress(instant){
+    var g = G;
+    prog = Math.max(0, Math.min(1, sy / docSpan));
+    var pf = g ? Math.max(0, Math.min(1, sy / Math.max(240, g.fcy + g.fr - 40))) : 0;
+    var pr = g ? Math.max(0, Math.min(1, (sy - g.recvStart) / g.recvSpan)) : 0;
+    if (instant){ progSmooth = prog; progFlask = pf; progRecv = pr; return; }
+    progSmooth += (prog - progSmooth) * 0.12;
+    progFlask  += (pf - progFlask) * 0.12;
+    progRecv   += (pr - progRecv) * 0.12;
+  }
+  /* the charge is driven off while the flask is still in view */
+  /* a press on the flask stirs the charge: more bubbles, a real ripple, no new physics */
+  function stir(cx, cy){
+    if (reduced || !G) return;
+    var g = G;
+    var x = cx, y = cy + syTarget;
+    var dx = x - g.fcx, dy = y - g.fcy;
+    if (dx * dx + dy * dy > g.fr * g.fr * 1.10) return;
+    if (bubbles.length > 64) return;
+    var surf = flaskSurfaceY();
+    hitWave(flaskWave, (x - (g.fcx - g.fr)) / (g.fr * 2), 2.4);
+    var poolHalf = Math.sqrt(Math.max(1, g.fr * g.fr - (surf - g.fcy) * (surf - g.fcy))) * 0.78;
+    var n = lowPower ? 7 : 12;
+    for (var i = 0; i < n; i++){
+      var bx = g.fcx + Math.max(-poolHalf, Math.min(poolHalf, (x - g.fcx) + (Math.random() - 0.5) * g.fr * 0.5));
+      var maxY = g.fcy + Math.sqrt(Math.max(1, g.fr * g.fr - (bx - g.fcx) * (bx - g.fcx))) - 6;
+      if (maxY <= surf + 4) continue;
+      bubbles.push({x: bx, y: surf + 4 + Math.random() * (maxY - surf - 4), r: 1.2 + Math.random() * 3.4, ph: Math.random() * TAU});
+    }
+    for (var m = 0; m < (lowPower ? 4 : 7); m++){
+      spawnMote(x + (Math.random() - 0.5) * g.fr * 0.5, surf - 2 - Math.random() * 14);
+    }
+  }
+
+  function flaskSurfaceY(){
+    return G.fcy + G.fr * (0.30 + 0.58 * progFlask);
+  }
+  /* and the distillate gathers as the closing stage comes up */
+  function recvLevel(){
+    return 0.08 + 0.60 * progRecv;
+  }
+  function recvSurfaceY(){
+    var top = G.rShoulderY + (G.rBodyY - G.rShoulderY) * 0.10;
+    var bot = G.rBottomY - 4;
+    return bot - (bot - top) * recvLevel();
+  }
+
+  function spawnMote(x, y, vy){
+    if (motes.length > (lowPower ? 64 : 150)) return;
+    motes.push({
+      x: x, y: y,
+      vx: (Math.random() - 0.5) * 14,
+      vy: vy !== undefined ? vy : -(8 + Math.random() * 16),
+      r: 9 + Math.random() * 22,
+      life: 0, max: 2.6 + Math.random() * 3.2,
+      seed: Math.random() * 1000
+    });
+  }
+
+  function spawnTubeDrop(y){
+    var g = G;
+    tubeDrops.push({
+      x: g.railX + (Math.random() * 2 - 1) * (g.tubeR - 3.2),
+      y: y,
+      r: 0.6 + Math.random() * 1.0,
+      v: 0,
+      rc: 3.0 + Math.random() * 2.1,
+      dead: false
+    });
+  }
+
+  function stepSim(dt){
+    var g = G;
+    T += dt;
+    var vhTop = sy - 140, vhBot = sy + H + 140;
+    var flux = 0.45 + 0.85 * Math.sin(Math.min(1, progSmooth * 1.15) * Math.PI * 0.86);
+
+    /* --- the charge boils --- */
+    var fVisible = (g.fcy + g.fr > vhTop) && (g.neckTop < vhBot);
+    var surf = flaskSurfaceY();
+    if (fVisible){
+      stepWave(flaskWave, 0.965);
+      var poolHalf = Math.sqrt(Math.max(1, g.fr * g.fr - (surf - g.fcy) * (surf - g.fcy))) * 0.78;
+      if (Math.random() < dt * (10 + 26 * flux) * (1 - progFlask * 0.55) && bubbles.length < (lowPower ? 18 : 44)){
+        var bx = g.fcx + (Math.random() * 2 - 1) * poolHalf;
+        var maxY = g.fcy + Math.sqrt(Math.max(1, g.fr * g.fr - (bx - g.fcx) * (bx - g.fcx))) - 6;
+        if (maxY > surf + 3) bubbles.push({x: bx, y: maxY, r: 1.1 + Math.random() * 3.4, ph: Math.random() * TAU});
+      }
+      /* vapour also lifts straight off the surface of the charge */
+      if (Math.random() < dt * (7 + 20 * flux)){
+        spawnMote(g.fcx + (Math.random() * 2 - 1) * g.fr * 0.66, surf - 2 - Math.random() * 10);
+      }
+      for (var i = bubbles.length - 1; i >= 0; i--){
+        var b = bubbles[i];
+        b.ph += dt * 5;
+        b.y -= (26 + b.r * 17) * dt;
+        b.x += Math.sin(b.ph) * b.r * 0.5 * dt * 8;
+        if (b.y - b.r <= surf){
+          hitWave(flaskWave, (b.x - (g.fcx - g.fr)) / (g.fr * 2), b.r * 0.32);
+          spawnMote(b.x, surf - 2, -(14 + b.r * 7));
+          if (b.r > 2.6) spawnMote(b.x + (Math.random() - 0.5) * 8, surf - 4);
+          bubbles.splice(i, 1);
+        }
+      }
+      /* --- vapour rises, swirls, and finds the neck --- */
+      for (var m = motes.length - 1; m >= 0; m--){
+        var p = motes[m];
+        p.life += dt;
+        var ax = Math.sin(p.x * 0.019 + T * 0.62 + p.seed) + Math.cos(p.y * 0.014 - T * 0.44);
+        var ay = Math.cos(p.x * 0.012 - T * 0.51) + Math.sin(p.y * 0.021 + T * 0.38 + p.seed);
+        p.vx += ax * 15 * dt;
+        p.vy += (ay * 7 - 34) * dt;
+        p.vx *= 0.982; p.vy *= 0.986;
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        /* the walls of the bulb hold it in, the neck lets it out */
+        var dx = p.x - g.fcx, dy = p.y - g.fcy;
+        var dd = Math.sqrt(dx * dx + dy * dy);
+        var inNeck = p.y < g.ftop + g.fr * 0.24 && Math.abs(dx) < g.neckR * 1.1;
+        if (!inNeck && dd > g.fr - 5){
+          var k = (dd - (g.fr - 5)) * 5.5;
+          p.vx -= dx / dd * k * dt * 12;
+          p.vy -= dy / dd * k * dt * 12;
+          p.x = g.fcx + dx / dd * (g.fr - 5);
+          p.y = g.fcy + dy / dd * (g.fr - 5);
+        }
+        if (inNeck){
+          p.vx += (g.fcx - p.x) * 3.4 * dt;
+          p.vy -= 34 * dt;
+        }
+        if (p.y > surf + 4){ p.y = surf + 4; p.vy = -Math.abs(p.vy) * 0.4; }
+        if (p.life > p.max || p.y < g.neckTop + 8) motes.splice(m, 1);
+      }
+    }
+
+    /* --- condensation on the condenser wall --- */
+    var tubeTopVis = Math.max(g.tubeTop, vhTop);
+    var tubeBotVis = Math.min(g.bendStart, vhBot);
+    if (tubeBotVis > tubeTopVis){
+      spawnClock += dt;
+      var per = 1 / (16 + 34 * flux);
+      var guard = 0;
+      while (spawnClock > per && guard++ < 8){
+        spawnClock -= per;
+        if (tubeDrops.length < (lowPower ? 70 : 150)){
+          spawnTubeDrop(tubeTopVis + Math.random() * (tubeBotVis - tubeTopVis));
+        }
+      }
+    }
+    var growth = (0.58 + flux * 1.15);
+    for (var t = tubeDrops.length - 1; t >= 0; t--){
+      var d = tubeDrops[t];
+      if (d.dead){ tubeDrops.splice(t, 1); continue; }
+      if (d.y < vhTop - 400 || d.y > vhBot + 400){ tubeDrops.splice(t, 1); continue; }
+      if (d.v < 4) d.r += growth * dt;
+      if (d.v > 0 || d.r > d.rc){
+        d.v += 190 * dt;
+        d.v -= d.v * (4.2 / Math.max(1.2, d.r)) * dt;
+        d.y += d.v * dt;
+      }
+      if (d.y > g.bendStart - 4){
+        bendDrops.push({t: 0, r: d.r, v: Math.max(60, d.v)});
+        tubeDrops.splice(t, 1);
+      }
+    }
+    /* coalescence: sweep in y, merge overlaps, conserve volume */
+    tubeDrops.sort(function(a, b){ return a.y - b.y; });
+    for (var a1 = 0; a1 < tubeDrops.length; a1++){
+      var A = tubeDrops[a1];
+      if (A.dead) continue;
+      for (var b1 = a1 + 1; b1 < tubeDrops.length; b1++){
+        var B = tubeDrops[b1];
+        if (B.y - A.y > A.r + 7) break;
+        if (B.dead) continue;
+        var ddx = B.x - A.x, ddy = B.y - A.y;
+        var reach = (A.r + B.r) * 0.92;
+        if (ddx * ddx + ddy * ddy < reach * reach){
+          var nr = Math.cbrt(A.r * A.r * A.r + B.r * B.r * B.r);
+          var w1 = A.r * A.r * A.r, w2 = B.r * B.r * B.r, tot = w1 + w2;
+          A.x = (A.x * w1 + B.x * w2) / tot;
+          A.y = (A.y * w1 + B.y * w2) / tot;
+          A.v = (A.v * w1 + B.v * w2) / tot;
+          A.r = nr;
+          B.dead = true;
+        }
+      }
+    }
+
+    /* --- the bend delivers --- */
+    var bendLen = Math.max(40, g.dripY - g.bendStart);
+    for (var q = bendDrops.length - 1; q >= 0; q--){
+      var bd = bendDrops[q];
+      bd.v += 130 * dt;
+      bd.t += (bd.v * dt) / bendLen;
+      if (bd.t >= 1){
+        falling.push({x: g.rcx, y: g.dripY + g.tubeR * 0.6, v: 20, r: Math.min(6.5, bd.r), ph: 0, amp: 0.3});
+        bendDrops.splice(q, 1);
+      }
+    }
+
+    /* --- a drip cadence that quickens as the run proceeds --- */
+    var recvVisible = (g.rBottomY > vhTop) && (g.dripY < vhBot);
+    if (recvVisible){
+      dripClock += dt;
+      var every = 2.3 - 1.5 * progSmooth;
+      if (dripClock > every){
+        dripClock = 0;
+        falling.push({x: g.rcx, y: g.dripY + g.tubeR * 0.6, v: 15, r: 3.0 + Math.random() * 2.2, ph: 0, amp: 0.34});
+      }
+      stepWave(recvWave, 0.955);
+    }
+
+    var rsy = recvSurfaceY();
+    for (var f = falling.length - 1; f >= 0; f--){
+      var fd = falling[f];
+      fd.v += 900 * dt;
+      fd.y += fd.v * dt;
+      fd.ph += dt * 13;
+      fd.amp *= (1 - dt * 0.7);
+      if (fd.y + fd.r >= rsy){
+        hitWave(recvWave, (fd.x - (g.rcx - halfWidthAt(rsy))) / (halfWidthAt(rsy) * 2), 1.5 + fd.r * 0.5);
+        var np = lowPower ? 2 : 4;
+        for (var s = 0; s < np; s++){
+          splash.push({
+            x: fd.x, y: rsy - 1,
+            vx: (Math.random() - 0.5) * 90,
+            vy: -(50 + Math.random() * 110),
+            r: 0.7 + Math.random() * 1.2, life: 0
+          });
+        }
+        falling.splice(f, 1);
+      } else if (fd.y > vhBot + 200){
+        falling.splice(f, 1);
+      }
+    }
+    for (var s2 = splash.length - 1; s2 >= 0; s2--){
+      var sp = splash[s2];
+      sp.life += dt;
+      sp.vy += 620 * dt;
+      sp.x += sp.vx * dt; sp.y += sp.vy * dt;
+      if (sp.y > rsy || sp.life > 1.1) splash.splice(s2, 1);
+    }
+  }
+
+  /* ---------------- the static composition (reduced motion) ---------------- */
+  function buildStatic(){
+    var g = G;
+    motes.length = 0; bubbles.length = 0; falling.length = 0; splash.length = 0;
+    bendDrops.length = 0;
+    var i, s;
+    for (i = 0; i < 46; i++){
+      s = i * 7 + 11;
+      var ang = rnd(s) * TAU, rad = Math.sqrt(rnd(s + 1)) * g.fr * 0.74;
+      motes.push({
+        x: g.fcx + Math.cos(ang) * rad * 0.9,
+        y: g.fcy + Math.sin(ang) * rad - g.fr * 0.20,
+        r: 11 + rnd(s + 2) * 24, life: rnd(s + 3) * 1.4, max: 3.4, vx: 0, vy: 0, seed: s
+      });
+    }
+    for (i = 0; i < 9; i++){
+      s = i * 13 + 101;
+      bubbles.push({
+        x: g.fcx + (rnd(s) * 2 - 1) * g.fr * 0.55,
+        y: flaskSurfaceY() + 8 + rnd(s + 1) * g.fr * 0.55,
+        r: 1.4 + rnd(s + 2) * 3.0, ph: rnd(s + 3) * TAU
+      });
+    }
+    for (i = 0; i < 3; i++){
+      s = i * 29 + 7;
+      falling.push({
+        x: g.rcx, y: g.dripY + 26 + rnd(s) * Math.max(20, (recvSurfaceY() - g.dripY) * 0.72),
+        v: 200, r: 2.6 + rnd(s + 1) * 2.4, ph: rnd(s + 2) * TAU, amp: 0.22
+      });
+    }
+    var wv = recvWave;
+    for (i = 0; i < wv.n; i++) wv.h[i] = Math.sin(i * 0.55) * 0.7 + Math.sin(i * 1.31) * 0.35;
+    var fw = flaskWave;
+    for (i = 0; i < fw.n; i++) fw.h[i] = Math.sin(i * 0.7) * 0.6;
+  }
+  /* condensation for the static view, keyed to position so it never shifts */
+  function staticDrops(y0, y1){
+    var g = G, out = [];
+    var band = 26;
+    var i0 = Math.floor(y0 / band), i1 = Math.ceil(y1 / band);
+    for (var i = i0; i <= i1; i++){
+      var n = rnd(i * 3 + 5) < 0.34 ? 2 : 1;
+      for (var k = 0; k < n; k++){
+        var s = i * 31 + k * 7;
+        var yy = i * band + rnd(s) * band;
+        if (yy < g.tubeTop || yy > g.bendStart) continue;
+        var rr = 0.9 + rnd(s + 1) * rnd(s + 2) * 4.6;
+        out.push({
+          x: g.railX + (rnd(s + 3) * 2 - 1) * (g.tubeR - 3.2),
+          y: yy, r: rr,
+          v: rr > 3.7 ? 90 + rnd(s + 4) * 120 : 0
+        });
+      }
+    }
+    return out;
+  }
+
+  /* ---------------- rendering ---------------- */
+  function drawTube(){
+    var g = G;
+    var y0 = Math.max(g.tubeTop, sy - 60), y1 = Math.min(g.bendStart, sy + H + 60);
+    if (y1 <= y0) return;
+
+    /* the outer jacket, on roomier screens */
+    if (g.tubeR >= 15){
+      ctx.fillStyle = g.jacketGrad;
+      ctx.fillRect(g.railX - g.jacketR, y0, g.jacketR * 2, y1 - y0);
+      ctx.fillStyle = 'rgba(236,232,224,0.20)';
+      ctx.fillRect(g.railX - g.jacketR, y0, 1, y1 - y0);
+      ctx.fillRect(g.railX + g.jacketR - 1, y0, 1, y1 - y0);
+    }
+
+    /* the inner tube */
+    ctx.fillStyle = g.tubeGrad;
+    ctx.fillRect(g.railX - g.tubeR, y0, g.tubeR * 2, y1 - y0);
+    ctx.fillStyle = 'rgba(236,232,224,0.30)';
+    ctx.fillRect(g.railX - g.tubeR, y0, 1.2, y1 - y0);
+    ctx.fillStyle = 'rgba(236,232,224,0.38)';
+    ctx.fillRect(g.railX + g.tubeR - 1.2, y0, 1.2, y1 - y0);
+
+    /* graduation ticks */
+    ctx.fillStyle = 'rgba(236,232,224,0.13)';
+    var step = 46;
+    var ty = Math.ceil(y0 / step) * step;
+    for (; ty < y1; ty += step){
+      var lng = (Math.round(ty / step) % 4 === 0);
+      ctx.fillRect(g.railX - g.tubeR + 1.5, ty, lng ? g.tubeR * 0.72 : g.tubeR * 0.36, 1);
+    }
+
+    /* ground glass joints where the stages meet */
+    for (var i = 0; i < g.joints.length; i++){
+      var jy = g.joints[i];
+      if (jy < y0 - 30 || jy > y1 + 30) continue;
+      var jw = g.tubeR * 1.24, jh = 17;
+      ctx.fillStyle = 'rgba(236,232,224,0.10)';
+      ctx.fillRect(g.railX - jw, jy - jh / 2, jw * 2, jh);
+      ctx.strokeStyle = 'rgba(236,232,224,0.30)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(g.railX - jw, jy - jh / 2, jw * 2, jh);
+      ctx.fillStyle = 'rgba(201,164,92,0.30)';
+      ctx.fillRect(g.railX - jw, jy - 0.5, jw * 2, 1);
+    }
+  }
+
+  function drawTubeDrop(d){
+    var r = d.r;
+    if (r < 0.35) return;
+    var el = 1 + Math.min(0.85, d.v * 0.0028);
+    var rx = r / Math.sqrt(el), ry = r * Math.sqrt(el);
+    var edge = Math.min(1, Math.abs(d.x - G.railX) / Math.max(1, G.tubeR));
+    var a = 0.64 + 0.36 * (1 - edge);
+
+    if (d.v > 26){
+      var tl = Math.min(42, d.v * 0.10);
+      var tg = ctx.createLinearGradient(0, d.y - tl, 0, d.y);
+      tg.addColorStop(0, 'rgba(201,164,92,0)');
+      tg.addColorStop(1, 'rgba(224,201,160,' + (0.16 * a).toFixed(3) + ')');
+      ctx.fillStyle = tg;
+      ctx.fillRect(d.x - rx * 0.62, d.y - tl, rx * 1.24, tl);
+    }
+
+    var k = (DROP_S / 2) / DROP_R;
+    var w = rx * 2 * k, h = ry * 2 * k;
+    ctx.globalAlpha = a;
+    ctx.drawImage(dropSpr, d.x - w / 2, d.y - h / 2, w, h);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawFlask(){
+    var g = G;
+    var surf = flaskSurfaceY();
+
+    /* the liquid charge */
+    ctx.save();
+    ctx.beginPath(); ctx.arc(g.fcx, g.fcy, g.fr - 1, 0, TAU); ctx.clip();
+    var lg = ctx.createLinearGradient(0, surf, 0, g.fcy + g.fr);
+    lg.addColorStop(0, 'rgba(96,128,88,0.50)');
+    lg.addColorStop(0.45, 'rgba(60,86,54,0.62)');
+    lg.addColorStop(1, 'rgba(32,48,30,0.78)');
+    ctx.beginPath();
+    var w = flaskWave, x0 = g.fcx - g.fr, span = g.fr * 2;
+    ctx.moveTo(x0, surf);
+    for (var i = 0; i < w.n; i++) ctx.lineTo(x0 + span * (i / (w.n - 1)), surf + w.h[i] * 2.2);
+    ctx.lineTo(g.fcx + g.fr, g.fcy + g.fr + 4);
+    ctx.lineTo(x0, g.fcy + g.fr + 4);
+    ctx.closePath();
+    ctx.fillStyle = lg; ctx.fill();
+    /* the meniscus */
+    ctx.beginPath();
+    ctx.moveTo(x0, surf);
+    for (var j = 0; j < w.n; j++) ctx.lineTo(x0 + span * (j / (w.n - 1)), surf + w.h[j] * 2.2);
+    ctx.lineWidth = 1.3; ctx.strokeStyle = 'rgba(166,197,160,0.55)'; ctx.stroke();
+
+    /* bubbles */
+    for (var b = 0; b < bubbles.length; b++){
+      var bb = bubbles[b];
+      ctx.beginPath(); ctx.arc(bb.x, bb.y, bb.r, 0, TAU);
+      ctx.strokeStyle = 'rgba(214,232,208,0.42)'; ctx.lineWidth = Math.max(0.5, bb.r * 0.24); ctx.stroke();
+      ctx.beginPath(); ctx.arc(bb.x - bb.r * 0.3, bb.y - bb.r * 0.3, Math.max(0.35, bb.r * 0.24), 0, TAU);
+      ctx.fillStyle = 'rgba(240,248,236,0.5)'; ctx.fill();
+    }
+    ctx.restore();
+
+    /* vapour, held by the walls of the bulb and the neck */
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(g.fcx, g.fcy, g.fr - 1.5, 0, TAU);
+    ctx.rect(g.fcx - g.neckR + 1.5, g.neckTop, (g.neckR - 1.5) * 2, g.fcy - g.neckTop);
+    ctx.clip();
+    ctx.globalCompositeOperation = 'lighter';
+    for (var m = 0; m < motes.length; m++){
+      var p = motes[m];
+      var lf = p.life / p.max;
+      var al = Math.sin(Math.min(1, lf) * Math.PI) * 0.95;
+      if (al <= 0.01) continue;
+      var tint = Math.max(0, Math.min(1, (g.fcy - p.y) / (g.fr * 1.5)));
+      var img = tint > 0.5 ? mSprB : mSprA;
+      ctx.globalAlpha = al;
+      ctx.drawImage(img, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
+
+    blit(spFlask);
+
+    /* a warm halo where the still is working */
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    var hg = ctx.createRadialGradient(g.fcx, g.fcy, g.fr * 0.2, g.fcx, g.fcy, g.fr * 2.1);
+    hg.addColorStop(0, 'rgba(201,164,92,0.10)');
+    hg.addColorStop(1, 'rgba(201,164,92,0)');
+    ctx.fillStyle = hg;
+    ctx.fillRect(g.fcx - g.fr * 2.1, g.fcy - g.fr * 2.1, g.fr * 4.2, g.fr * 4.2);
+    ctx.restore();
+  }
+
+  function drawNeckTransport(){
+    if (reduced || !neckPts) return;
+    var g = G;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (var i = 0; i < 3; i++){
+      var t = ((T * 0.17) + i / 3) % 1;
+      var p = neckPts[Math.min(neckPts.length - 1, Math.round(t * (neckPts.length - 1)))];
+      var a = Math.sin(t * Math.PI) * 0.5;
+      var rr = g.neckR * (0.9 + t * 0.5);
+      var gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rr * 2.4);
+      gr.addColorStop(0, 'rgba(224,201,160,' + (0.30 * a).toFixed(3) + ')');
+      gr.addColorStop(1, 'rgba(224,201,160,0)');
+      ctx.fillStyle = gr;
+      ctx.fillRect(p.x - rr * 2.4, p.y - rr * 2.4, rr * 4.8, rr * 4.8);
+    }
+    ctx.restore();
+  }
+
+  function drawFalling(){
+    for (var i = 0; i < falling.length; i++){
+      var d = falling[i];
+      var k = 1 + d.amp * Math.sin(d.ph);
+      var rx = d.r / k, ry = d.r * k;
+      ctx.save();
+      ctx.translate(d.x, d.y);
+      var gr = ctx.createRadialGradient(-rx * 0.3, -ry * 0.4, rx * 0.1, 0, 0, Math.max(rx, ry) * 1.35);
+      gr.addColorStop(0, 'rgba(250,238,208,0.96)');
+      gr.addColorStop(0.36, 'rgba(214,178,104,0.82)');
+      gr.addColorStop(1, 'rgba(96,76,36,0.42)');
+      ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, TAU);
+      ctx.fillStyle = gr; ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(-rx * 0.3, -ry * 0.38, Math.max(0.4, rx * 0.26), Math.max(0.3, ry * 0.16), -0.5, 0, TAU);
+      ctx.fillStyle = 'rgba(255,252,242,0.9)'; ctx.fill();
+      ctx.restore();
+      /* the streak it leaves in the air */
+      var tl = Math.min(30, d.v * 0.026);
+      if (tl > 3){
+        var tg = ctx.createLinearGradient(0, d.y - tl, 0, d.y);
+        tg.addColorStop(0, 'rgba(224,201,160,0)');
+        tg.addColorStop(1, 'rgba(224,201,160,0.20)');
+        ctx.fillStyle = tg;
+        ctx.fillRect(d.x - rx * 0.4, d.y - tl, rx * 0.8, tl);
+      }
+    }
+    for (var s = 0; s < splash.length; s++){
+      var p = splash[s];
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU);
+      ctx.fillStyle = 'rgba(240,220,172,0.75)'; ctx.fill();
+    }
+  }
+
+  function drawReceiver(){
+    var g = G;
+    var surf = recvSurfaceY();
+    ctx.save();
+    recvPath(ctx, 1.6);
+    ctx.clip();
+    var hw = g.rHalf;
+    var lg = ctx.createLinearGradient(0, surf, 0, g.rBottomY);
+    lg.addColorStop(0, 'rgba(230,196,132,0.72)');
+    lg.addColorStop(0.35, 'rgba(201,164,92,0.80)');
+    lg.addColorStop(1, 'rgba(126,96,44,0.90)');
+    var w = recvWave, x0 = g.rcx - hw, span = hw * 2;
+    ctx.beginPath();
+    ctx.moveTo(x0, surf);
+    for (var i = 0; i < w.n; i++) ctx.lineTo(x0 + span * (i / (w.n - 1)), surf + w.h[i] * 2.0);
+    ctx.lineTo(g.rcx + hw, g.rBottomY + 4);
+    ctx.lineTo(x0, g.rBottomY + 4);
+    ctx.closePath();
+    ctx.fillStyle = lg; ctx.fill();
+    /* the meniscus and the light it gathers */
+    ctx.beginPath();
+    ctx.moveTo(x0, surf);
+    for (var j = 0; j < w.n; j++) ctx.lineTo(x0 + span * (j / (w.n - 1)), surf + w.h[j] * 2.0);
+    ctx.lineWidth = 1.6; ctx.strokeStyle = 'rgba(255,240,206,0.75)'; ctx.stroke();
+    var cg = ctx.createLinearGradient(0, surf, 0, surf + 26);
+    cg.addColorStop(0, 'rgba(255,243,214,0.30)');
+    cg.addColorStop(1, 'rgba(255,243,214,0)');
+    ctx.fillStyle = cg; ctx.fillRect(x0, surf, span, 26);
+    var bg = ctx.createRadialGradient(g.rcx, g.rBottomY - 6, 2, g.rcx, g.rBottomY - 6, hw * 1.2);
+    bg.addColorStop(0, 'rgba(255,236,196,0.22)');
+    bg.addColorStop(1, 'rgba(255,236,196,0)');
+    ctx.fillStyle = bg; ctx.fillRect(x0, g.rBottomY - 40, span, 46);
+    ctx.restore();
+
+    blit(spRecv);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    var hg = ctx.createRadialGradient(g.rcx, surf + 10, 4, g.rcx, surf + 10, g.rHalf * 2.4);
+    hg.addColorStop(0, 'rgba(201,164,92,0.14)');
+    hg.addColorStop(1, 'rgba(201,164,92,0)');
+    ctx.fillStyle = hg;
+    ctx.fillRect(g.rcx - g.rHalf * 2.4, surf - g.rHalf * 2.4 + 10, g.rHalf * 4.8, g.rHalf * 4.8);
+    ctx.restore();
+  }
+
+  function render(){
+    var g = G;
+    if (!g) return;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, -sy * dpr);
+
+    var top = sy - 200, bot = sy + H + 200;
+
+    if (g.tubeTop < bot && g.bendStart > top){
+      drawTube();
+      var drops = reduced ? staticDrops(Math.max(g.tubeTop, top), Math.min(g.bendStart, bot)) : tubeDrops;
+      for (var i = 0; i < drops.length; i++){
+        var d = drops[i];
+        if (d.y < top || d.y > bot) continue;
+        drawTubeDrop(d);
+      }
+    }
+    if (spNeck && spNeck.y < bot && spNeck.y + spNeck.h > top){
+      blit(spNeck);
+      drawNeckTransport();
+    }
+    if (g.fcy + g.fr > top && g.neckTop < bot) drawFlask();
+    if (spBend && spBend.y < bot && spBend.y + spBend.h > top) blit(spBend);
+    if (g.rBottomY > top && g.dripY < bot){
+      drawFalling();
+      drawReceiver();
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  /* ---------------- the loop ---------------- */
+  function frame(now){
+    raf = requestAnimationFrame(frame);
+    if (!lastT) lastT = now;
+    var dtms = now - lastT;
+    lastT = now;
+    if (dtms > 120) dtms = 120;
+    acc += dtms / 1000;
+    sy = syTarget;
+    updateProgress(false);
+    var steps = 0;
+    while (acc >= STEP && steps < 4){ stepSim(STEP); acc -= STEP; steps++; }
+    if (acc > 0.4) acc = 0;
+    render();
+  }
+  function start(){
+    if (raf || reduced) return;
+    lastT = 0; acc = 0;
+    raf = requestAnimationFrame(frame);
+  }
+  function stop(){
+    if (raf){ cancelAnimationFrame(raf); raf = 0; }
+  }
+
+  /* static path: repaint only when the scroll position changes */
+  var staticPending = false;
+  function staticPaint(){
+    staticPending = false;
+    sy = syTarget;
+    updateProgress(true);
+    if (reduced) buildStatic();
+    render();
+  }
+  function requestStatic(){
+    if (staticPending) return;
+    staticPending = true;
+    requestAnimationFrame(staticPaint);
+  }
+
+  var heroEl = document.getElementById('hero');
+  if (heroEl){
+    if (window.PointerEvent){
+      heroEl.addEventListener('pointerdown', function(e){ stir(e.clientX, e.clientY); }, {passive: true});
+    } else {
+      heroEl.addEventListener('mousedown', function(e){ stir(e.clientX, e.clientY); }, {passive: true});
+      heroEl.addEventListener('touchstart', function(e){
+        if (e.touches && e.touches[0]) stir(e.touches[0].clientX, e.touches[0].clientY);
+      }, {passive: true});
+    }
+  }
+
+  window.addEventListener('scroll', function(){
+    syTarget = window.pageYOffset || document.documentElement.scrollTop || 0;
+    if (reduced) requestStatic();
+  }, {passive: true});
+
+  var rzTimer = 0, lastW = 0, lastH = 0;
+  function onResize(force){
+    clearTimeout(rzTimer);
+    rzTimer = setTimeout(function(){
+      var vw = window.innerWidth, vh = window.innerHeight;
+      /* a phone hiding its address bar is not a layout change */
+      if (force !== true && vw === lastW && Math.abs(vh - lastH) < 130) return;
+      lastW = vw; lastH = vh;
+      syTarget = window.pageYOffset || document.documentElement.scrollTop || 0;
+      measure();
+      if (reduced) requestStatic();
+    }, 140);
+  }
+  window.addEventListener('resize', onResize, {passive: true});
+  window.addEventListener('orientationchange', onResize, {passive: true});
+
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) stop();
+    else if (!reduced && onScreen) start();
+  });
+
+  /* pause the simulation whenever the canvas is not on screen */
+  var onScreen = true;
+  if ('IntersectionObserver' in window){
+    var vio = new IntersectionObserver(function(en){
+      onScreen = en[0].isIntersecting;
+      if (!onScreen) stop();
+      else if (!reduced && !document.hidden) start();
+    }, {threshold: 0});
+    vio.observe(cv);
+  }
+
+  function applyMode(){
+    reduced = mqReduce.matches;
+    stop();
+    resetSim();
+    if (reduced) requestStatic();
+    else if (onScreen && !document.hidden) start();
+  }
+  if (mqReduce.addEventListener) mqReduce.addEventListener('change', applyMode);
+  else if (mqReduce.addListener) mqReduce.addListener(applyMode);
+
+  syTarget = window.pageYOffset || document.documentElement.scrollTop || 0;
+  lastW = window.innerWidth; lastH = window.innerHeight;
+  measure();
+  if (reduced) requestStatic(); else start();
+
+  /* images arriving can change the page height, so re-measure once settled */
+  window.addEventListener('load', function(){ onResize(true); });
+})();
+</script>
+</body>
+</html>

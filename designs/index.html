@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Alembic Five · Homepage design candidates</title>
+<meta name="description" content="Five candidate homepage designs for alembiclabs.com.au, each committing fully to one idea. Compare them side by side and pick the winner.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/favicon-64.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/fonts.css">
+<meta name="theme-color" content="#141715">
+<style>
+  :root{
+    --page:#141715; --page-2:#1a1d1b;
+    --ink:#ece8e0; --ink-soft:#c9c3b6; --ink-muted:#9a948a;
+    --green:#8fb28a; --green-deep:#4a6741;
+    --gold:#c9a45c; --gold-soft:#e0c9a0;
+    --glass:rgba(236,232,224,0.055); --glass-border:rgba(236,232,224,0.14);
+    --serif:'Fraunces',Georgia,'Times New Roman',serif;
+    --sans:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--page);color:var(--ink);font-family:var(--sans);line-height:1.6;padding:0 20px 80px}
+  .wrap{max-width:760px;margin:0 auto}
+  header.top{padding:48px 0 8px}
+  .kicker{font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-weight:600}
+  h1{font-family:var(--serif);font-weight:400;font-size:clamp(34px,7vw,52px);line-height:1.1;margin:10px 0 14px}
+  .lede{color:var(--ink-soft);max-width:56ch}
+  .lede a{color:var(--gold-soft)}
+  .note{margin-top:14px;font-size:13.5px;color:var(--ink-muted)}
+  .card{margin-top:36px;border:1px solid var(--glass-border);border-radius:14px;background:var(--glass);overflow:hidden}
+  .plate{display:block;width:100%;height:auto}
+  .card .body{padding:20px 22px 24px}
+  .num{font-size:11px;letter-spacing:0.22em;color:var(--ink-muted);text-transform:uppercase}
+  h2{font-family:var(--serif);font-weight:500;font-size:28px;margin:6px 0 2px}
+  h2 a{color:var(--ink);text-decoration:none}
+  h2 a:hover,h2 a:focus-visible{color:var(--gold-soft)}
+  .dir{color:var(--ink-soft);margin-top:6px}
+  dl{margin-top:14px;font-size:13.5px}
+  dt{color:var(--gold);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;font-size:11px;margin-top:10px}
+  dd{color:var(--ink-muted);margin:2px 0 0}
+  dd.pass{color:var(--ink-soft)}
+  .open{display:inline-block;margin-top:18px;padding:12px 22px;border:1px solid var(--gold);border-radius:999px;color:var(--gold-soft);text-decoration:none;font-weight:600;font-size:14px;min-height:44px}
+  .open:hover,.open:focus-visible{background:var(--gold);color:var(--page)}
+  footer{margin-top:64px;font-size:13px;color:var(--ink-muted)}
+  footer a{color:var(--ink-soft)}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <p class="kicker">The Alembic Five</p>
+  <h1>Five ways home.</h1>
+  <p class="lede">Five complete candidate homepages for Alembic, each committing fully to one idea, all built from the same cleared copy and the same brand. The <a href="/">current homepage</a> stays as it is until one of these wins. Each candidate went through three logged iteration passes; the logs are below.</p>
+  <p class="note">Best compared on the phone you are holding. Every candidate is self-contained, under its weight budget, and respects reduced motion.</p>
+</header>
+<article class="card" id="alembic">
+  <a href="/designs/alembic/" aria-label="Open The Alembic"><svg class="plate" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true"><rect width="800" height="450" fill="#141715"/><circle cx="400" cy="150" r="80" fill="none" stroke="#8fb28a" stroke-opacity="0.5" stroke-width="3"/><path d="M 400 70 L 400 40 Q 400 28 412 28 L 540 28 Q 560 28 560 48 L 560 330" fill="none" stroke="#8fb28a" stroke-opacity="0.35" stroke-width="3"/><path d="M 340 190 Q 400 230 460 190 L 460 150 L 340 150 Z" fill="#4a6741" fill-opacity="0.55"/><circle cx="560" cy="220" r="5" fill="#c9a45c"/><circle cx="560" cy="270" r="4" fill="#c9a45c" fill-opacity="0.8"/><circle cx="560" cy="305" r="3.4" fill="#c9a45c" fill-opacity="0.6"/><path d="M 560 330 Q 560 360 530 365 L 470 372" fill="none" stroke="#8fb28a" stroke-opacity="0.35" stroke-width="3"/><path d="M 430 380 Q 470 420 510 380 L 510 372 L 430 372 Z" fill="#c9a45c" fill-opacity="0.85"/></svg></a>
+  <div class="body">
+    <p class="num">Candidate I</p>
+    <h2><a href="/designs/alembic/">The Alembic</a></h2>
+    <p class="dir">The name taken literally: a working still spans the whole page. The charge boils in the hero, vapour rises, condensation beads down a full-document condenser, and the distillate collects in a receiving flask at the close.</p>
+    <dl>
+      <dt>Techniques</dt><dd>Raw canvas 2D still, no libraries: boiling charge, curl advected vapour, condensation that grows, pins, coalesces and runs, height field pools, glass baked from offset polylines.</dd>
+      <dt>Pass 1</dt><dd class="pass" data-pass="1">Phone nav became a real aria disclosure panel, no clipped labels; reveals cut 800ms to 340ms; receiver right aligned so the bend threads the gutter.</dd>
+      <dt>Pass 2</dt><dd class="pass" data-pass="2">Menu panel made an opaque surface; press on the flask stirs the charge; flask and receiver retimed onto local scroll curves; focus rings fixed on gold.</dd>
+      <dt>Pass 3</dt><dd class="pass" data-pass="3">Balanced heading wraps killed three orphan words; nav disclosure raised to 960 after finding the same truncation at tablet width; tighter section rhythm.</dd>
+      <dt>Weight</dt><dd>631 KB loaded transfer, screenshots included</dd>
+    </dl>
+    <a class="open" href="/designs/alembic/">Open The Alembic</a>
+  </div>
+</article>
+<article class="card" id="study">
+  <a href="/designs/study/" aria-label="Open The Study"><svg class="plate" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true"><rect width="800" height="450" fill="#ece8e0"/><rect x="150" y="70" width="70" height="70" fill="#4a6741" fill-opacity="0.9"/><text x="185" y="122" font-family="Georgia,serif" font-size="52" fill="#ece8e0" text-anchor="middle">A</text><rect x="240" y="78" width="410" height="7" rx="3.5" fill="#21241f" fill-opacity="0.75"/><rect x="240" y="96" width="370" height="7" rx="3.5" fill="#21241f" fill-opacity="0.67"/><rect x="240" y="114" width="330" height="7" rx="3.5" fill="#21241f" fill-opacity="0.59"/><rect x="240" y="132" width="410" height="7" rx="3.5" fill="#21241f" fill-opacity="0.51"/><rect x="150" y="150" width="370" height="7" rx="3.5" fill="#21241f" fill-opacity="0.75"/><rect x="150" y="168" width="330" height="7" rx="3.5" fill="#21241f" fill-opacity="0.67"/><rect x="150" y="186" width="410" height="7" rx="3.5" fill="#21241f" fill-opacity="0.59"/><rect x="150" y="204" width="370" height="7" rx="3.5" fill="#21241f" fill-opacity="0.51"/><rect x="150" y="222" width="330" height="7" rx="3.5" fill="#21241f" fill-opacity="0.75"/><rect x="150" y="240" width="410" height="7" rx="3.5" fill="#21241f" fill-opacity="0.67"/><rect x="150" y="290" width="330" height="6" rx="3" fill="#21241f" fill-opacity="0.5"/><rect x="150" y="308" width="370" height="6" rx="3" fill="#21241f" fill-opacity="0.5"/><rect x="150" y="345" width="200" height="5" rx="2.5" fill="#4a6741" fill-opacity="0.65"/><rect x="655" y="0" width="14" height="290" fill="#c9a45c"/><path d="M 655 290 L 662 310 L 669 290 Z" fill="#c9a45c"/></svg></a>
+  <div class="body">
+    <p class="num">Candidate II</p>
+    <h2><a href="/designs/study/">The Study</a></h2>
+    <p class="dir">The homepage as the first pages of a beautifully set clinical text on warm cream: drop caps, marginalia, real footnotes carrying the stats, plates for the screenshots, a gilt ribbon that follows your reading. The one light-first candidate, with almost no interface chrome.</p>
+    <dl>
+      <dt>Techniques</dt><dd>Fraunces set as a book face at a 62ch measure: drop caps, running heads, margin notes, real footnotes, dot leaders, catchwords, gilt ribbon bookmark, plates, fleurons, laid paper, prints as a book</dd>
+      <dt>Pass 1</dt><dd class="pass" data-pass="1">Ribbon rebuilt as woven silk with dark selvedges and a deeper tail, every scroll fade-in deleted so chapters arrive as set type, plates given tipped-in leaves with printed rules and Oxford-rule captions</dd>
+      <dt>Pass 2</dt><dd class="pass" data-pass="2">Catchwords carried to six chapter feet beside centred folios, a full print stylesheet added with static running heads from data-runhead, and the frontispiece cut to one 440ms arrival</dd>
+      <dt>Pass 3</dt><dd class="pass" data-pass="3">Leaders re-anchored right so they align down the page, footnote marks kerned tight and bound against wrapping alone, and seven letter-spacing optical margins balanced</dd>
+      <dt>Weight</dt><dd>545 KB loaded transfer, screenshots included</dd>
+    </dl>
+    <a class="open" href="/designs/study/">Open The Study</a>
+  </div>
+</article>
+<article class="card" id="filing-room">
+  <a href="/designs/filing-room/" aria-label="Open The Filing Room"><svg class="plate" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true"><rect width="800" height="450" fill="#141715"/><rect x="180" y="140" width="440" height="230" rx="10" fill="#ece8e0" fill-opacity="0.92"/><path d="M 180 160 L 180 128 Q 180 116 192 116 L 330 116 Q 344 116 348 128 L 356 140 L 180 140 Z" fill="#e0c9a0" fill-opacity="0.95"/><rect x="205" y="170" width="240" height="8" rx="4" fill="#21241f" fill-opacity="0.55"/><rect x="205" y="192" width="300" height="8" rx="4" fill="#21241f" fill-opacity="0.35"/><rect x="205" y="214" width="270" height="8" rx="4" fill="#21241f" fill-opacity="0.35"/><rect x="470" y="300" width="110" height="34" rx="5" fill="none" stroke="#c9a45c" stroke-width="3"/><circle cx="240" cy="315" r="26" fill="#4a6741" fill-opacity="0.85"/><text x="240" y="325" font-family="Georgia,serif" font-size="30" fill="#c9a45c" text-anchor="middle">A</text><rect x="160" y="382" width="480" height="10" rx="5" fill="#c9a45c" fill-opacity="0.5"/></svg></a>
+  <div class="body">
+    <p class="num">Candidate III</p>
+    <h2><a href="/designs/filing-room/">The Filing Room</a></h2>
+    <p class="dir">"Everything is a file" made physical: a room of warm paper records under one light. Folders that truly open, index tabs that stagger like real dividers, stats on brass label plates, the founder on a typed record card with a paper-clipped photograph.</p>
+    <dl>
+      <dt>Techniques</dt><dd>Procedural SVG grain, stacked leaf-edge shadows under one top-left light, CSS filing drawer as nav, details folder, ARIA tablist with no-JS fallback, IO reveals, no canvas.</dd>
+      <dt>Pass 1</dt><dd class="pass" data-pass="1">Skirting board and floor closed the void above the footer, typed catalogue marks and lit tabs on the six product cards, reveals cut from 720ms to 280ms.</dd>
+      <dt>Pass 2</dt><dd class="pass" data-pass="2">Drawer folds became real links to per-card ids with focus rings and 47px hit areas, deeper paper under foolscap and record card, stamp rotated on phone.</dd>
+      <dt>Pass 3</dt><dd class="pass" data-pass="3">Fixed two heading orphans, the one shadow casting against the light, a doubled section gap, a label with two destinations, and a focus ring clip.</dd>
+      <dt>Weight</dt><dd>556 KB loaded transfer, screenshots included</dd>
+    </dl>
+    <a class="open" href="/designs/filing-room/">Open The Filing Room</a>
+  </div>
+</article>
+<article class="card" id="observatory">
+  <a href="/designs/observatory/" aria-label="Open The Observatory"><svg class="plate" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true"><rect width="800" height="450" fill="#101311"/><defs><radialGradient id="sky" cx="0.72" cy="0.25" r="0.9"><stop offset="0" stop-color="#c9a45c" stop-opacity="0.5"/><stop offset="0.35" stop-color="#4a6741" stop-opacity="0.35"/><stop offset="1" stop-color="#141715" stop-opacity="0"/></radialGradient></defs><rect width="800" height="450" fill="url(#sky)"/><rect x="140" y="150" width="380" height="16" rx="8" fill="#ece8e0" fill-opacity="0.9"/><rect x="140" y="190" width="280" height="10" rx="5" fill="#c9c3b6" fill-opacity="0.65"/><rect x="200" y="260" width="330" height="8" rx="4" fill="#c9c3b6" fill-opacity="0.4"/><rect x="260" y="320" width="240" height="8" rx="4" fill="#c9c3b6" fill-opacity="0.25"/><circle cx="620" cy="120" r="26" fill="none" stroke="#c9a45c" stroke-opacity="0.8" stroke-width="2.5"/></svg></a>
+  <div class="body">
+    <p class="num">Candidate IV</p>
+    <h2><a href="/designs/observatory/">The Observatory</a></h2>
+    <p class="dir">The dark-glass direction made vast and cinematic: a live shader sky of slow volumetric light behind the whole page, typography floating at different depths, glass panes catching the light. Quiet, deep, almost no colour but the gold and the greens.</p>
+    <dl>
+      <dt>Techniques</dt><dd>Raw WebGL fbm shader sky, half-res upscaled, 30fps cap, DPR capped at 2, pixel budget plus adaptive downscale, CPU weather vec4, three-tier scroll depth on the translate property, painted fallback.</dd>
+      <dt>Pass 1</dt><dd class="pass" data-pass="1">Fixed 75px phone overflow from the 140 percent stratum glow and the hero scrim bleed, added overflow-x clip, cut reveal timing to about 400ms.</dd>
+      <dt>Pass 2</dt><dd class="pass" data-pass="2">Added four-period weather drift with a random per-load phase, graded three depth tiers, retired the scroll cue on first scroll, fixed fallback sky brightness.</dd>
+      <dt>Pass 3</dt><dd class="pass" data-pass="3">Collapsed the 861 to 900px chrome seam, gave the skip link a dark focus ring after it measured 1.00 to 1, normalised uppercase tracking, added text-wrap pretty.</dd>
+      <dt>Weight</dt><dd>568 KB loaded transfer, screenshots included</dd>
+    </dl>
+    <a class="open" href="/designs/observatory/">Open The Observatory</a>
+  </div>
+</article>
+<article class="card" id="instrument">
+  <a href="/designs/instrument/" aria-label="Open The Instrument"><svg class="plate" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true"><rect width="800" height="450" fill="#ece8e0"/><line x1="100" y1="0" x2="100" y2="450" stroke="#21241f" stroke-opacity="0.12" stroke-width="1"/><line x1="220" y1="0" x2="220" y2="450" stroke="#21241f" stroke-opacity="0.12" stroke-width="1"/><line x1="340" y1="0" x2="340" y2="450" stroke="#21241f" stroke-opacity="0.12" stroke-width="1"/><line x1="460" y1="0" x2="460" y2="450" stroke="#21241f" stroke-opacity="0.12" stroke-width="1"/><line x1="580" y1="0" x2="580" y2="450" stroke="#21241f" stroke-opacity="0.12" stroke-width="1"/><line x1="700" y1="0" x2="700" y2="450" stroke="#21241f" stroke-opacity="0.12" stroke-width="1"/><line x1="0" y1="225" x2="800" y2="225" stroke="#21241f" stroke-opacity="0.12" stroke-width="1"/><rect x="150" y="90" width="310" height="200" fill="none" stroke="#21241f" stroke-opacity="0.7" stroke-width="2.5"/><line x1="530" y1="70" x2="530" y2="320" stroke="#21241f" stroke-opacity="0.85" stroke-width="4"/><rect x="505" y="170" width="50" height="50" fill="#c9a45c"/><text x="530" y="205" font-family="Menlo,monospace" font-size="30" fill="#141715" text-anchor="middle">0</text><line x1="580" y1="195" x2="700" y2="195" stroke="#21241f" stroke-opacity="0.4" stroke-width="2" stroke-dasharray="6 6"/><text x="640" y="180" font-family="Menlo,monospace" font-size="16" fill="#4a6741" text-anchor="middle">X</text><rect x="175" y="120" width="120" height="10" fill="#4a6741" fill-opacity="0.5"/><rect x="175" y="150" width="180" height="8" fill="#21241f" fill-opacity="0.35"/><rect x="175" y="175" width="150" height="8" fill="#21241f" fill-opacity="0.35"/></svg></a>
+  <div class="body">
+    <p class="num">Candidate V</p>
+    <h2><a href="/designs/instrument/">The Instrument</a></h2>
+    <p class="dir">Swiss-technical precision: an exposed grid, figures and sheet numbers like an instrument manual, and at the centre a living diagram of the architecture claim, with client data flowing only inside the machine boundary and a hard zero at the line nothing crosses.</p>
+    <dl>
+      <dt>Techniques</dt><dd>Exposed hairline grid, crop marks, pathLength 100 self drawing SVG on IntersectionObserver, marching ants inside a hard boundary, blocked packet, instrument readouts, print stylesheet.</dd>
+      <dt>Pass 1</dt><dd class="pass" data-pass="1">Killed the phone Fig. 0 void by cropping 104 dead viewBox units, sped the draw to 1.3s, cut reveals to 400ms, added six drawn parts-list glyphs.</dd>
+      <dt>Pass 2</dt><dd class="pass" data-pass="2">Added a print stylesheet, stable fig-0 to fig-7 ids with permalinks and next sheet links, an INDEX list of figures, and a one shot packet killed at the boundary.</dd>
+      <dt>Pass 3</dt><dd class="pass" data-pass="3">Fixed an uppercased contact address, an orphaned heading word (balance plus nbsp), the dead row at each section foot, and declared color-scheme light.</dd>
+      <dt>Weight</dt><dd>552 KB loaded transfer, screenshots included</dd>
+    </dl>
+    <a class="open" href="/designs/instrument/">Open The Instrument</a>
+  </div>
+</article>
+<footer>
+  <p>Alembic Labs · ABN 58 247 784 426 · Melbourne, Australia</p>
+  <p style="margin-top:6px">This page is an internal design gallery. <a href="/">Back to the live site</a></p>
+</footer>
+</div>
+</body>
+</html>

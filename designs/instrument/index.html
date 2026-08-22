@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alembic · Practice software that keeps client records on your machine</title>
+<meta name="description" content="Alembic is a clinical workspace for Australian psychologists. Every client record lives on your own computer as plain files you can read, move, and keep. No cloud, no database, no vendor holding your data.">
+<meta name="theme-color" content="#ece8e0">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Alembic · A second brain for psychologists">
+<meta property="og:description" content="Practice software for Australian psychologists where every client record lives on your own computer. No cloud. No database. Alembic Labs never holds your clients' data.">
+<meta property="og:url" content="https://alembiclabs.com.au/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="/assets/favicon-64.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/fonts.css">
+<script>(function(){if(!window.matchMedia||!window.matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.className+=' js';}})();</script>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#ece8e0;
+  --paper-hi:#f3f0ea;
+  --paper-lo:#e3ded4;
+  --ink:#141715;
+  --ink-2:#21241f;
+  --ink-mute:#5a554c;
+  --green:#4a6741;
+  --green-2:#3b5435;
+  --green-soft:#8fb28a;
+  --gold:#c9a45c;
+  --gold-ink:#7a5f28;
+  --red:#d67a6f;
+  --rule:rgba(20,23,21,0.20);
+  --rule-mid:rgba(20,23,21,0.13);
+  --rule-soft:rgba(20,23,21,0.065);
+  --mark:rgba(20,23,21,0.34);
+  --serif:'Fraunces',Georgia,'Times New Roman',serif;
+  --sans:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --wrap:1240px;
+  --gut:20px;
+  --ease:cubic-bezier(0.22,1,0.36,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink-2);
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.62;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+}
+img{max-width:100%;display:block}
+::selection{background:rgba(74,103,65,0.22)}
+a{color:var(--green-2);text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{color:var(--ink)}
+:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+
+/* ---------- exposed grid ---------- */
+.gridfield{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.gridfield i{
+  position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);
+  width:min(100% - (var(--gut) * 2), var(--wrap));
+  border-left:1px solid var(--rule-soft);
+  border-right:1px solid var(--rule-soft);
+  background-image:repeating-linear-gradient(to right, var(--rule-soft) 0 1px, transparent 1px calc(100% / 4));
+}
+@media (min-width:900px){
+  .gridfield i{background-image:repeating-linear-gradient(to right, var(--rule-soft) 0 1px, transparent 1px calc(100% / 12))}
+}
+.wrap{width:min(100% - (var(--gut) * 2), var(--wrap));margin-inline:auto;position:relative;z-index:1}
+main,header.topbar,footer.colophon{position:relative;z-index:1}
+
+/* ---------- type ---------- */
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--ink);line-height:1.06;letter-spacing:-0.012em;text-wrap:balance}
+blockquote{text-wrap:balance}
+h1{font-size:clamp(46px,9vw,104px)}
+h2{font-size:clamp(29px,4.4vw,50px);line-height:1.1}
+h3{font-size:clamp(20px,2.1vw,25px);line-height:1.22}
+p{max-width:66ch;text-wrap:pretty}
+.lede{font-size:clamp(17px,1.5vw,20px);line-height:1.66}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:0.13em;text-transform:uppercase;color:var(--ink-mute);line-height:1.5}
+.mono.lg{font-size:12px}
+.ink{color:var(--ink)}
+
+.skip{position:absolute;left:-9999px;top:0;z-index:99;background:var(--ink);color:var(--paper);padding:12px 18px;font-family:var(--mono);font-size:12px}
+.skip:focus{left:12px;top:12px}
+
+/* ---------- crop marks ---------- */
+.crop{position:relative}
+.crop::before{
+  content:"";position:absolute;inset:-11px;pointer-events:none;z-index:2;
+  background:
+    linear-gradient(var(--mark),var(--mark)) 0 0/1px 13px no-repeat,
+    linear-gradient(var(--mark),var(--mark)) 0 0/13px 1px no-repeat,
+    linear-gradient(var(--mark),var(--mark)) 100% 0/1px 13px no-repeat,
+    linear-gradient(var(--mark),var(--mark)) 100% 0/13px 1px no-repeat,
+    linear-gradient(var(--mark),var(--mark)) 0 100%/1px 13px no-repeat,
+    linear-gradient(var(--mark),var(--mark)) 0 100%/13px 1px no-repeat,
+    linear-gradient(var(--mark),var(--mark)) 100% 100%/1px 13px no-repeat,
+    linear-gradient(var(--mark),var(--mark)) 100% 100%/13px 1px no-repeat;
+}
+
+/* ---------- header ---------- */
+header.topbar{
+  position:sticky;top:0;z-index:60;
+  background:rgba(236,232,224,0.92);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--rule-mid);
+}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:60px;padding:8px 0}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink);flex:none}
+.brand img{width:30px;height:30px;flex:none}
+.brand b{font-family:var(--serif);font-weight:400;font-size:21px;letter-spacing:0}
+.brand .dot{color:var(--gold-ink)}
+nav.desk{display:none}
+nav.desk ul{display:flex;list-style:none;gap:4px;align-items:center}
+nav.desk a{
+  display:flex;align-items:baseline;gap:6px;text-decoration:none;color:var(--ink-2);
+  font-family:var(--mono);font-size:11px;letter-spacing:0.11em;text-transform:uppercase;
+  padding:14px 10px;border-radius:2px;
+}
+nav.desk a:hover{background:var(--paper-lo);color:var(--ink)}
+nav.desk a i{font-style:normal;color:var(--ink-mute);font-size:9.5px}
+nav.desk a.tool{border:1px solid var(--rule-mid)}
+nav.desk a.say{background:var(--ink);color:var(--paper)}
+nav.desk a.say:hover{background:var(--green-2);color:var(--paper)}
+details.navmenu{position:relative}
+details.navmenu summary{
+  list-style:none;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.13em;
+  text-transform:uppercase;color:var(--ink);border:1px solid var(--rule);
+  min-height:44px;min-width:88px;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+details.navmenu summary::-webkit-details-marker{display:none}
+details.navmenu summary::after{content:"+";font-size:14px;line-height:1}
+details.navmenu[open] summary::after{content:"\00d7"}
+details.navmenu ul{
+  position:absolute;right:0;top:calc(100% + 9px);width:min(80vw,320px);list-style:none;
+  background:var(--paper-hi);border:1px solid var(--rule);padding:6px;
+  box-shadow:0 18px 40px rgba(20,23,21,0.16);
+  max-height:min(70vh,540px);overflow-y:auto;overscroll-behavior:contain;
+}
+details.navmenu li.cap{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--ink-mute);padding:12px 12px 6px;border-bottom:1px solid var(--rule-soft);
+}
+details.navmenu a{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px;padding:0 12px;
+  text-decoration:none;color:var(--ink);font-family:var(--mono);font-size:11.5px;letter-spacing:0.11em;
+  text-transform:uppercase;border-bottom:1px solid var(--rule-soft);
+}
+details.navmenu li:last-child a{border-bottom:0}
+details.navmenu a i{font-style:normal;color:var(--ink-mute);font-size:10px}
+@media (min-width:1080px){
+  nav.desk{display:block}
+  details.navmenu{display:none}
+}
+
+/* ---------- section scaffolding ---------- */
+section{padding:clamp(56px,7vw,104px) 0 clamp(42px,5.2vw,78px);border-top:1px solid var(--rule-mid)}
+section:first-of-type{border-top:0}
+.fighead{display:grid;gap:14px;margin-bottom:clamp(30px,4vw,52px)}
+.figbar{display:flex;justify-content:space-between;align-items:baseline;gap:16px;border-bottom:1px solid var(--rule);padding-bottom:9px}
+.figbar > :last-child{white-space:nowrap}
+.figlink{color:inherit;text-decoration:none;display:inline-block;padding:14px 0;margin:-14px 0}
+.figlink:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+section[id],[id^="fig-"]{scroll-margin-top:86px}
+.fighead h2{max-width:19ch}
+.fighead .sub{max-width:60ch}
+
+.leadrow{display:flex;align-items:baseline;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.11em;text-transform:uppercase;color:var(--ink-mute)}
+.leadrow .dots{flex:1;border-bottom:1.5px dotted var(--rule);transform:translateY(-3px)}
+.leadrow .val{color:var(--ink)}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 22px;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:0.14em;text-transform:uppercase;
+  text-decoration:none;border:1px solid var(--ink);color:var(--ink);background:transparent;
+  transition:background .2s ease,color .2s ease;
+}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn.solid{background:var(--ink);color:var(--paper)}
+.btn.solid:hover{background:var(--green-2);border-color:var(--green-2);color:var(--paper)}
+
+/* ---------- hero ---------- */
+.hero{padding-top:clamp(38px,5vw,62px);padding-bottom:clamp(38px,6vw,88px)}
+.hero-grid{display:grid;gap:clamp(24px,5vw,56px)}
+.masthead .mono.stamp{margin-bottom:22px;max-width:none}
+h1{margin:6px 0 0}
+h1 .lineA{display:block}
+h1 .lineA .dot{color:var(--gold-ink)}
+h1 .lineB{display:block;font-size:clamp(23px,3.4vw,41px);line-height:1.14;color:var(--ink);margin-top:.18em;letter-spacing:-0.005em}
+.hero p.lede{margin-top:26px}
+.hero .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+@media (max-width:520px){.hero .cta{display:grid;gap:10px}.hero .cta .btn{width:100%}}
+.hero .specs{margin-top:34px;display:grid;gap:9px;max-width:430px}
+@media (max-width:899px){.hero .specs{margin-top:28px}.apparatus{width:100%;max-width:340px}}
+.apparatus-wrap{position:relative;justify-self:start}
+.apparatus{width:min(100%,320px);height:auto}
+.apparatus-cap{margin-top:12px;display:grid;gap:6px;max-width:320px}
+@media (min-width:900px){
+  .hero-grid{grid-template-columns:minmax(0,1fr) 330px;align-items:start;gap:60px}
+  .apparatus-wrap{justify-self:end;position:sticky;top:100px}
+}
+
+/* drawn strokes */
+.dl{fill:none;stroke:var(--ink);stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.dl.thin{stroke-width:1;stroke:var(--ink-mute)}
+.dl.gold{stroke:var(--gold-ink);stroke-width:1.5}
+.fill-gold{fill:var(--gold)}
+.js [data-draw]{stroke-dashoffset:100}
+[data-draw]{stroke-dasharray:100;stroke-dashoffset:0;transition:stroke-dashoffset .9s var(--ease);transition-delay:var(--dd,0s)}
+.js .draw.is-in [data-draw]{stroke-dashoffset:0}
+.js .draw .fade{opacity:0;transition:opacity .45s ease .55s}
+.js .draw.is-in .fade{opacity:1}
+
+/* ---------- principle ---------- */
+.clauses{display:grid;gap:0;border-top:1px solid var(--rule-mid)}
+.clause{display:grid;gap:10px;padding:26px 0;border-bottom:1px solid var(--rule-mid)}
+.clause .idx{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;color:var(--ink-mute);text-transform:uppercase;white-space:nowrap}
+.clause h3{max-width:14ch}
+.clause p{color:var(--ink-2)}
+@media (min-width:820px){
+  .clause{grid-template-columns:104px minmax(0,250px) minmax(0,1fr);gap:26px;align-items:start;padding:30px 0}
+  .clause p{margin-top:2px}
+}
+.principle-note{margin-top:30px;max-width:62ch}
+
+/* ---------- the machine (centrepiece) ---------- */
+.machine{
+  margin-top:clamp(30px,4vw,46px);
+  border:1px solid var(--rule);
+  background:linear-gradient(var(--paper-hi),var(--paper-hi));
+}
+.mrow{padding:20px clamp(14px,2.4vw,26px)}
+.mrow .lab{margin-bottom:16px}
+.mout{
+  background-image:repeating-linear-gradient(45deg, rgba(20,23,21,0.045) 0 1px, transparent 1px 9px);
+}
+.chips{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,1.6vw,20px)}
+.chip{display:grid;justify-items:center;gap:0}
+.chip .box{
+  width:100%;border:1px dashed var(--rule);background:var(--paper);
+  padding:12px 8px 13px;text-align:center;display:grid;gap:6px;justify-items:center;
+}
+.chip .glyph{width:34px;height:24px}
+.chip .name{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-mute);line-height:1.35}
+.chip .nope{font-family:var(--mono);font-size:9.5px;letter-spacing:0.04em;color:var(--ink-mute);opacity:.75;line-height:1.3}
+.chip .stub{width:40px;height:56px;margin-top:-1px}
+.ping{fill:var(--red);opacity:0}
+.js .machine.is-in .ping{animation:drop .82s cubic-bezier(.32,0,.55,1) both;animation-delay:.18s}
+.js .machine.is-in .chip:nth-child(2) .ping{animation-delay:.34s}
+.js .machine.is-in .chip:nth-child(3) .ping{animation-delay:.5s}
+@keyframes drop{
+  0%{opacity:0;transform:translateY(-40px) scale(.6)}
+  16%{opacity:1;transform:translateY(-34px) scale(1)}
+  70%{opacity:1;transform:translateY(0) scale(1)}
+  78%{opacity:1;transform:translateY(0) scale(1.55)}
+  100%{opacity:.45;transform:translateY(0) scale(.85)}
+}
+.barrier{position:relative;border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);background:var(--paper-lo)}
+.barrier-inner{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
+  padding:12px clamp(14px,2.4vw,26px);
+}
+.zero{
+  font-family:var(--serif);font-size:clamp(34px,4.4vw,46px);line-height:1;font-weight:400;color:var(--ink);
+  background:var(--gold);padding:9px 18px 12px;display:inline-block;
+}
+.barrier-inner p{font-family:var(--mono);font-size:11px;letter-spacing:0.11em;text-transform:uppercase;color:var(--ink);max-width:none}
+.barrier-inner p b{font-weight:400;color:var(--ink-mute);display:block;letter-spacing:0.1em}
+.min{background:var(--paper-hi)}
+.ingrid{display:grid;gap:10px;justify-items:center}
+.ipanel{border:1px solid var(--rule-mid);background:var(--paper);padding:16px 16px 18px;width:100%}
+.ipanel .cap{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:12px}
+.tree{list-style:none;font-family:var(--mono);font-size:12px;line-height:2;color:var(--ink-2)}
+.tree ul{list-style:none;margin-left:14px}
+.tree li{position:relative;padding-left:20px}
+.tree li::before{
+  content:"";position:absolute;left:0;top:0;width:12px;height:1em;
+  border-left:1px solid var(--rule);border-bottom:1px solid var(--rule);
+}
+.tree li:not(:last-child)::after{
+  content:"";position:absolute;left:0;top:1em;bottom:0;border-left:1px solid var(--rule);
+}
+.tree > li:first-child{padding-left:0}
+.tree > li:first-child::before,.tree > li:first-child::after{display:none}
+.tree .f{color:var(--green-2)}
+.tree .doc{color:var(--ink)}
+.reader ol{list-style:none;display:grid;gap:9px}
+.reader li{display:flex;gap:10px;align-items:baseline;font-size:15px;line-height:1.45}
+.reader li b{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--ink-mute);font-weight:400;flex:none;width:22px}
+.flow{display:block}
+.flow-h{display:none}
+.flow-v{width:200px;height:86px}
+.ants{fill:none;stroke:var(--green);stroke-width:1.5;stroke-dasharray:5 5}
+.js .flow.is-on .ants{animation:march 1.7s linear .95s infinite}
+.js .flow.is-on .ants.rev{animation:marchrev 1.7s linear .95s infinite}
+@keyframes march{to{stroke-dashoffset:-20}}
+@keyframes marchrev{to{stroke-dashoffset:20}}
+body.paused *{animation-play-state:paused !important}
+.flow text{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;fill:var(--ink-mute);text-transform:uppercase}
+@media (min-width:860px){
+  .ingrid{grid-template-columns:minmax(0,1fr) 132px minmax(0,1fr);align-items:center;gap:0}
+  .flow-v{display:none}
+  .flow-h{display:block;width:132px;height:92px}
+  .chip .box{padding:14px 10px 16px}
+}
+.machine-legend{
+  display:grid;gap:8px;margin-top:18px;
+}
+.machine-legend p{font-size:15px;color:var(--ink-2);max-width:62ch}
+
+/* ---------- readouts ---------- */
+.readouts{display:grid;gap:0;border-top:1px solid var(--rule-mid)}
+.readout{padding:22px 0;border-bottom:1px solid var(--rule-mid);display:grid;gap:8px}
+.readout .fig{font-family:var(--serif);font-size:clamp(46px,6.4vw,68px);line-height:.92;color:var(--ink);letter-spacing:-0.02em}
+.readout .ticks{height:9px;border-left:1px solid var(--rule);
+  background-image:repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 11px);
+  background-position:bottom;background-repeat:repeat-x;background-size:100% 5px;
+}
+.readout p{font-size:15px;line-height:1.5;color:var(--ink-2);max-width:34ch}
+.readout.hi .fig{color:var(--ink)}
+.readout.hi .fig::after{content:"";display:inline-block;width:11px;height:11px;background:var(--gold);margin-left:10px;vertical-align:baseline}
+@media (min-width:760px){
+  .readouts{grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--rule-mid)}
+  .readout{border-bottom:0;border-left:1px solid var(--rule-mid);padding:26px 20px 28px}
+  .readout:first-child{border-left:0;padding-left:0}
+}
+
+/* ---------- product ---------- */
+.parts{border-top:1px solid var(--rule-mid)}
+.part{display:grid;gap:10px;padding:24px 0;border-bottom:1px solid var(--rule-mid)}
+.part .no{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;color:var(--ink-mute);text-transform:uppercase;display:flex;gap:11px;align-items:flex-start}
+.pglyph{width:26px;height:26px;flex:none;margin-top:-3px}
+.part .no b{font-weight:400;color:var(--ink);display:block;margin-top:5px;letter-spacing:0.12em}
+.part p{font-size:16px}
+@media (min-width:820px){
+  .part{grid-template-columns:132px minmax(0,268px) minmax(0,1fr);gap:26px;align-items:start;padding:28px 0}
+  .part h3{max-width:15ch}
+}
+.plates{display:grid;gap:18px;margin-top:clamp(34px,4vw,52px)}
+.plate figure{margin:0}
+.plate .frame{border:1px solid var(--rule-mid);background:var(--paper-hi);padding:9px}
+.plate img{width:100%;height:auto;background:var(--paper-lo)}
+.plate figcaption{margin-top:11px;display:flex;align-items:baseline;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-mute)}
+.plate figcaption .dots{flex:1;border-bottom:1.5px dotted var(--rule);transform:translateY(-3px)}
+.plate figcaption b{font-weight:400;color:var(--ink)}
+@media (min-width:700px){.plates{grid-template-columns:1fr 1fr;gap:26px}}
+.footnote{margin-top:22px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;color:var(--ink-mute);text-transform:none;max-width:74ch;line-height:1.75}
+
+/* ---------- philosophy ---------- */
+.phil{display:grid;gap:26px}
+.phil p{font-size:clamp(17px,1.55vw,20px);line-height:1.68;max-width:62ch}
+.phil .col p + p{margin-top:20px}
+.pull{
+  margin-top:12px;border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);
+  padding:26px 0 24px;position:relative;
+}
+.pull blockquote{
+  font-family:var(--serif);font-size:clamp(23px,3.2vw,36px);line-height:1.22;color:var(--ink);
+  max-width:24ch;letter-spacing:-0.01em;
+}
+.pull .mono{margin-top:18px}
+@media (min-width:900px){
+  .phil{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:start}
+}
+
+/* ---------- founder ---------- */
+.founder{display:grid;gap:30px}
+.portrait{position:relative;width:min(100%,290px)}
+.portrait .frame{border:1px solid var(--rule-mid);padding:8px;background:var(--paper-hi)}
+.portrait img{width:100%;height:auto;filter:grayscale(0.18) contrast(1.02)}
+.portrait .reg{display:flex;justify-content:space-between;margin-top:10px}
+.founder .who{margin-top:16px;display:grid;gap:5px}
+.founder .who strong{font-family:var(--serif);font-weight:400;font-size:22px;color:var(--ink);line-height:1.2}
+.founder .body{display:grid;gap:18px}
+.founder .body p{font-size:17px}
+.fquote{border-left:3px solid var(--gold);padding:4px 0 4px 20px}
+.fquote blockquote{font-family:var(--serif);font-size:clamp(20px,2.3vw,27px);line-height:1.3;color:var(--ink);max-width:28ch}
+@media (min-width:900px){
+  .founder{grid-template-columns:290px minmax(0,1fr);gap:60px;align-items:start}
+}
+
+/* ---------- tools ---------- */
+.tools{display:grid;gap:18px;margin-top:8px}
+.tool{
+  display:grid;gap:14px;border:1px solid var(--rule-mid);background:var(--paper-hi);
+  padding:22px;text-decoration:none;color:var(--ink-2);transition:border-color .2s ease,background .2s ease;
+}
+.tool:hover{border-color:var(--ink);background:var(--paper)}
+.tool h3{font-size:clamp(21px,2.2vw,27px)}
+.tool p{font-size:15.5px;line-height:1.55}
+.tool .go{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink)}
+.tool .go svg{width:22px;height:8px}
+@media (min-width:760px){.tools{grid-template-columns:1fr 1fr;gap:24px}}
+.tools-note{margin-top:24px;max-width:66ch}
+
+/* ---------- closing ---------- */
+.closing{border-top:1px solid var(--rule-mid)}
+.stamp-block{border:1px solid var(--ink);padding:clamp(26px,4vw,52px);display:grid;gap:22px;background:var(--paper-hi)}
+.stamp-block h2{max-width:16ch}
+.stamp-block p{font-size:clamp(17px,1.5vw,19px);max-width:56ch}
+.stamp-block .cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.stamp-block .cta .addr{text-transform:none;letter-spacing:0.05em;font-size:12px;color:var(--ink)}
+
+/* ---------- footer ---------- */
+footer.colophon{border-top:1px solid var(--rule-mid);padding:clamp(40px,5vw,64px) 0 44px;background:var(--paper-lo)}
+.cols{display:grid;gap:32px}
+.cols h4{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-mute);font-weight:400;margin-bottom:14px}
+.cols ul{list-style:none;display:grid;gap:2px}
+.cols ul a{display:flex;align-items:center;min-height:44px;text-decoration:none;color:var(--ink-2);font-size:15px}
+.cols ul a:hover{color:var(--ink);text-decoration:underline}
+.legal{margin-top:38px;padding-top:22px;border-top:1px solid var(--rule-mid);display:grid;gap:12px}
+.legal p{font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;color:var(--ink-mute);line-height:1.8;text-transform:none;max-width:78ch}
+.legal p.abn{color:var(--ink)}
+@media (min-width:760px){
+  .cols{grid-template-columns:1.4fr 1fr 1fr;gap:40px}
+  .legal{grid-template-columns:1fr auto;align-items:end}
+}
+
+/* ---------- reveal ---------- */
+.js .reveal{opacity:0;transform:translate3d(0,11px,0);transition:opacity .4s var(--ease),transform .4s var(--ease);transition-delay:calc(min(var(--ri,0),3) * 35ms)}
+.js .reveal.is-in{opacity:1;transform:none}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  [data-draw]{stroke-dashoffset:0 !important}
+  .reveal{opacity:1 !important;transform:none !important}
+  .draw .fade{opacity:1 !important}
+  .ping{opacity:.5 !important}
+  .ants{stroke-dashoffset:0 !important}
+}
+
+/* ---------- print: the manual, on paper ---------- */
+@media print{
+  @page{margin:16mm}
+  :root{
+    --paper:#fff;--paper-hi:#fff;--paper-lo:#fff;
+    --ink:#000;--ink-2:#111;--ink-mute:#444;
+    --rule:rgba(0,0,0,0.5);--rule-mid:rgba(0,0,0,0.3);--rule-soft:rgba(0,0,0,0.14);--mark:rgba(0,0,0,0.55);
+    --green:#000;--green-2:#000;--gold:#fff;--gold-ink:#000;--red:#000;
+  }
+  html,body{background:#fff;color:#000}
+  body{font-size:10.5pt;line-height:1.5}
+  .gridfield,header.topbar,.skip,.hero .cta,.stamp-block .cta .btn{display:none !important}
+  h1{font-size:44pt}
+  h2{font-size:21pt}
+  h3{font-size:13pt}
+  .lede{font-size:11pt}
+  a{color:#000;text-decoration:none}
+  section{padding:9mm 0 7mm;border-top:1px solid #000}
+  .fighead{break-after:avoid;page-break-after:avoid}
+  .machine,.clause,.part,.readout,.tool,.stamp-block,.pull,.fquote,.portrait,.plate figure,.apparatus-wrap{break-inside:avoid;page-break-inside:avoid}
+  .hero-grid{grid-template-columns:minmax(0,1fr) 260px}
+  .apparatus{width:100%;max-width:250px}
+  [data-draw]{stroke-dashoffset:0 !important}
+  .reveal{opacity:1 !important;transform:none !important}
+  .draw .fade,.fade{opacity:1 !important}
+  .ping{opacity:1 !important;fill:#000}
+  .ants{stroke:#000;stroke-dashoffset:0 !important}
+  .flow-h{display:block;width:120px;height:92px}
+  .flow-v{display:none}
+  .ingrid{grid-template-columns:minmax(0,1fr) 120px minmax(0,1fr);align-items:center;gap:0}
+  .chips{grid-template-columns:repeat(3,1fr)}
+  .mout{background-image:repeating-linear-gradient(45deg, rgba(0,0,0,0.09) 0 1px, transparent 1px 9px)}
+  .zero{background:#fff;border:1.5px solid #000;color:#000;padding:6px 12px 8px}
+  .readout.hi .fig::after{background:#000;width:9px;height:9px}
+  .fquote{border-left-color:#000}
+  .fill-gold{fill:#000}
+  h1 .dot,.brand .dot,h1 .lineA .dot{color:#000}
+  .plates{grid-template-columns:1fr 1fr;gap:8mm}
+  .plate img{max-width:100%}
+  .btn.solid{background:#fff;color:#000;border:1px solid #000}
+  .tool[href="/mse/"] .go::after{content:" · alembiclabs.com.au/mse/";letter-spacing:0.04em}
+  .tool[href="/risk/"] .go::after{content:" · alembiclabs.com.au/risk/";letter-spacing:0.04em}
+  footer.colophon{background:#fff;border-top:1px solid #000;break-before:avoid;page-break-before:avoid}
+  .cols{grid-template-columns:1.4fr 1fr 1fr}
+  .legal p{font-size:8.5pt}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="gridfield" aria-hidden="true"><i></i></div>
+
+<header class="topbar">
+  <div class="wrap bar">
+    <a class="brand" href="#top">
+      <img src="/assets/alembic-mark-256.png" alt="" width="30" height="30">
+      <b>Alembic<span class="dot">.</span></b>
+    </a>
+    <nav class="desk" aria-label="Primary">
+      <ul>
+        <li><a href="#fig-1"><i>01</i> Principle</a></li>
+        <li><a href="#fig-4"><i>04</i> Product</a></li>
+        <li><a href="#fig-5"><i>05</i> Philosophy</a></li>
+        <li><a href="#fig-6"><i>06</i> Founder</a></li>
+        <li><a class="tool" href="/mse/">MSE Builder</a></li>
+        <li><a class="tool" href="/risk/">Risk Writer</a></li>
+        <li><a class="say" href="mailto:hello@alembiclabs.com.au">Get in touch</a></li>
+      </ul>
+    </nav>
+    <details class="navmenu">
+      <summary>Index</summary>
+      <ul>
+        <li class="cap"><span>List of figures</span></li>
+        <li><a href="#fig-1"><span>The principle</span><i>Fig. 1</i></a></li>
+        <li><a href="#fig-2"><span>Custody diagram</span><i>Fig. 2</i></a></li>
+        <li><a href="#fig-3"><span>Readouts</span><i>Fig. 3</i></a></li>
+        <li><a href="#fig-4"><span>Parts list</span><i>Fig. 4</i></a></li>
+        <li><a href="#fig-5"><span>Note on purpose</span><i>Fig. 5</i></a></li>
+        <li><a href="#fig-6"><span>The maker</span><i>Fig. 6</i></a></li>
+        <li><a href="#fig-7"><span>Bench instruments</span><i>Fig. 7</i></a></li>
+        <li class="cap"><span>Free tools and contact</span></li>
+        <li><a href="/mse/"><span>MSE Builder</span><i>Free</i></a></li>
+        <li><a href="/risk/"><span>Risk Writer</span><i>Free</i></a></li>
+        <li><a href="mailto:hello@alembiclabs.com.au"><span>Get in touch</span><i>Mail</i></a></li>
+      </ul>
+    </details>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============ HERO / FIG. 0 ============ -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-grid">
+
+      <div class="masthead">
+        <p class="mono stamp">Alembic Labs · Melbourne, Australia · Document 001 · Rev. 2026</p>
+        <h1>
+          <span class="lineA">Alembic<span class="dot">.</span></span>
+          <span class="lineB">A second brain for psychologists.</span>
+        </h1>
+        <p class="lede">A clinical workspace for Australian psychologists where every client record lives on your own computer, as plain files you can read, move, and keep. No cloud. No database. Alembic Labs never holds your clients' data.</p>
+        <div class="cta">
+          <a class="btn solid" href="#product">See what it holds</a>
+          <a class="btn" href="#philosophy">Why it exists</a>
+        </div>
+        <div class="specs">
+          <p class="leadrow"><span>Ground</span><span class="dots"></span><span class="val">Your machine</span></p>
+          <p class="leadrow"><span>Format</span><span class="dots"></span><span class="val">Plain files in folders</span></p>
+          <p class="leadrow"><span>Servers holding client data</span><span class="dots"></span><span class="val">0</span></p>
+          <p class="leadrow"><span>Status</span><span class="dots"></span><span class="val">Arriving 2026</span></p>
+        </div>
+      </div>
+
+      <div class="apparatus-wrap">
+        <div class="crop draw">
+          <svg class="apparatus" viewBox="0 104 300 294" role="img" aria-labelledby="apptitle">
+            <title id="apptitle">Schematic line drawing of an alembic: a still with a body, a head, a condensing arm, and a receiving vessel collecting a single gold drop.</title>
+            <!-- body -->
+            <path class="dl" data-draw style="--dd:.03s" d="M104 214 C 66 232 46 268 46 298 C 46 338 80 368 118 368 C 156 368 190 338 190 298 C 190 268 170 232 132 214" pathLength="100"/>
+            <!-- neck -->
+            <path class="dl" data-draw style="--dd:.17s" d="M104 214 L104 168" pathLength="100"/>
+            <path class="dl" data-draw style="--dd:.17s" d="M132 214 L132 168" pathLength="100"/>
+            <!-- head -->
+            <path class="dl" data-draw style="--dd:.26s" d="M96 168 C 96 130 140 130 140 168 Z" pathLength="100"/>
+            <path class="dl thin" data-draw style="--dd:.31s" d="M88 168 L148 168" pathLength="100"/>
+            <!-- condensing arm -->
+            <path class="dl" data-draw style="--dd:.38s" d="M140 154 C 190 152 208 186 222 224 C 230 246 234 258 240 268" pathLength="100"/>
+            <!-- receiver -->
+            <path class="dl" data-draw style="--dd:.48s" d="M226 274 C 214 292 216 314 232 326 C 250 340 276 334 284 314 C 291 296 282 278 266 272 C 252 267 236 268 226 274 Z" pathLength="100"/>
+            <!-- drop -->
+            <circle class="fill-gold fade" cx="248" cy="300" r="7"/>
+            <!-- heat ticks -->
+            <path class="dl thin" data-draw style="--dd:.56s" d="M92 388 L104 388" pathLength="100"/>
+            <path class="dl thin" data-draw style="--dd:.59s" d="M112 388 L124 388" pathLength="100"/>
+            <path class="dl thin" data-draw style="--dd:.62s" d="M132 388 L144 388" pathLength="100"/>
+            <!-- dimension line -->
+            <path class="dl thin" data-draw style="--dd:.65s" d="M18 130 L18 368 M13 130 L23 130 M13 368 L23 368" pathLength="100"/>
+            <!-- callout leaders -->
+            <path class="dl thin" data-draw style="--dd:.68s" d="M148 148 L196 122" pathLength="100"/>
+            <path class="dl thin" data-draw style="--dd:.71s" d="M262 340 L278 366" pathLength="100"/>
+            <text class="fade" x="200" y="118" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" letter-spacing="1.2" fill="#5a554c">A · HEAD</text>
+            <text class="fade" x="298" y="382" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" letter-spacing="1.2" fill="#5a554c" text-anchor="end">B · RECEIVER</text>
+          </svg>
+        </div>
+        <div class="apparatus-cap">
+          <p class="mono" id="fig-0"><a class="figlink" href="#fig-0">Fig. 0 · The apparatus</a></p>
+          <p class="mono" style="text-transform:none;letter-spacing:0.04em;line-height:1.7">An alembic separates what matters from what does not, slowly, and keeps it.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ FIG. 1 THE PRINCIPLE ============ -->
+<section id="principle">
+  <div class="wrap">
+    <div class="fighead reveal">
+      <p class="figbar mono" id="fig-1"><a class="figlink" href="#fig-1">Fig. 1 · The principle</a><a class="figlink" href="#fig-2" aria-label="Next sheet, figure 2, the custody diagram">Sheet 1 of 7</a></p>
+      <h2>Your practice, on your machine, in plain text.</h2>
+      <p class="lede sub">Everything you write in Alembic is a file in a folder on your own computer. The app is a reader and dashboard over that folder. If you stopped using Alembic tomorrow, your records would still be sitting there, legible, portable, and yours.</p>
+    </div>
+
+    <div class="clauses">
+      <article class="clause reveal" style="--ri:0">
+        <p class="idx">Clause i.</p>
+        <h3>No cloud</h3>
+        <p>There is no server in another state, country, or company. Your computer is the whole system. Client data is never transmitted to Alembic Labs or stored by us, because there is nowhere for it to go.</p>
+      </article>
+      <article class="clause reveal" style="--ri:1">
+        <p class="idx">Clause ii.</p>
+        <h3>No database</h3>
+        <p>A client is a folder. A note is a document. Your whole practice is readable in Finder without Alembic open. A client who requests their file receives a clean, human-readable package.</p>
+      </article>
+      <article class="clause reveal" style="--ri:2">
+        <p class="idx">Clause iii.</p>
+        <h3>No lock-in</h3>
+        <p>Plain text is the most durable, portable, legible format for long-lived clinical records ever invented. Your records never need exporting, because they were never trapped to begin with.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FIG. 2 CUSTODY DIAGRAM ============ -->
+<section id="custody">
+  <div class="wrap">
+    <div class="fighead reveal">
+      <p class="figbar mono" id="fig-2"><a class="figlink" href="#fig-2">Fig. 2 · Custody diagram</a><a class="figlink" href="#fig-3" aria-label="Next sheet, figure 3, the readouts">Sheet 2 of 7</a></p>
+      <h2>The line, and what crosses&nbsp;it.</h2>
+      <p class="lede sub">Read the drawing from the bottom up. Everything that happens, happens inside the boundary.</p>
+    </div>
+
+    <div class="machine draw" id="machine">
+
+      <div class="mrow mout">
+        <p class="lab mono">Outside the boundary · other people's computers</p>
+        <ul class="chips">
+          <li class="chip">
+            <span class="box">
+              <svg class="glyph" viewBox="0 0 44 30" aria-hidden="true">
+                <path class="dl thin" data-draw style="--dd:.1s" d="M12 24 C 4 24 3 12 12 11 C 13 3 26 1 30 9 C 40 8 43 24 33 24 Z" pathLength="100"/>
+              </svg>
+              <span class="name">Cloud storage</span>
+              <span class="nope">not in the system</span>
+            </span>
+            <svg class="stub" viewBox="0 0 40 56" aria-hidden="true">
+              <path class="dl thin" data-draw style="--dd:.35s" d="M20 0 L20 30" pathLength="100"/>
+              <path class="dl" data-draw style="--dd:.6s" d="M11 34 L29 52" pathLength="100"/>
+              <path class="dl" data-draw style="--dd:.7s" d="M29 34 L11 52" pathLength="100"/>
+              <circle class="ping" cx="20" cy="43" r="3.4"/>
+            </svg>
+          </li>
+          <li class="chip">
+            <span class="box">
+              <svg class="glyph" viewBox="0 0 44 30" aria-hidden="true">
+                <path class="dl thin" data-draw style="--dd:.15s" d="M8 4 H36 V13 H8 Z M8 17 H36 V26 H8 Z" pathLength="100"/>
+                <path class="dl thin" data-draw style="--dd:.3s" d="M13 8.5 H15 M13 21.5 H15" pathLength="100"/>
+              </svg>
+              <span class="name">Vendor servers</span>
+              <span class="nope">not in the system</span>
+            </span>
+            <svg class="stub" viewBox="0 0 40 56" aria-hidden="true">
+              <path class="dl thin" data-draw style="--dd:.4s" d="M20 0 L20 30" pathLength="100"/>
+              <path class="dl" data-draw style="--dd:.65s" d="M11 34 L29 52" pathLength="100"/>
+              <path class="dl" data-draw style="--dd:.75s" d="M29 34 L11 52" pathLength="100"/>
+              <circle class="ping" cx="20" cy="43" r="3.4"/>
+            </svg>
+          </li>
+          <li class="chip">
+            <span class="box">
+              <svg class="glyph" viewBox="0 0 44 30" aria-hidden="true">
+                <path class="dl thin" data-draw style="--dd:.2s" d="M22 5 C 31 5 36 8 36 11 C 36 14 31 17 22 17 C 13 17 8 14 8 11 C 8 8 13 5 22 5 Z" pathLength="100"/>
+                <path class="dl thin" data-draw style="--dd:.35s" d="M8 11 V21 C 8 24 13 27 22 27 C 31 27 36 24 36 21 V11" pathLength="100"/>
+              </svg>
+              <span class="name">A company's database</span>
+              <span class="nope">not in the system</span>
+            </span>
+            <svg class="stub" viewBox="0 0 40 56" aria-hidden="true">
+              <path class="dl thin" data-draw style="--dd:.26s" d="M20 0 L20 30" pathLength="100"/>
+              <path class="dl" data-draw style="--dd:.7s" d="M11 34 L29 52" pathLength="100"/>
+              <path class="dl" data-draw style="--dd:.8s" d="M29 34 L11 52" pathLength="100"/>
+              <circle class="ping" cx="20" cy="43" r="3.4"/>
+            </svg>
+          </li>
+        </ul>
+      </div>
+
+      <div class="barrier">
+        <div class="barrier-inner">
+          <span class="zero">0</span>
+          <p>The machine boundary<b>Crossings by client data: nil, by design</b></p>
+        </div>
+      </div>
+
+      <div class="mrow min">
+        <p class="lab mono">Inside the boundary · your computer, the whole system</p>
+        <div class="ingrid">
+
+          <div class="ipanel files">
+            <p class="cap">A · The folder</p>
+            <ul class="tree">
+              <li><span class="f">practice/</span>
+                <ul>
+                  <li><span class="f">clients/</span>
+                    <ul>
+                      <li><span class="f">demo-client/</span>
+                        <ul>
+                          <li><span class="doc">_overview.md</span></li>
+                          <li><span class="f">record/</span>
+                            <ul>
+                              <li><span class="doc">chart-note.md</span></li>
+                            </ul>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+
+          <div class="flow flow-h" id="flowh">
+            <svg viewBox="0 0 132 92" aria-hidden="true" width="132" height="92">
+              <text x="66" y="18" text-anchor="middle">Reads</text>
+              <path class="ants" d="M6 32 H 116"/>
+              <path class="dl" d="M110 26 L124 32 L110 38" fill="none"/>
+              <text x="66" y="62" text-anchor="middle">Writes</text>
+              <path class="ants rev" d="M126 76 H 16"/>
+              <path class="dl" d="M22 70 L8 76 L22 82" fill="none"/>
+            </svg>
+          </div>
+
+          <div class="flow flow-v" id="flowv">
+            <svg viewBox="0 0 200 86" aria-hidden="true" width="200" height="86">
+              <path class="ants" d="M66 4 V 62"/>
+              <path class="dl" d="M60 58 L66 72 L72 58" fill="none"/>
+              <text x="56" y="42" text-anchor="end">Reads</text>
+              <path class="ants rev" d="M134 82 V 24"/>
+              <path class="dl" d="M128 28 L134 14 L140 28" fill="none"/>
+              <text x="144" y="42" text-anchor="start">Writes</text>
+            </svg>
+          </div>
+
+          <div class="ipanel reader">
+            <p class="cap">B · The reader</p>
+            <ol class="reader">
+              <li><b>b1</b><span>Alembic opens the folder and renders it as a practice.</span></li>
+              <li><b>b2</b><span>What you write is saved back as a file, in place.</span></li>
+              <li><b>b3</b><span>Close the app and the folder is still a practice.</span></li>
+            </ol>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="machine-legend reveal">
+      <p class="mono">Legend · A: your files. B: the app over them. The heavy rule: the edge of your computer.</p>
+      <p>There is no server in another state, country, or company. Client data is never transmitted to Alembic Labs or stored by us, because there is nowhere for it to go.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FIG. 3 READOUTS ============ -->
+<section id="readouts">
+  <div class="wrap">
+    <div class="fighead reveal">
+      <p class="figbar mono" id="fig-3"><a class="figlink" href="#fig-3">Fig. 3 · Readouts</a><a class="figlink" href="#fig-4" aria-label="Next sheet, figure 4, the parts list">Sheet 3 of 7</a></p>
+      <h2>Four figures, taken from the instrument.</h2>
+    </div>
+    <div class="readouts">
+      <div class="readout hi reveal" style="--ri:0">
+        <p class="mono">Reading 3.1</p>
+        <p class="fig">0</p>
+        <div class="ticks" aria-hidden="true"></div>
+        <p>servers holding your clients' data. Your computer is the whole system.</p>
+      </div>
+      <div class="readout reveal" style="--ri:1">
+        <p class="mono">Reading 3.2</p>
+        <p class="fig">5,000+</p>
+        <div class="ticks" aria-hidden="true"></div>
+        <p>automated tests run green behind every build.</p>
+      </div>
+      <div class="readout reveal" style="--ri:2">
+        <p class="mono">Reading 3.3</p>
+        <p class="fig">7</p>
+        <div class="ticks" aria-hidden="true"></div>
+        <p>licence-verified assessment instruments, published scoring only.</p>
+      </div>
+      <div class="readout reveal" style="--ri:3">
+        <p class="mono">Reading 3.4</p>
+        <p class="fig">47.5</p>
+        <div class="ticks" aria-hidden="true"></div>
+        <p>hours of built-in self-directed CPD across 16 courses.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FIG. 4 THE PRODUCT ============ -->
+<section id="product">
+  <div class="wrap">
+    <div class="fighead reveal">
+      <p class="figbar mono" id="fig-4"><a class="figlink" href="#fig-4">Fig. 4 · Parts list</a><a class="figlink" href="#fig-5" aria-label="Next sheet, figure 5, the note on purpose">Sheet 4 of 7</a></p>
+      <h2>One quiet place for the whole practice.</h2>
+    </div>
+
+    <div class="parts">
+      <article class="part reveal draw" style="--ri:0">
+        <p class="no"><svg class="pglyph" viewBox="0 0 28 28" aria-hidden="true"><path class="dl" data-draw style="--dd:.05s" pathLength="100" d="M7 3H17L21 7V25H7Z"/><path class="dl thin" data-draw style="--dd:.2s" pathLength="100" d="M16.6 3.4V7.4H20.6M10 14H18M10 19H15"/></svg><span>4.1<b>Notes</b></span></p>
+        <h3>Structured clinical notes</h3>
+        <p>A composer that renders any note style as a form and enforces compliant formatting in code. Mental state and risk are always authored by you; the software never writes clinical judgement on your behalf.</p>
+      </article>
+      <article class="part reveal draw" style="--ri:1">
+        <p class="no"><svg class="pglyph" viewBox="0 0 28 28" aria-hidden="true"><path class="dl" data-draw style="--dd:.05s" pathLength="100" d="M5 4V24H24"/><path class="dl thin" data-draw style="--dd:.2s" pathLength="100" d="M9.5 24V16M14.5 24V9M19.5 24V18"/></svg><span>4.2<b>Assessments</b></span></p>
+        <h3>Score-only psychometrics</h3>
+        <p>Seven licence-verified instruments (PHQ-9, GAD-7, DASS-21 and more) with published scoring rules and published bands only, trend charts across sessions, and printable paper forms. Never an interpretation, never a diagnosis.</p>
+      </article>
+      <article class="part reveal draw" style="--ri:2">
+        <p class="no"><svg class="pglyph" viewBox="0 0 28 28" aria-hidden="true"><circle class="dl" data-draw style="--dd:.05s" pathLength="100" cx="14" cy="14" r="10"/><path class="dl thin" data-draw style="--dd:.2s" pathLength="100" d="M14 8V14.6L18.4 17.2"/></svg><span>4.3<b>CPD</b></span></p>
+        <h3>Logbook and Learn</h3>
+        <p>Hour tracking against PsyBA internship and CPD targets with an official-layout spreadsheet mirror, plus a built-in library of 16 self-directed CPD courses totalling 47.5 computed hours, with quizzes and certificates.</p>
+      </article>
+      <article class="part reveal draw" style="--ri:3">
+        <p class="no"><svg class="pglyph" viewBox="0 0 28 28" aria-hidden="true"><path class="dl" data-draw style="--dd:.05s" pathLength="100" d="M4 8H24V22H4Z"/><path class="dl thin" data-draw style="--dd:.2s" pathLength="100" d="M4 8L14 16L24 8"/></svg><span>4.4<b>Records</b></span></p>
+        <h3>Reports, genograms, calendar</h3>
+        <p>A deterministic report builder that assembles referral and GP letters purely from what the record already says, a manual-first genogram editor, and a calendar that sits beside the client list.</p>
+      </article>
+      <article class="part reveal draw" style="--ri:4">
+        <p class="no"><svg class="pglyph" viewBox="0 0 28 28" aria-hidden="true"><path class="dl" data-draw style="--dd:.05s" pathLength="100" d="M5 23V5H23V23H17M13 23H5"/><circle class="dl thin" data-draw style="--dd:.24s" pathLength="100" cx="11" cy="13" r="2.4"/><circle class="dl thin" data-draw style="--dd:.28s" pathLength="100" cx="17" cy="13" r="2.4"/></svg><span>4.5<b>Practice</b></span></p>
+        <h3>The Dojo</h3>
+        <p>A walkable 3D therapy room for rehearsing clinical skills: sit across from a patient, practise your opening, step out into the garden between rounds. No AI, no client data, just a room that is always available.</p>
+      </article>
+      <article class="part reveal draw" style="--ri:5">
+        <p class="no"><svg class="pglyph" viewBox="0 0 28 28" aria-hidden="true"><path class="dl" data-draw style="--dd:.05s" pathLength="100" d="M5 5H17V17H5Z"/><path class="dl thin" data-draw style="--dd:.2s" pathLength="100" d="M11 11H23V23H11Z"/></svg><span>4.6<b>Craft</b></span></p>
+        <h3>Made to be lived in</h3>
+        <p>Eight theme packs, five materials, a full accessibility pass to WCAG AA in both light and dark, bundled fonts, an offline radio station, and small touches everywhere, because you will spend your working life inside it.</p>
+      </article>
+    </div>
+
+    <div class="plates">
+      <div class="plate reveal" style="--ri:0">
+        <figure>
+          <div class="frame"><img src="/assets/screenshots/01-dashboard.jpg" alt="The Alembic dashboard, showing fictional demonstration data." width="1600" height="1000" loading="lazy" decoding="async"></div>
+          <figcaption><span>Plate 4a</span><span class="dots"></span><b>Dashboard</b></figcaption>
+        </figure>
+      </div>
+      <div class="plate reveal" style="--ri:1">
+        <figure>
+          <div class="frame"><img src="/assets/screenshots/02-caseload.jpg" alt="The caseload list in Alembic, showing fictional demonstration data." width="1600" height="1000" loading="lazy" decoding="async"></div>
+          <figcaption><span>Plate 4b</span><span class="dots"></span><b>Caseload</b></figcaption>
+        </figure>
+      </div>
+      <div class="plate reveal" style="--ri:2">
+        <figure>
+          <div class="frame"><img src="/assets/screenshots/04-alex-sessions.jpg" alt="A client's session list in Alembic, showing fictional demonstration data." width="1600" height="1000" loading="lazy" decoding="async"></div>
+          <figcaption><span>Plate 4c</span><span class="dots"></span><b>Sessions</b></figcaption>
+        </figure>
+      </div>
+      <div class="plate reveal" style="--ri:3">
+        <figure>
+          <div class="frame"><img src="/assets/screenshots/09-calendar.jpg" alt="The Alembic calendar beside the client list, showing fictional demonstration data." width="1600" height="1000" loading="lazy" decoding="async"></div>
+          <figcaption><span>Plate 4d</span><span class="dots"></span><b>Calendar</b></figcaption>
+        </figure>
+      </div>
+    </div>
+    <p class="footnote">Note to plates: All screenshots show fictional demonstration data. No real client information appears anywhere on this site.</p>
+  </div>
+</section>
+
+<!-- ============ FIG. 5 PHILOSOPHY ============ -->
+<section id="philosophy">
+  <div class="wrap">
+    <div class="fighead reveal">
+      <p class="figbar mono" id="fig-5"><a class="figlink" href="#fig-5">Fig. 5 · Note on purpose</a><a class="figlink" href="#fig-6" aria-label="Next sheet, figure 6, the maker">Sheet 5 of 7</a></p>
+      <h2>Software in service of attention.</h2>
+    </div>
+    <div class="phil">
+      <div class="col reveal">
+        <p>Therapy is not primarily a matter of technique. It is a matter of attention: being able to arrive in a room and keep the whole person in view, week after week, year after year, without losing track of who they are becoming. The software a therapist uses should make that easier. Most of the software we encountered makes it harder.</p>
+        <p>So Alembic is opinionated. It treats therapy as more than symptom relief. It assumes the clinician wants to think seriously about the person in front of them, and it structures itself around supporting that kind of thinking rather than replacing it with a form. It keeps records on the clinician's own hardware, because anything else is an abdication of a responsibility that is ours, not a vendor's.</p>
+      </div>
+      <div class="col reveal" style="--ri:1">
+        <div class="pull">
+          <blockquote>"The software should serve the therapist. The therapist serves the person in front of them. If the software gets those two orders of business reversed, everyone suffers."</blockquote>
+          <p class="mono">Statement of intent · Alembic Labs</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FIG. 6 FOUNDER ============ -->
+<section id="founder">
+  <div class="wrap">
+    <div class="fighead reveal">
+      <p class="figbar mono" id="fig-6"><a class="figlink" href="#fig-6">Fig. 6 · The maker</a><a class="figlink" href="#fig-7" aria-label="Next sheet, figure 7, the bench instruments">Sheet 6 of 7</a></p>
+      <h2>Built by a clinician, for clinical work.</h2>
+    </div>
+    <div class="founder">
+      <div class="reveal">
+        <div class="portrait">
+          <div class="frame"><img src="/assets/jean-luc-headshot.jpg" alt="Jean-Luc Alder, founder of Alembic Labs." width="900" height="1200" loading="lazy" decoding="async"></div>
+          <div class="reg"><span class="mono">Plate 6a</span><span class="mono">Melbourne</span></div>
+        </div>
+        <div class="who">
+          <strong>Jean-Luc Alder</strong>
+          <p class="mono">Founder, Alembic Labs</p>
+        </div>
+      </div>
+      <div class="body">
+        <p class="reveal">Alembic was developed by a provisional psychologist, because what he wanted did not exist and he could no longer work the way he wanted to work without it.</p>
+        <p class="reveal" style="--ri:1">Jean-Luc came to psychology through philosophy, and the two backgrounds have never stopped arguing with each other productively. What survived that argument is a commitment to clinical records that are not shallow: records that hold a person's history, their patterns, their values, the small specific things that make a case this case and not a generic one.</p>
+        <div class="fquote reveal" style="--ri:2">
+          <blockquote>"I believe a good formulation is an epistemic act as much as a clinical one. And I believe the software we use should be able to hold complexity rather than flattening it."</blockquote>
+        </div>
+        <p class="reveal" style="--ri:3">Every feature is built against the standards a clinical record actually has to meet, and demonstrated only on fictional data. The order of loyalties is fixed: the client's privacy first, the clinician's thinking second, the software's convenience last.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FIG. 7 FREE TOOLS ============ -->
+<section id="tools">
+  <div class="wrap">
+    <div class="fighead reveal">
+      <p class="figbar mono" id="fig-7"><a class="figlink" href="#fig-7">Fig. 7 · Bench instruments</a><a class="figlink" href="#contact" aria-label="Next, the end plate">Sheet 7 of 7</a></p>
+      <h2>Free tools for clinicians.</h2>
+      <p class="lede sub">Two free tools built from the same curated clinical vocabulary Alembic uses.</p>
+    </div>
+    <div class="tools">
+      <a class="tool reveal" href="/mse/">
+        <p class="mono">Instrument 7.1 · In your browser</p>
+        <h3>MSE Builder</h3>
+        <p>Composes a mental state examination from 429 signed-off descriptors.</p>
+        <span class="go">Open the builder
+          <svg viewBox="0 0 24 8" aria-hidden="true"><path class="dl" d="M0 4 H20 M15 0.5 L21.5 4 L15 7.5" fill="none"/></svg>
+        </span>
+      </a>
+      <a class="tool reveal" href="/risk/" style="--ri:1">
+        <p class="mono">Instrument 7.2 · In your browser</p>
+        <h3>Risk Writer</h3>
+        <p>Helps you word the Risk section of a case note you have already decided: it assesses nothing, scores nothing and suggests nothing.</p>
+        <span class="go">Open the writer
+          <svg viewBox="0 0 24 8" aria-hidden="true"><path class="dl" d="M0 4 H20 M15 0.5 L21.5 4 L15 7.5" fill="none"/></svg>
+        </span>
+      </a>
+    </div>
+    <p class="tools-note reveal">Both run entirely in your browser, with nothing stored or sent anywhere.</p>
+  </div>
+</section>
+
+<!-- ============ CLOSING ============ -->
+<section class="closing" id="contact">
+  <div class="wrap">
+    <div class="stamp-block reveal">
+      <p class="mono">End plate · Status: arriving 2026</p>
+      <h2>Alembic arrives in 2026.</h2>
+      <p>It is local when everything is cloud. It is patient when everything is instant. It treats one clinician at a time when the market rewards scale. If that sounds like your kind of software, say hello.</p>
+      <div class="cta">
+        <a class="btn solid" href="mailto:hello@alembiclabs.com.au">Say hello</a>
+        <span class="mono addr">hello@alembiclabs.com.au</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="colophon">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="brand" href="#top">
+          <img src="/assets/alembic-mark-256.png" alt="" width="30" height="30">
+          <b>Alembic<span class="dot">.</span></b>
+        </a>
+        <p class="mono" style="margin-top:12px">Alembic Labs · Melbourne, Australia</p>
+      </div>
+      <nav aria-label="Footer">
+        <h4>Contents</h4>
+        <ul>
+          <li><a href="#principle">Principle</a></li>
+          <li><a href="#product">Product</a></li>
+          <li><a href="#philosophy">Philosophy</a></li>
+          <li><a href="#founder">Founder</a></li>
+        </ul>
+      </nav>
+      <div>
+        <h4>Free tools and contact</h4>
+        <ul>
+          <li><a href="/mse/">MSE Builder</a></li>
+          <li><a href="/risk/">Risk Writer</a></li>
+          <li><a href="mailto:hello@alembiclabs.com.au">Get in touch</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal">
+      <div>
+        <p class="abn">Alembic Labs · ABN 58 247 784 426 · Melbourne, Australia</p>
+        <p>Alembic is practice software. It does not provide clinical advice, diagnosis, or treatment recommendations.</p>
+        <p>All screenshots show fictional demonstration data. No real client information appears anywhere on this site.</p>
+      </div>
+      <p class="mono" style="letter-spacing:0.16em;text-transform:uppercase">End of document</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var menu = document.querySelector('details.navmenu');
+  if (menu){
+    var sum = menu.querySelector('summary');
+    document.addEventListener('keydown', function(e){
+      if ((e.key === 'Escape' || e.key === 'Esc') && menu.open){
+        menu.open = false;
+        if (sum) sum.focus();
+      }
+    });
+    document.addEventListener('click', function(e){
+      if (menu.open && !menu.contains(e.target)) menu.open = false;
+    });
+    menu.addEventListener('click', function(e){
+      var a = e.target.closest ? e.target.closest('a') : null;
+      if (a) menu.open = false;
+    });
+  }
+})();
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !('IntersectionObserver' in window)) return;
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting){
+        e.target.classList.add('is-in');
+        e.target.classList.add('is-on');
+      } else {
+        e.target.classList.remove('is-on');
+      }
+    });
+  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.12 });
+  var targets = document.querySelectorAll('.draw, .reveal, .flow');
+  for (var i = 0; i < targets.length; i++) io.observe(targets[i]);
+  document.addEventListener('visibilitychange', function(){
+    document.body.classList.toggle('paused', document.hidden);
+  });
+})();
+</script>
+</body>
+</html>

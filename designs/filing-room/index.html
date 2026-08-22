@@ -1,0 +1,1870 @@
+<!DOCTYPE html>
+<html lang="en-AU" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alembic · Practice software that keeps client records on your machine</title>
+<meta name="description" content="A clinical workspace for Australian psychologists where every client record lives on your own computer, as plain files you can read, move, and keep. No cloud. No database.">
+<meta name="theme-color" content="#141715">
+<meta property="og:title" content="Alembic · Practice software that keeps client records on your machine">
+<meta property="og:description" content="Every client record lives on your own computer, as plain files you can read, move, and keep. No cloud. No database.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://alembiclabs.com.au/">
+<link rel="icon" href="/assets/favicon-64.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/fonts.css">
+<script>document.documentElement.className='js';</script>
+<style>
+/* ============================================================
+   THE FILING ROOM
+   A room of records. Light falls from the top left.
+   Every shadow in this document obeys that one light.
+   ============================================================ */
+
+:root{
+  /* the room */
+  --room:#141715;
+  --room-2:#1a1d1b;
+  --room-3:#21241f;
+  --room-4:#2a2d27;
+
+  /* ink on dark */
+  --ink:#ece8e0;
+  --ink-2:#c9c3b6;
+  --ink-3:#9a948a;
+
+  /* paper */
+  --paper:#e8e2d6;
+  --paper-hi:#f3efe6;
+  --paper-lo:#d9d2c1;
+  --paper-edge:#c9c1ae;
+  --paper-edge-2:#bfb7a3;
+
+  /* ink on paper */
+  --pink-1:#1a1d1b;
+  --pink-2:#3b3830;
+  --pink-3:#5b564d;
+
+  --green:#8fb28a;
+  --green-d:#4a6741;
+  --green-l:#a6c5a0;
+
+  --gold:#c9a45c;
+  --gold-l:#e0c9a0;
+  --gold-d:#8a7038;
+  --gold-dd:#5c4b26;
+
+  --amber:#d89a5e;
+  --red:#d67a6f;
+
+  /* one light source: top left. shadows fall down and to the right. */
+  --sh-1: 5px 7px 14px -7px rgba(6,8,6,.62);
+  --sh-2: 10px 15px 30px -12px rgba(6,8,6,.72);
+  --sh-3: 18px 26px 56px -18px rgba(4,6,4,.82);
+  --sh-lift: 22px 34px 62px -20px rgba(4,6,4,.9);
+
+  /* believable paper thickness: four stacked leaf edges */
+  --thick: 0 1px 0 var(--paper-lo), 0 2px 0 #d2cbba, 0 3px 0 #c8c0ad, 0 4px 0 #bdb5a1;
+  --thick-2: 0 1px 0 var(--paper-lo), 0 2px 0 #cdc6b4;
+
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='.19'/%3E%3C/svg%3E");
+
+  --serif:'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans:'DM Sans', -apple-system, 'Segoe UI', sans-serif;
+
+  --wrap: 1160px;
+  --gut: clamp(18px, 5vw, 56px);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{-webkit-text-size-adjust:100%}
+
+/* nothing lands under the rail */
+[id]{scroll-margin-top:clamp(78px, 10vw, 98px)}
+
+body{
+  margin:0;
+  overflow-x:hidden;
+  background:var(--room);
+  color:var(--ink-2);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* the room itself: a lamp above and left, a floor that falls away */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  background:
+    radial-gradient(120% 78% at 18% -12%, rgba(143,178,138,.10), transparent 58%),
+    radial-gradient(150% 100% at 50% -20%, #23271f 0%, #191c19 42%, var(--room) 78%);
+}
+body::after{
+  content:"";
+  position:fixed;
+  left:0;right:0;bottom:0;
+  height:36vh;
+  z-index:-1;
+  pointer-events:none;
+  background:linear-gradient(to top, rgba(8,10,8,.62), transparent);
+}
+
+img{max-width:100%;height:auto;display:block}
+
+a{color:inherit}
+
+::selection{background:rgba(201,164,92,.28);color:var(--ink)}
+
+:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:3px;
+  border-radius:2px;
+}
+
+.skip{
+  position:absolute;
+  left:12px;top:-64px;
+  z-index:400;
+  background:var(--paper);
+  color:var(--pink-1);
+  font:600 14px/1 var(--sans);
+  padding:15px 18px;
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+  border-radius:3px;
+  box-shadow:var(--sh-2);
+  transition:top .18s ease;
+}
+.skip:focus{top:12px}
+
+.wrap{
+  width:100%;
+  max-width:var(--wrap);
+  margin-inline:auto;
+  padding-inline:var(--gut);
+}
+
+/* ---------- typed voice ---------- */
+.typed{
+  font-family:var(--sans);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  line-height:1.5;
+}
+.kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  color:var(--gold);
+  margin:0 0 16px;
+}
+.kicker::before{
+  content:"";
+  width:26px;height:1px;
+  background:linear-gradient(to right, var(--gold), rgba(201,164,92,.15));
+  flex:none;
+}
+
+h1,h2,h3{font-family:var(--serif);font-weight:400;margin:0;line-height:1.1;text-wrap:balance}
+p{text-wrap:pretty}
+
+.h2{
+  font-size:clamp(1.75rem, 4.1vw, 2.85rem);
+  letter-spacing:-.012em;
+  color:var(--ink);
+  line-height:1.14;
+  max-width:20ch;
+}
+.h2.on-paper{color:var(--pink-1)}
+
+.lede{
+  font-size:clamp(1rem, 1.6vw, 1.14rem);
+  line-height:1.72;
+  color:var(--ink-2);
+  max-width:62ch;
+}
+.lede.on-paper{color:var(--pink-2)}
+
+/* ---------- paper primitives ---------- */
+.paper{
+  position:relative;
+  background-color:var(--paper);
+  background-image:var(--grain), linear-gradient(158deg, var(--paper-hi) 0%, var(--paper) 44%, var(--paper-lo) 100%);
+  background-blend-mode:multiply, normal;
+  color:var(--pink-2);
+  border-radius:3px;
+  box-shadow:var(--thick), var(--sh-2);
+}
+/* the lit top-left edge of a real sheet */
+.paper::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.72),
+    inset -1px -1px 0 rgba(120,112,96,.20);
+}
+
+.ruled{
+  background-image:
+    var(--grain),
+    repeating-linear-gradient(to bottom, transparent 0 33px, rgba(91,86,77,.09) 33px 34px),
+    linear-gradient(158deg, var(--paper-hi) 0%, var(--paper) 44%, var(--paper-lo) 100%);
+  background-blend-mode:multiply, normal, normal;
+}
+
+/* the index tab that sits proud of a card's top edge */
+.tab{
+  transition:color .24s ease;
+  position:absolute;
+  top:-25px;
+  left:24px;
+  height:26px;
+  display:inline-flex;
+  align-items:center;
+  padding:0 15px;
+  border-radius:4px 4px 0 0;
+  background-color:var(--paper);
+  background-image:var(--grain), linear-gradient(to bottom, var(--paper-hi), var(--paper));
+  background-blend-mode:multiply, normal;
+  color:var(--pink-3);
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.7),
+    3px -2px 7px -4px rgba(6,8,6,.55);
+}
+.tab::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:-2px;height:3px;
+  background:var(--paper);
+}
+.tab::before{
+  content:"";
+  position:absolute;
+  left:2px;right:2px;top:0;height:1px;
+  border-radius:1px;
+  background:linear-gradient(to right, rgba(138,112,56,0), var(--gold-d), rgba(138,112,56,0));
+  opacity:0;
+  transition:opacity .28s ease;
+}
+.card-wrap:hover .tab::before,
+.tool-wrap:hover .tab::before,
+.card-wrap:focus-within .tab::before,
+.tool-wrap:focus-within .tab::before{opacity:1}
+.card-wrap:hover .tab,
+.tool-wrap:hover .tab{color:var(--pink-1)}
+
+/* brass */
+.brass{
+  background:linear-gradient(160deg, var(--gold-l) 0%, var(--gold) 38%, var(--gold-d) 100%);
+  color:#171a16;
+}
+
+/* ============================================================
+   HEADER: the drawer front of the whole room
+   ============================================================ */
+.rail{
+  position:sticky;
+  top:0;
+  z-index:120;
+  background:linear-gradient(to bottom, #1b1f1c 0%, rgba(20,23,21,.97) 100%);
+  border-bottom:1px solid rgba(201,164,92,.22);
+  box-shadow:0 6px 18px -10px rgba(0,0,0,.9);
+}
+.rail-in{
+  max-width:var(--wrap);
+  margin-inline:auto;
+  padding-inline:var(--gut);
+  height:64px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  text-decoration:none;
+  min-width:0;
+  padding:8px 4px;
+  min-height:44px;
+  border-radius:3px;
+}
+.brand img{flex:none}
+.brand img{width:30px;height:30px}
+.brand-txt{display:block}
+.brand-txt b{
+  display:block;
+  font-family:var(--serif);
+  font-weight:500;
+  font-size:1.22rem;
+  color:var(--ink);
+  letter-spacing:.005em;
+  line-height:1.15;
+}
+.brand-sub{
+  display:block;
+  color:var(--ink-3);
+  font-size:9.5px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  font-weight:500;
+  line-height:1.4;
+}
+.rail-nav{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:2px;
+}
+.rail-nav a{
+  color:var(--ink-2);
+  text-decoration:none;
+  font-size:12.5px;
+  letter-spacing:.055em;
+  padding:12px 11px;
+  border-radius:3px;
+  position:relative;
+  transition:color .2s ease, background-color .2s ease;
+}
+.rail-nav a::after{
+  content:"";
+  position:absolute;
+  left:11px;right:11px;bottom:7px;
+  height:1px;
+  background:var(--gold);
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform .28s cubic-bezier(.2,.7,.3,1);
+}
+.rail-nav a:hover{color:var(--ink)}
+.rail-nav a:hover::after{transform:scaleX(1)}
+.rail-nav .sep{
+  width:1px;height:20px;
+  background:rgba(201,164,92,.24);
+  margin-inline:8px;
+  flex:none;
+}
+.rail-nav .plate{
+  margin-left:8px;
+  padding:10px 16px;
+  border-radius:3px;
+  font-weight:600;
+  font-size:12px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset, var(--sh-1);
+}
+.rail-nav .plate::after{display:none}
+.rail-nav .plate:hover{color:#0f120f}
+
+/* mobile index drawer */
+.menu{position:relative;margin-left:auto;flex:none}
+.menu>summary{
+  list-style:none;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  height:44px;
+  padding:0 14px;
+  border:1px solid rgba(201,164,92,.36);
+  border-radius:3px;
+  color:var(--ink);
+  cursor:pointer;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+}
+.menu>summary::-webkit-details-marker{display:none}
+.menu>summary i{
+  width:14px;height:10px;flex:none;
+  border-top:1px solid var(--gold);
+  border-bottom:1px solid var(--gold);
+  position:relative;
+}
+.menu>summary i::after{
+  content:"";position:absolute;left:0;right:0;top:4px;height:1px;background:var(--gold);
+}
+.menu[open]>summary{background:rgba(201,164,92,.12)}
+.menu-panel{
+  position:absolute;
+  right:0;
+  left:auto;
+  top:calc(100% + 12px);
+  width:min(78vw, 280px);
+  max-width:calc(100vw - 38px);
+  padding:10px;
+  border-radius:3px;
+  z-index:130;
+}
+.menu-panel a{
+  display:block;
+  text-decoration:none;
+  color:var(--pink-1);
+  font-size:13px;
+  font-weight:500;
+  letter-spacing:.06em;
+  padding:12px 14px;
+  min-height:44px;
+  border-bottom:1px solid rgba(91,86,77,.16);
+}
+.menu-panel a:last-child{border-bottom:0}
+.menu-panel a:hover{background:rgba(74,103,65,.10)}
+
+@media (max-width:1020px){ .rail-nav{display:none} }
+@media (max-width:560px){
+  .rail .brand-sub{display:none}
+  .rail .brand-txt b{font-size:1.14rem}
+  .rail-in{gap:12px}
+}
+@media (min-width:1021px){ .menu{display:none} }
+
+/* ============================================================
+   HERO: an open drawer, and the top file
+   ============================================================ */
+.hero{
+  padding-top:clamp(52px, 8vw, 104px);
+  padding-bottom:clamp(56px, 8vw, 108px);
+}
+.hero-grid{
+  display:grid;
+  grid-template-columns:1.02fr .98fr;
+  gap:clamp(30px, 5vw, 68px);
+  align-items:center;
+}
+@media (max-width:900px){
+  .hero-grid{grid-template-columns:1fr;gap:44px}
+}
+.hero h1{margin:0}
+.h1-word{
+  display:block;
+  font-size:clamp(3.4rem, 11.5vw, 6.1rem);
+  color:var(--ink);
+  letter-spacing:-.028em;
+  line-height:.94;
+}
+.h1-word em{font-style:normal;color:var(--gold)}
+.h1-line{
+  display:block;
+  margin-top:.34em;
+  font-size:clamp(1.3rem, 3.5vw, 2.05rem);
+  font-style:italic;
+  font-weight:300;
+  color:var(--green-l);
+  letter-spacing:-.005em;
+  line-height:1.24;
+}
+.hero-sub{
+  margin:26px 0 0;
+  font-size:clamp(1rem, 1.55vw, 1.1rem);
+  line-height:1.74;
+  color:var(--ink-2);
+  max-width:46ch;
+}
+.hero-sub strong{color:var(--ink);font-weight:500}
+.hero-sub .quiet{color:var(--ink-3)}
+
+.btn-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:34px}
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:48px;
+  padding:0 24px;
+  border-radius:3px;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  text-decoration:none;
+  transition:transform .22s cubic-bezier(.2,.7,.3,1), color .2s ease, border-color .2s ease, background-color .2s ease;
+}
+.btn-solid{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45), var(--sh-1);
+}
+.btn-ghost{
+  border:1px solid rgba(236,232,224,.30);
+  color:var(--ink);
+}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold-l)}
+.btn:active{transform:translate3d(0,2px,0)}
+
+/* the drawer object */
+.drawer{
+  position:relative;
+  height:clamp(300px, 46vw, 420px);
+  --tabh:24px;
+}
+@media (max-width:900px){ .drawer{height:clamp(280px, 68vw, 360px)} }
+
+.fold{
+  display:block;
+  text-decoration:none;
+  color:inherit;
+  position:absolute;
+  bottom:0;
+  height:62%;
+  border-radius:3px 3px 0 0;
+  background-color:var(--paper);
+  background-image:var(--grain), linear-gradient(168deg, var(--paper-hi) 0%, var(--paper) 40%, var(--paper-lo) 100%);
+  background-blend-mode:multiply, normal;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.66),
+    8px 10px 20px -10px rgba(4,6,4,.85);
+  transition:transform .32s cubic-bezier(.2,.7,.3,1);
+}
+.fold:focus-visible{outline:none}
+.fold:focus-visible .ftab{outline:2px solid var(--gold);outline-offset:2px}
+.fold:hover .ftab,
+.fold:focus-visible .ftab{color:var(--pink-1)}
+/* the tab carries the hit area: 44px tall without moving a pixel of the drawing */
+.fold .ftab::after{
+  content:"";
+  position:absolute;
+  left:-9px;right:-9px;top:-9px;bottom:-14px;
+}
+.fold .ftab::before{
+  content:"";
+  position:absolute;
+  left:2px;right:2px;top:0;height:1px;
+  border-radius:1px;
+  background:linear-gradient(to right, rgba(138,112,56,0), var(--gold-d), rgba(138,112,56,0));
+  opacity:0;
+  transition:opacity .28s ease;
+}
+.fold:hover .ftab::before,
+.fold:focus-visible .ftab::before{opacity:1}
+.fold .ftab{
+  transition:color .24s ease;
+  position:absolute;
+  top:calc(-1 * var(--tabh));
+  height:var(--tabh);
+  display:inline-flex;
+  align-items:center;
+  padding:0 13px;
+  border-radius:4px 4px 0 0;
+  background-color:var(--paper);
+  background-image:var(--grain), linear-gradient(to bottom, var(--paper-hi), var(--paper));
+  background-blend-mode:multiply, normal;
+  color:var(--pink-3);
+  font-size:9.5px;
+  font-weight:600;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.66),
+    4px -2px 8px -5px rgba(4,6,4,.7);
+}
+.f1{left:0;right:0;bottom:7%;z-index:6}
+.f2{left:2.6%;right:2.6%;bottom:12%;z-index:5}
+.f3{left:5.2%;right:5.2%;bottom:17%;z-index:4}
+.f4{left:7.8%;right:7.8%;bottom:22%;z-index:3}
+.f5{left:10.4%;right:10.4%;bottom:27%;z-index:2}
+.f6{left:13%;right:13%;bottom:32%;z-index:1}
+.f1 .ftab{left:6%}
+.f2 .ftab{left:24%}
+.f3 .ftab{left:46%}
+.f4 .ftab{left:8%}
+.f5 .ftab{left:32%}
+.f6 .ftab{left:58%}
+
+.fold-face{
+  position:absolute;
+  left:6%;
+  top:16%;
+  right:6%;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.seal{
+  width:56px;height:56px;
+  flex:none;
+  filter:drop-shadow(3px 4px 5px rgba(4,6,4,.30));
+}
+.fold-name{display:block}
+.fold-name b{
+  display:block;
+  font-family:var(--serif);
+  font-weight:500;
+  font-size:1.3rem;
+  color:var(--pink-1);
+  line-height:1.1;
+}
+.fold-note{
+  display:block;
+  color:var(--pink-3);
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  margin-top:5px;
+}
+.stamp{
+  position:absolute;
+  right:7%;
+  top:15%;
+  border:1.5px solid rgba(45,64,39,.5);
+  color:rgba(45,64,39,.85);
+  border-radius:3px;
+  padding:5px 9px;
+  font-size:8.5px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  transform:rotate(-7deg);
+  line-height:1;
+}
+@media (max-width:520px){ .stamp{display:none} }
+
+.drawer-front{
+  position:absolute;
+  left:-3%;
+  right:-3%;
+  bottom:0;
+  height:29%;
+  z-index:10;
+  border-radius:4px;
+  background:linear-gradient(to bottom, #2c3029 0%, #23271f 34%, #171a16 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(236,232,224,.14),
+    inset 0 -1px 0 rgba(0,0,0,.6),
+    0 -14px 26px -16px rgba(0,0,0,.9),
+    14px 20px 40px -18px rgba(0,0,0,.9);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:12px;
+}
+.pull{
+  width:min(150px, 42%);
+  height:13px;
+  border-radius:7px;
+  background:linear-gradient(to bottom, var(--gold-l), var(--gold) 46%, var(--gold-dd));
+  box-shadow:2px 3px 7px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.5);
+}
+.plate-label{
+  border:1px solid rgba(201,164,92,.45);
+  border-radius:2px;
+  padding:5px 12px;
+  color:var(--gold-l);
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  background:rgba(201,164,92,.07);
+}
+
+/* ============================================================
+   SECTION FURNITURE
+   ============================================================ */
+.section{padding-block:clamp(64px, 9vw, 118px)}
+.section-head{margin-bottom:clamp(34px, 5vw, 58px)}
+.section-head .lede{margin:20px 0 0}
+
+/* a hairline that reads as a shelf edge */
+.shelf{
+  height:1px;
+  background:linear-gradient(to right, transparent, rgba(201,164,92,.30) 12%, rgba(201,164,92,.30) 88%, transparent);
+}
+
+/* ============================================================
+   PRINCIPLE: a folder that opens
+   ============================================================ */
+.folder{
+  position:relative;
+  margin-top:28px;
+  border-radius:3px 3px 4px 4px;
+  background-color:#dfd8c8;
+  background-image:var(--grain), linear-gradient(158deg, #ece7db 0%, #e2dbcb 46%, #d2cab7 100%);
+  background-blend-mode:multiply, normal;
+  box-shadow:0 1px 0 #cdc5b1, 0 2px 0 #c3bba7, var(--sh-3);
+}
+.folder::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.62), inset -1px -1px 0 rgba(110,102,88,.22);
+}
+.folder>summary{
+  list-style:none;
+  display:block;
+  position:relative;
+  cursor:pointer;
+  padding:20px 22px 18px;
+  border-radius:3px 3px 0 0;
+}
+.folder>summary::-webkit-details-marker{display:none}
+.folder-tabtop{
+  position:absolute;
+  top:-26px;
+  left:22px;
+  height:27px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:0 16px;
+  border-radius:4px 4px 0 0;
+  background-color:#e2dbcb;
+  background-image:var(--grain), linear-gradient(to bottom, #ece7db, #e2dbcb);
+  background-blend-mode:multiply, normal;
+  color:var(--pink-3);
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.7), 4px -2px 8px -5px rgba(4,6,4,.6);
+}
+.folder-tabtop::after{
+  content:"";position:absolute;left:0;right:0;bottom:-3px;height:4px;background:#e2dbcb;
+}
+.folder-line{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+  min-height:28px;
+}
+.folder-closed-title{
+  font-family:var(--serif);
+  font-size:clamp(1.15rem,2.6vw,1.5rem);
+  color:var(--pink-1);
+  line-height:1.2;
+}
+.folder[open] .folder-closed-title{display:none}
+.folder-handle{
+  color:var(--pink-3);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-left:auto;
+}
+.folder-handle::after{
+  content:"";
+  width:9px;height:9px;
+  border-right:1.5px solid var(--pink-3);
+  border-bottom:1.5px solid var(--pink-3);
+  transform:rotate(45deg) translate(-2px,-2px);
+}
+.folder[open] .folder-handle::after{transform:rotate(-135deg) translate(-2px,-2px)}
+.folder .open-word{display:none}
+.folder .shut-word{display:inline}
+.folder[open] .open-word{display:inline}
+.folder[open] .shut-word{display:none}
+.folder>summary:hover .folder-handle{color:var(--pink-1)}
+
+.folder-body{padding:2px 22px 26px}
+@media (min-width:820px){
+  .folder>summary{padding:22px 34px 18px}
+  .folder-body{padding:2px 34px 34px}
+}
+
+.leaves{
+  list-style:none;
+  margin:34px 0 0;
+  padding:0;
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+  gap:34px 24px;
+}
+.leaf-wrap{position:relative}
+.leaf{
+  position:relative;
+  padding:26px 24px 26px;
+  border-radius:2px;
+  background-color:#f0ece2;
+  background-image:var(--grain), linear-gradient(160deg, #f7f4ec 0%, #f0ece2 48%, #e2dccd 100%);
+  background-blend-mode:multiply, normal;
+  box-shadow:var(--thick-2), var(--sh-1);
+  transition:transform .3s cubic-bezier(.2,.7,.3,1);
+  height:100%;
+}
+.leaf::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.8), inset -1px -1px 0 rgba(110,102,88,.16);
+}
+.leaf-wrap::after{
+  content:"";
+  position:absolute;
+  inset:8px 0 -6px 8px;
+  border-radius:3px;
+  box-shadow:var(--sh-2);
+  opacity:0;
+  z-index:-1;
+  transition:opacity .3s ease;
+}
+.leaf-wrap:hover .leaf{transform:translate3d(0,-5px,0)}
+.leaf-wrap:hover::after{opacity:1}
+.leaf .num{
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:1.05rem;
+  color:var(--gold-dd);
+  display:block;
+  margin-bottom:8px;
+}
+.leaf h3{
+  font-size:1.32rem;
+  color:var(--pink-1);
+  letter-spacing:-.008em;
+  margin-bottom:11px;
+}
+.leaf p{margin:0;font-size:.95rem;line-height:1.68;color:var(--pink-3)}
+.punch{
+  position:absolute;
+  left:12px;
+  width:9px;height:9px;
+  border-radius:50%;
+  background:rgba(60,56,48,.16);
+  box-shadow:inset 0 1px 1px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.55);
+}
+.punch.a{top:22%}
+.punch.b{top:70%}
+
+/* stats: typed label plates on a brass rail */
+.labels{
+  margin-top:clamp(40px,6vw,70px);
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
+  gap:22px;
+}
+.labels::before{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:26px;
+  height:1px;
+  background:linear-gradient(to right, transparent, rgba(201,164,92,.34), transparent);
+  z-index:-1;
+}
+.label-plate{
+  position:relative;
+  padding:22px 20px 20px;
+  border-radius:2px;
+}
+.label-plate .frame{
+  position:absolute;
+  inset:7px;
+  border:1px solid rgba(138,112,56,.32);
+  border-radius:1px;
+  pointer-events:none;
+}
+.label-plate .fig{
+  font-family:var(--serif);
+  font-size:clamp(2.1rem, 4.6vw, 2.9rem);
+  line-height:1;
+  color:var(--pink-1);
+  letter-spacing:-.03em;
+  display:block;
+}
+.label-plate .fig small{font-size:.5em;letter-spacing:0;vertical-align:.28em;color:var(--gold-dd)}
+.label-plate p{
+  margin:12px 0 0;
+  font-size:.86rem;
+  line-height:1.6;
+  color:var(--pink-3);
+}
+.label-plate .cap{
+  display:block;
+  color:var(--gold-dd);
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  margin-bottom:14px;
+}
+
+/* ============================================================
+   PRODUCT: tabbed cards, and a hanging file of documents
+   ============================================================ */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(288px, 1fr));
+  gap:44px 26px;
+}
+.card-wrap{position:relative;padding-top:26px}
+.card{
+  position:relative;
+  height:100%;
+  padding:26px 24px 28px;
+  transition:transform .3s cubic-bezier(.2,.7,.3,1);
+}
+.card-wrap::after{
+  content:"";
+  position:absolute;
+  inset:34px 0 -6px 10px;
+  border-radius:3px;
+  box-shadow:var(--sh-lift);
+  opacity:0;
+  z-index:-1;
+  transition:opacity .3s ease;
+}
+.card-wrap:hover .card{transform:translate3d(0,-6px,0)}
+.card-wrap:hover::after{opacity:1}
+.cards .card-wrap:nth-child(3n+2) .tab{left:34%}
+.cards .card-wrap:nth-child(3n+3) .tab{left:58%}
+@media (max-width:960px){
+  .cards .card-wrap:nth-child(3n+2) .tab,
+  .cards .card-wrap:nth-child(3n+3) .tab{left:auto}
+  .cards .card-wrap:nth-child(2n) .tab{left:44%}
+}
+.tools .tool-wrap:nth-child(2) .tab{left:auto;right:24px}
+.card h3{
+  font-size:1.28rem;
+  color:var(--pink-1);
+  letter-spacing:-.008em;
+  margin-bottom:12px;
+}
+.card p{margin:0;font-size:.94rem;line-height:1.68;color:var(--pink-3)}
+.cat{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-top:20px;
+  padding-top:14px;
+  border-top:1px solid rgba(138,112,56,.24);
+  color:var(--gold-dd);
+  font-size:9px;
+  letter-spacing:.22em;
+}
+.cat::before{
+  content:"";
+  width:12px;height:1px;
+  background:currentColor;
+  flex:none;
+}
+.card .rule{
+  height:1px;
+  background:linear-gradient(to right, rgba(138,112,56,.4), rgba(138,112,56,.05));
+  margin:0 0 14px;
+}
+
+/* hanging file with index tabs */
+.hangfile{
+  margin-top:clamp(48px,7vw,84px);
+  border-radius:4px;
+  background:linear-gradient(to bottom, #262a23 0%, #1c201b 42%, #151815 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(236,232,224,.12),
+    inset 0 0 0 1px rgba(201,164,92,.14),
+    var(--sh-3);
+  padding:clamp(16px,2.4vw,26px);
+  position:relative;
+}
+.hangrail{
+  position:absolute;
+  left:clamp(16px,2.4vw,26px);
+  right:clamp(16px,2.4vw,26px);
+  top:0;
+  height:2px;
+  background:linear-gradient(to right, rgba(201,164,92,.05), rgba(201,164,92,.5), rgba(201,164,92,.05));
+  border-radius:2px;
+}
+.tabrow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:clamp(16px,2.4vw,22px);
+}
+.itab{
+  appearance:none;
+  border:0;
+  font-family:var(--sans);
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+  min-height:44px;
+  padding:0 18px;
+  border-radius:4px 4px 2px 2px;
+  cursor:pointer;
+  color:var(--ink-2);
+  background:linear-gradient(to bottom, #33372f, #262a23);
+  box-shadow:inset 0 1px 0 rgba(236,232,224,.12), var(--sh-1);
+  transition:transform .24s cubic-bezier(.2,.7,.3,1), color .2s ease;
+}
+.itab:hover{color:var(--ink);transform:translate3d(0,-2px,0)}
+.itab[aria-selected="true"]{
+  background-color:var(--paper);
+  background-image:var(--grain), linear-gradient(to bottom, var(--paper-hi), var(--paper));
+  background-blend-mode:multiply, normal;
+  color:var(--pink-1);
+  transform:translate3d(0,-3px,0);
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.7), var(--sh-2);
+}
+.doc{
+  padding:clamp(10px,1.4vw,16px);
+  border-radius:2px;
+}
+.doc + .doc{margin-top:20px}
+.doc figure{margin:0}
+.doc img{
+  width:100%;
+  border-radius:1px;
+  box-shadow:0 0 0 1px rgba(60,56,48,.30), 6px 8px 20px -10px rgba(4,6,4,.6);
+  background:var(--room-2);
+}
+.doc figcaption{
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color:var(--pink-3);
+  border-top:1px solid rgba(138,112,56,.28);
+  padding-top:10px;
+}
+.doc figcaption .doc-no{color:var(--gold-dd);margin-left:auto}
+.fine{
+  margin:18px 0 0;
+  color:var(--ink-3);
+  font-size:.82rem;
+  line-height:1.6;
+}
+.js .doc-cap{display:none}
+.no-js .tabrow{display:none}
+
+/* ============================================================
+   PHILOSOPHY
+   ============================================================ */
+.phil-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:clamp(28px,4vw,44px);
+  max-width:820px;
+}
+@media (min-width:1000px){
+  .phil-grid{
+    max-width:none;
+    grid-template-columns:1.42fr 1fr;
+    align-items:center;
+    gap:clamp(30px,3.4vw,50px);
+  }
+}
+.foolscap{
+  padding:clamp(28px,4vw,50px) clamp(24px,4vw,54px);
+  position:relative;
+}
+/* a thicker resting stack: four leaf edges, then two sheets beneath */
+.foolscap,
+.record{
+  box-shadow:
+    0 1px 0 var(--paper-lo),
+    0 2px 0 #d2cbba,
+    0 3px 0 #c8c0ad,
+    0 4px 0 #bdb5a1,
+    7px 8px 0 -2px #d9d2c1,
+    11px 13px 0 -4px #cdc5b2,
+    var(--sh-3);
+}
+.foolscap .margin-rule{
+  position:absolute;
+  left:clamp(15px,2.2vw,30px);
+  top:0;bottom:0;
+  width:1px;
+  background:linear-gradient(to bottom, transparent, rgba(214,122,111,.45) 8%, rgba(214,122,111,.45) 92%, transparent);
+}
+.foolscap p{
+  margin:0 0 22px;
+  font-size:1.02rem;
+  line-height:1.85;
+  color:var(--pink-2);
+}
+.foolscap p:last-child{margin-bottom:0}
+.foolscap .h2{margin-bottom:24px}
+.pullquote{
+  position:relative;
+  padding:clamp(28px,3.6vw,42px) clamp(24px,3.6vw,44px);
+  border-left:3px solid var(--gold);
+  background:linear-gradient(160deg, rgba(33,36,31,.92), rgba(20,23,21,.92));
+  border-radius:2px;
+  box-shadow:var(--sh-2);
+}
+.pullquote blockquote{
+  margin:0;
+  font-family:var(--serif);
+  font-size:clamp(1.16rem, 2.5vw, 1.62rem);
+  line-height:1.44;
+  color:var(--ink);
+  font-style:italic;
+  font-weight:300;
+}
+.pullquote blockquote strong{font-weight:500;color:var(--green-l);font-style:normal}
+.pullquote .attrib{margin:18px 0 0;color:var(--gold)}
+
+/* ============================================================
+   FOUNDER: a record card with a clipped photograph
+   ============================================================ */
+.founder-grid{
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:clamp(34px,5vw,64px);
+  align-items:start;
+}
+@media (max-width:860px){
+  .founder-grid{grid-template-columns:1fr;gap:52px}
+}
+.photo-hold{position:relative;padding-top:20px}
+.photo{
+  margin:0;
+  padding:12px 12px 46px;
+  border-radius:2px;
+  transform:rotate(-1.6deg);
+}
+.photo img{
+  width:100%;
+  border-radius:1px;
+  box-shadow:0 0 0 1px rgba(60,56,48,.28), inset 0 0 20px rgba(0,0,0,.2);
+  filter:saturate(.86) contrast(1.02);
+}
+.photo figcaption{
+  position:absolute;
+  left:12px;right:12px;bottom:14px;
+  color:var(--pink-3);
+  text-align:center;
+}
+.clip{
+  position:absolute;
+  top:-6px;
+  left:26px;
+  z-index:3;
+  transform:rotate(-6deg);
+  filter:drop-shadow(3px 5px 4px rgba(4,6,4,.55));
+}
+.record{
+  padding:clamp(28px,3.6vw,46px) clamp(24px,3.6vw,46px);
+  border-radius:2px;
+}
+.record-head{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 26px;
+  align-items:baseline;
+  padding-bottom:16px;
+  margin-bottom:26px;
+  border-bottom:1px solid rgba(138,112,56,.32);
+}
+.record-head .who{
+  font-family:var(--serif);
+  font-size:clamp(1.3rem,2.6vw,1.7rem);
+  color:var(--pink-1);
+  line-height:1.2;
+}
+.record-head .role{color:var(--pink-3);margin-left:auto}
+.record p{
+  margin:0 0 20px;
+  font-size:.99rem;
+  line-height:1.8;
+  color:var(--pink-2);
+}
+.record p:last-child{margin-bottom:0}
+.record .said{
+  margin:26px 0;
+  padding:20px 22px;
+  border-left:3px solid var(--gold-d);
+  background:rgba(138,112,56,.07);
+  border-radius:0 2px 2px 0;
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:1.06rem;
+  line-height:1.55;
+  color:var(--pink-1);
+}
+.record .order{
+  margin-top:26px;
+  padding-top:20px;
+  border-top:1px solid rgba(138,112,56,.32);
+}
+
+/* ============================================================
+   FREE TOOLS: two labelled folders you can pull out
+   ============================================================ */
+.tools{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
+  gap:44px 26px;
+}
+.tool-wrap{position:relative;padding-top:26px}
+.tool{
+  position:relative;
+  display:block;
+  height:100%;
+  padding:28px 26px 30px;
+  text-decoration:none;
+  color:var(--pink-2);
+  transition:transform .3s cubic-bezier(.2,.7,.3,1);
+}
+.tool-wrap::after{
+  content:"";
+  position:absolute;
+  inset:34px 0 -6px 10px;
+  border-radius:3px;
+  box-shadow:var(--sh-lift);
+  opacity:0;z-index:-1;
+  transition:opacity .3s ease;
+}
+.tool-wrap:hover .tool{transform:translate3d(0,-6px,0)}
+.tool-wrap:hover::after{opacity:1}
+.tool h3{
+  font-size:1.4rem;
+  color:var(--pink-1);
+  margin-bottom:10px;
+}
+.tool p{margin:0 0 20px;font-size:.94rem;line-height:1.68;color:var(--pink-3)}
+.tool .go{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  color:var(--gold-dd);
+}
+.tool .go::after{
+  content:"";
+  width:16px;height:1px;
+  background:currentColor;
+  transition:width .28s cubic-bezier(.2,.7,.3,1);
+}
+.tool-wrap:hover .go::after{width:28px}
+
+/* ============================================================
+   CLOSING
+   ============================================================ */
+#contact{padding-bottom:clamp(30px,3.4vw,46px)}
+.closing{
+  position:relative;
+  text-align:center;
+  padding:clamp(48px,7vw,86px) clamp(24px,5vw,64px);
+  border-radius:3px;
+  background:linear-gradient(162deg, rgba(35,39,32,.94), rgba(19,22,19,.96));
+  box-shadow:inset 0 1px 0 rgba(236,232,224,.10), inset 0 0 0 1px rgba(201,164,92,.16), var(--sh-3);
+}
+.closing .h2{margin-inline:auto;max-width:24ch}
+.closing .lede{margin:22px auto 0;max-width:56ch}
+.closing .btn-row{justify-content:center;margin-top:36px}
+.closing-seal{
+  width:60px;height:60px;
+  margin:0 auto 22px;
+  opacity:.95;
+  filter:drop-shadow(3px 5px 6px rgba(0,0,0,.6));
+}
+.date-stamp{
+  display:inline-block;
+  margin-top:30px;
+  border:1.5px solid rgba(143,178,138,.42);
+  color:var(--green);
+  border-radius:3px;
+  padding:7px 14px;
+  transform:rotate(-1.6deg);
+}
+
+/* the wall meets the floor: a skirting board, the brass returning */
+.skirting{
+  position:relative;
+  height:clamp(52px, 6vw, 76px);
+  margin-top:clamp(26px, 3.4vw, 44px);
+  background:linear-gradient(to bottom, rgba(46,50,42,.55) 0%, rgba(30,33,28,.5) 46%, rgba(12,14,12,.72) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(236,232,224,.07),
+    inset 0 -14px 22px -18px rgba(0,0,0,.95);
+}
+.skirting::before{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:0;height:1px;
+  background:linear-gradient(to right, transparent, rgba(201,164,92,.34) 14%, rgba(201,164,92,.34) 86%, transparent);
+}
+.skirting::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;
+  top:clamp(16px, 2vw, 24px);
+  height:1px;
+  background:linear-gradient(to right, transparent, rgba(236,232,224,.07) 20%, rgba(236,232,224,.07) 80%, transparent);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.foot{
+  border-top:0;
+  background:linear-gradient(to bottom, rgba(20,23,21,0), rgba(11,13,11,.7));
+  padding-block:clamp(40px,6vw,64px) clamp(34px,5vw,52px);
+}
+.foot-grid{
+  display:grid;
+  grid-template-columns:1.1fr 1fr;
+  gap:34px;
+  align-items:start;
+}
+@media (max-width:760px){ .foot-grid{grid-template-columns:1fr;gap:30px} }
+.foot-nav{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px 6px;
+  justify-content:flex-end;
+}
+@media (max-width:760px){ .foot-nav{justify-content:flex-start} }
+.foot-nav a{
+  color:var(--ink-2);
+  text-decoration:none;
+  font-size:12px;
+  letter-spacing:.06em;
+  padding:11px 12px;
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+  border-radius:3px;
+}
+.foot-nav a:hover{color:var(--gold-l)}
+.foot-lines{
+  margin-top:clamp(30px,4vw,44px);
+  padding-top:24px;
+  border-top:1px solid rgba(236,232,224,.10);
+  display:grid;
+  gap:10px;
+}
+.foot-lines p{margin:0;color:var(--ink-3);font-size:.83rem;line-height:1.65}
+.foot-lines .abn{color:var(--ink-2)}
+
+/* ============================================================
+   MOTION: everything below is optional. With motion reduced the
+   page renders in its final, complete, readable state.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference){
+  .js .rise{
+    opacity:0;
+    transform:translate3d(0,18px,0);
+    transition:opacity .28s ease-out, transform .46s cubic-bezier(.2,.72,.28,1);
+    transition-delay:var(--d, 0ms);
+    will-change:opacity, transform;
+  }
+  .js .rise.in{opacity:1;transform:none;will-change:auto}
+  .js .drawer .fold{
+    opacity:0;
+    transform:translate3d(0,22px,0);
+    transition:opacity .3s ease-out, transform .55s cubic-bezier(.2,.72,.28,1);
+    transition-delay:var(--d, 0ms);
+  }
+  .js .drawer.in .fold{opacity:1;transform:none}
+  .drawer .fold:hover,
+  .drawer .fold:focus-visible{transform:translate3d(0,-9px,0)}
+  .js .drawer.in .fold:hover,
+  .js .drawer.in .fold:focus-visible{transform:translate3d(0,-9px,0)}
+  html{scroll-behavior:smooth}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+}
+
+@media (max-width:640px){
+  .photo{transform:none}
+  .stamp{transform:none}
+  .date-stamp{transform:rotate(-.5deg)}
+  .foolscap .margin-rule{display:none}
+}
+@media (max-width:400px){
+  .fold .ftab{font-size:8.5px;padding:0 9px;letter-spacing:.12em}
+  .f3 .ftab{left:44%}
+  .f6 .ftab{left:52%}
+}
+</style>
+</head>
+<body id="top">
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="rail">
+  <div class="rail-in">
+    <a class="brand" href="#top">
+      <img src="/assets/alembic-mark-256.png" alt="" width="30" height="30">
+      <span class="brand-txt">
+        <b>Alembic.</b>
+        <span class="brand-sub">Alembic Labs · Melbourne, Australia</span>
+      </span>
+    </a>
+
+    <nav class="rail-nav" aria-label="Main">
+      <a href="#principle">Principle</a>
+      <a href="#product">Product</a>
+      <a href="#philosophy">Philosophy</a>
+      <a href="#founder">Founder</a>
+      <i class="sep" aria-hidden="true"></i>
+      <a href="/mse/">MSE Builder</a>
+      <a href="/risk/">Risk Writer</a>
+      <a class="plate brass" href="#contact">Get in touch</a>
+    </nav>
+
+    <details class="menu" id="menu">
+      <summary><i aria-hidden="true"></i>Index</summary>
+      <nav class="menu-panel paper" aria-label="Main, compact">
+        <a href="#principle">Principle</a>
+        <a href="#product">Product</a>
+        <a href="#philosophy">Philosophy</a>
+        <a href="#founder">Founder</a>
+        <a href="/mse/">MSE Builder</a>
+        <a href="/risk/">Risk Writer</a>
+        <a href="#contact">Get in touch</a>
+      </nav>
+    </details>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ==================== HERO ==================== -->
+  <section class="hero wrap" aria-labelledby="h1">
+    <div class="hero-grid">
+      <div>
+        <p class="typed kicker">Alembic Labs · Melbourne, Australia</p>
+        <h1 id="h1">
+          <span class="h1-word">Alembic<em>.</em></span>
+          <span class="h1-line">A second brain for psychologists.</span>
+        </h1>
+        <p class="hero-sub">
+          A clinical workspace for Australian psychologists where <strong>every client record lives on your own computer</strong>, as plain files you can read, move, and keep.
+          <span class="quiet">No cloud. No database. Alembic Labs never holds your clients' data.</span>
+        </p>
+        <div class="btn-row">
+          <a class="btn btn-solid brass" href="#product">See what it holds</a>
+          <a class="btn btn-ghost" href="#founder">Why it exists</a>
+        </div>
+      </div>
+
+      <!-- the drawer: the index of the room, and its illustration -->
+      <nav class="drawer" id="drawer" aria-label="Drawer index">
+        <a class="fold f6" style="--d:0ms" href="#card-craft"><span class="ftab">Craft</span></a>
+        <a class="fold f5" style="--d:25ms" href="#card-practice"><span class="ftab">Practice</span></a>
+        <a class="fold f4" style="--d:50ms" href="#card-records"><span class="ftab">Records</span></a>
+        <a class="fold f3" style="--d:75ms" href="#card-cpd"><span class="ftab">CPD</span></a>
+        <a class="fold f2" style="--d:100ms" href="#card-assessments"><span class="ftab">Assessments</span></a>
+        <a class="fold f1" style="--d:125ms" href="#card-notes">
+          <span class="ftab">Notes</span>
+          <span class="fold-face" aria-hidden="true">
+            <img class="seal" src="/assets/alembic-mark-256.png" alt="" width="56" height="56">
+            <span class="fold-name">
+              <b>Alembic</b>
+              <span class="fold-note">Your machine · plain files</span>
+            </span>
+          </span>
+          <span class="stamp" aria-hidden="true">Local only</span>
+        </a>
+        <div class="drawer-front" aria-hidden="true">
+          <span class="pull"></span>
+          <span class="plate-label">Alembic Labs</span>
+        </div>
+      </nav>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="shelf"></div></div>
+
+  <!-- ==================== PRINCIPLE ==================== -->
+  <section class="section wrap" id="principle" aria-label="The principle">
+    <div class="section-head rise">
+      <p class="typed kicker">The principle</p>
+    </div>
+
+    <details class="folder rise" open>
+      <summary>
+        <span class="folder-tabtop typed">File 01 · The Principle</span>
+        <span class="folder-line">
+          <span class="folder-closed-title">Your practice, on your machine, in plain text.</span>
+          <span class="folder-handle typed"><span class="open-word">Close the folder</span><span class="shut-word">Open the folder</span></span>
+        </span>
+      </summary>
+
+      <div class="folder-body">
+        <h2 class="h2 on-paper" id="principle-h">Your practice, on your machine, in plain text.</h2>
+        <p class="lede on-paper" style="margin-top:20px">
+          Everything you write in Alembic is a file in a folder on your own computer. The app is a reader and dashboard over that folder. If you stopped using Alembic tomorrow, your records would still be sitting there, legible, portable, and yours.
+        </p>
+
+        <ol class="leaves">
+          <li class="leaf-wrap rise" style="--d:0ms">
+            <article class="leaf">
+              <span class="punch a" aria-hidden="true"></span>
+              <span class="punch b" aria-hidden="true"></span>
+              <span class="num">i.</span>
+              <h3>No cloud</h3>
+              <p>There is no server in another state, country, or company. Your computer is the whole system. Client data is never transmitted to Alembic Labs or stored by us, because there is nowhere for it to go.</p>
+            </article>
+          </li>
+          <li class="leaf-wrap rise" style="--d:45ms">
+            <article class="leaf">
+              <span class="punch a" aria-hidden="true"></span>
+              <span class="punch b" aria-hidden="true"></span>
+              <span class="num">ii.</span>
+              <h3>No database</h3>
+              <p>A client is a folder. A note is a document. Your whole practice is readable in Finder without Alembic open. A client who requests their file receives a clean, human-readable package.</p>
+            </article>
+          </li>
+          <li class="leaf-wrap rise" style="--d:90ms">
+            <article class="leaf">
+              <span class="punch a" aria-hidden="true"></span>
+              <span class="punch b" aria-hidden="true"></span>
+              <span class="num">iii.</span>
+              <h3>No lock-in</h3>
+              <p>Plain text is the most durable, portable, legible format for long-lived clinical records ever invented. Your records never need exporting, because they were never trapped to begin with.</p>
+            </article>
+          </li>
+        </ol>
+      </div>
+    </details>
+
+    <div class="labels">
+      <div class="label-plate paper rise" style="--d:0ms">
+        <span class="frame" aria-hidden="true"></span>
+        <span class="cap typed">Servers</span>
+        <span class="fig">0</span>
+        <p>servers holding your clients' data. Your computer is the whole system.</p>
+      </div>
+      <div class="label-plate paper rise" style="--d:30ms">
+        <span class="frame" aria-hidden="true"></span>
+        <span class="cap typed">Tests</span>
+        <span class="fig">5,000<small>+</small></span>
+        <p>automated tests run green behind every build.</p>
+      </div>
+      <div class="label-plate paper rise" style="--d:60ms">
+        <span class="frame" aria-hidden="true"></span>
+        <span class="cap typed">Instruments</span>
+        <span class="fig">7</span>
+        <p>licence-verified assessment instruments, published scoring only.</p>
+      </div>
+      <div class="label-plate paper rise" style="--d:90ms">
+        <span class="frame" aria-hidden="true"></span>
+        <span class="cap typed">CPD</span>
+        <span class="fig">47<small>.5</small></span>
+        <p>hours of built-in self-directed CPD across 16 courses.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="shelf"></div></div>
+
+  <!-- ==================== PRODUCT ==================== -->
+  <section class="section wrap" id="product" aria-labelledby="product-h">
+    <div class="section-head rise">
+      <p class="typed kicker">The product</p>
+      <h2 class="h2" id="product-h">One quiet place for the whole practice.</h2>
+    </div>
+
+    <div class="cards">
+      <div class="card-wrap rise" id="card-notes" style="--d:0ms">
+        <article class="card paper">
+          <span class="tab typed">Notes</span>
+          <h3>Structured clinical notes</h3>
+          <div class="rule"></div>
+          <p>A composer that renders any note style as a form and enforces compliant formatting in code. Mental state and risk are always authored by you; the software never writes clinical judgement on your behalf.</p>
+          <span class="cat typed">Cabinet 1 · Drawer 1</span>
+        </article>
+      </div>
+      <div class="card-wrap rise" id="card-assessments" style="--d:35ms">
+        <article class="card paper">
+          <span class="tab typed">Assessments</span>
+          <h3>Score-only psychometrics</h3>
+          <div class="rule"></div>
+          <p>Seven licence-verified instruments (PHQ-9, GAD-7, DASS-21 and more) with published scoring rules and published bands only, trend charts across sessions, and printable paper forms. Never an interpretation, never a diagnosis.</p>
+          <span class="cat typed">Cabinet 1 · Drawer 2</span>
+        </article>
+      </div>
+      <div class="card-wrap rise" id="card-cpd" style="--d:70ms">
+        <article class="card paper">
+          <span class="tab typed">CPD</span>
+          <h3>Logbook and Learn</h3>
+          <div class="rule"></div>
+          <p>Hour tracking against PsyBA internship and CPD targets with an official-layout spreadsheet mirror, plus a built-in library of 16 self-directed CPD courses totalling 47.5 computed hours, with quizzes and certificates.</p>
+          <span class="cat typed">Cabinet 1 · Drawer 3</span>
+        </article>
+      </div>
+      <div class="card-wrap rise" id="card-records" style="--d:0ms">
+        <article class="card paper">
+          <span class="tab typed">Records</span>
+          <h3>Reports, genograms, calendar</h3>
+          <div class="rule"></div>
+          <p>A deterministic report builder that assembles referral and GP letters purely from what the record already says, a manual-first genogram editor, and a calendar that sits beside the client list.</p>
+          <span class="cat typed">Cabinet 2 · Drawer 1</span>
+        </article>
+      </div>
+      <div class="card-wrap rise" id="card-practice" style="--d:35ms">
+        <article class="card paper">
+          <span class="tab typed">Practice</span>
+          <h3>The Dojo</h3>
+          <div class="rule"></div>
+          <p>A walkable 3D therapy room for rehearsing clinical skills: sit across from a patient, practise your opening, step out into the garden between rounds. No AI, no client data, just a room that is always available.</p>
+          <span class="cat typed">Cabinet 2 · Drawer 2</span>
+        </article>
+      </div>
+      <div class="card-wrap rise" id="card-craft" style="--d:70ms">
+        <article class="card paper">
+          <span class="tab typed">Craft</span>
+          <h3>Made to be lived in</h3>
+          <div class="rule"></div>
+          <p>Eight theme packs, five materials, a full accessibility pass to WCAG AA in both light and dark, bundled fonts, an offline radio station, and small touches everywhere, because you will spend your working life inside it.</p>
+          <span class="cat typed">Cabinet 2 · Drawer 3</span>
+        </article>
+      </div>
+    </div>
+
+    <!-- documents mounted in a hanging file -->
+    <div class="hangfile rise">
+      <span class="hangrail" aria-hidden="true"></span>
+      <div class="tabrow" role="tablist" aria-label="Screenshots">
+        <button class="itab" type="button" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">Dashboard</button>
+        <button class="itab" type="button" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false">Caseload</button>
+        <button class="itab" type="button" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false">Sessions</button>
+        <button class="itab" type="button" role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false">Calendar</button>
+      </div>
+
+      <div class="doc paper" id="panel-1" role="tabpanel" aria-labelledby="tab-1" tabindex="0">
+        <figure>
+          <img src="/assets/screenshots/01-dashboard.jpg" width="1600" height="1000" alt="The Alembic dashboard, showing the day's overview. Fictional demonstration data." decoding="async">
+          <figcaption class="typed"><span class="doc-cap">Dashboard</span><span class="doc-no">Sheet 01</span></figcaption>
+        </figure>
+      </div>
+      <div class="doc paper" id="panel-2" role="tabpanel" aria-labelledby="tab-2" tabindex="0">
+        <figure>
+          <img src="/assets/screenshots/02-caseload.jpg" width="1600" height="1000" alt="The caseload view in Alembic, listing client folders. Fictional demonstration data." loading="lazy" decoding="async">
+          <figcaption class="typed"><span class="doc-cap">Caseload</span><span class="doc-no">Sheet 02</span></figcaption>
+        </figure>
+      </div>
+      <div class="doc paper" id="panel-3" role="tabpanel" aria-labelledby="tab-3" tabindex="0">
+        <figure>
+          <img src="/assets/screenshots/04-alex-sessions.jpg" width="1600" height="1000" alt="The sessions view in Alembic, showing a run of session records for one file. Fictional demonstration data." loading="lazy" decoding="async">
+          <figcaption class="typed"><span class="doc-cap">Sessions</span><span class="doc-no">Sheet 03</span></figcaption>
+        </figure>
+      </div>
+      <div class="doc paper" id="panel-4" role="tabpanel" aria-labelledby="tab-4" tabindex="0">
+        <figure>
+          <img src="/assets/screenshots/09-calendar.jpg" width="1600" height="1000" alt="The Alembic calendar sitting beside the client list. Fictional demonstration data." loading="lazy" decoding="async">
+          <figcaption class="typed"><span class="doc-cap">Calendar</span><span class="doc-no">Sheet 04</span></figcaption>
+        </figure>
+      </div>
+
+      <p class="fine">All screenshots show fictional demonstration data. No real client information appears anywhere on this site.</p>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="shelf"></div></div>
+
+  <!-- ==================== PHILOSOPHY ==================== -->
+  <section class="section wrap" id="philosophy" aria-labelledby="philosophy-h">
+    <div class="section-head rise">
+      <p class="typed kicker">The philosophy</p>
+    </div>
+
+    <div class="phil-grid">
+      <article class="foolscap paper ruled rise">
+        <span class="margin-rule" aria-hidden="true"></span>
+        <h2 class="h2 on-paper" id="philosophy-h">Software in service of attention.</h2>
+        <p>Therapy is not primarily a matter of technique. It is a matter of attention: being able to arrive in a room and keep the whole person in view, week after week, year after year, without losing track of who they are becoming. The software a therapist uses should make that easier. Most of the software we encountered makes it harder.</p>
+        <p>So Alembic is opinionated. It treats therapy as more than symptom relief. It assumes the clinician wants to think seriously about the person in front of them, and it structures itself around supporting that kind of thinking rather than replacing it with a form. It keeps records on the clinician's own hardware, because anything else is an abdication of a responsibility that is ours, not a vendor's.</p>
+      </article>
+
+      <div class="pullquote rise">
+        <blockquote>"The software should serve the therapist. The therapist serves the person in front of them. <strong>If the software gets those two orders of business reversed, everyone suffers.</strong>"</blockquote>
+        <p class="typed attrib">Alembic Labs</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="shelf"></div></div>
+
+  <!-- ==================== FOUNDER ==================== -->
+  <section class="section wrap" id="founder" aria-labelledby="founder-h">
+    <div class="section-head rise">
+      <p class="typed kicker">The founder</p>
+      <h2 class="h2" id="founder-h">Built by a clinician, for clinical work.</h2>
+    </div>
+
+    <div class="founder-grid">
+      <div class="photo-hold rise">
+        <svg class="clip" width="34" height="82" viewBox="0 0 52 126" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="brassclip" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#e0c9a0"/>
+              <stop offset=".45" stop-color="#c9a45c"/>
+              <stop offset="1" stop-color="#8a7038"/>
+            </linearGradient>
+          </defs>
+          <path d="M20 110 L20 30 A13 13 0 0 1 46 30 L46 98 A20 20 0 0 1 6 98 L6 24 A17 17 0 0 1 40 24 L40 104"
+                fill="none" stroke="url(#brassclip)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <figure class="photo paper">
+          <img src="/assets/jean-luc-headshot.jpg" width="900" height="1200" alt="Jean-Luc Alder, founder of Alembic Labs." loading="lazy" decoding="async">
+          <figcaption class="typed">Jean-Luc Alder · Founder</figcaption>
+        </figure>
+      </div>
+
+      <article class="record paper rise">
+        <div class="record-head">
+          <span class="who">Jean-Luc Alder</span>
+          <span class="role typed">Founder, Alembic Labs</span>
+        </div>
+        <p>Alembic was developed by a provisional psychologist, because what he wanted did not exist and he could no longer work the way he wanted to work without it.</p>
+        <p>Jean-Luc came to psychology through philosophy, and the two backgrounds have never stopped arguing with each other productively. What survived that argument is a commitment to clinical records that are not shallow: records that hold a person's history, their patterns, their values, the small specific things that make a case this case and not a generic one.</p>
+        <p class="said">"I believe a good formulation is an epistemic act as much as a clinical one. And I believe the software we use should be able to hold complexity rather than flattening it."</p>
+        <p class="order">Every feature is built against the standards a clinical record actually has to meet, and demonstrated only on fictional data. The order of loyalties is fixed: the client's privacy first, the clinician's thinking second, the software's convenience last.</p>
+      </article>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="shelf"></div></div>
+
+  <!-- ==================== FREE TOOLS ==================== -->
+  <section class="section wrap" id="tools" aria-labelledby="tools-h">
+    <div class="section-head rise">
+      <p class="typed kicker">Free tools</p>
+      <h2 class="h2" id="tools-h">Free tools for clinicians.</h2>
+      <p class="lede">Two free tools built from the same curated clinical vocabulary Alembic uses. Both run entirely in your browser, with nothing stored or sent anywhere.</p>
+    </div>
+
+    <div class="tools">
+      <div class="tool-wrap rise" style="--d:0ms">
+        <a class="tool paper" href="/mse/">
+          <span class="tab typed">Tool 01</span>
+          <h3>MSE Builder</h3>
+          <p>Composes a mental state examination from 429 signed-off descriptors.</p>
+          <span class="go typed">Open the MSE Builder</span>
+        </a>
+      </div>
+      <div class="tool-wrap rise" style="--d:45ms">
+        <a class="tool paper" href="/risk/">
+          <span class="tab typed">Tool 02</span>
+          <h3>Risk Writer</h3>
+          <p>Helps you word the Risk section of a case note you have already decided: it assesses nothing, scores nothing and suggests nothing.</p>
+          <span class="go typed">Open the Risk Writer</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== CLOSING ==================== -->
+  <section class="section wrap" id="contact" aria-labelledby="contact-h">
+    <div class="closing rise">
+      <img class="closing-seal" src="/assets/alembic-mark-256.png" alt="" width="60" height="60">
+      <p class="typed kicker" style="justify-content:center">The closing note</p>
+      <h2 class="h2" id="contact-h">Alembic arrives in 2026.</h2>
+      <p class="lede">It is local when everything is cloud. It is patient when everything is instant. It treats one clinician at a time when the market rewards scale. If that sounds like your kind of software, say hello.</p>
+      <div class="btn-row">
+        <a class="btn btn-solid brass" href="mailto:hello@alembiclabs.com.au">Say hello</a>
+      </div>
+      <p class="typed date-stamp">Filed 2026 · Melbourne</p>
+    </div>
+  </section>
+
+</main>
+
+<div class="skirting" aria-hidden="true"></div>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <a class="brand" href="#top">
+        <img src="/assets/alembic-mark-256.png" alt="" width="30" height="30">
+        <span class="brand-txt">
+          <b>Alembic.</b>
+          <span class="brand-sub">Alembic Labs · Melbourne, Australia</span>
+        </span>
+      </a>
+      <nav class="foot-nav" aria-label="Footer">
+        <a href="#principle">Principle</a>
+        <a href="#product">Product</a>
+        <a href="#philosophy">Philosophy</a>
+        <a href="#founder">Founder</a>
+        <a href="/mse/">MSE Builder</a>
+        <a href="/risk/">Risk Writer</a>
+        <a href="#contact">Get in touch</a>
+      </nav>
+    </div>
+    <div class="foot-lines">
+      <p class="abn">Alembic Labs · ABN 58 247 784 426 · Melbourne, Australia</p>
+      <p>Alembic is practice software. It does not provide clinical advice, diagnosis, or treatment recommendations.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- paper settling in, transform and opacity only ---- */
+  var rise = [].slice.call(document.querySelectorAll('.rise'));
+  var drawer = document.getElementById('drawer');
+  if (drawer) rise.push(drawer);
+
+  function settle(el){ el.classList.add('in'); }
+
+  if (reduce || !('IntersectionObserver' in window)) {
+    rise.forEach(settle);
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) { settle(entries[i].target); io.unobserve(entries[i].target); }
+      }
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.06 });
+    rise.forEach(function(el){ io.observe(el); });
+  }
+
+  /* ---- index tabs on the hanging file ---- */
+  var tabs = [].slice.call(document.querySelectorAll('.itab'));
+  if (tabs.length) {
+    var panels = tabs.map(function(t){ return document.getElementById(t.getAttribute('aria-controls')); });
+    function select(i, moveFocus){
+      for (var j = 0; j < tabs.length; j++) {
+        var on = (j === i);
+        tabs[j].setAttribute('aria-selected', on ? 'true' : 'false');
+        tabs[j].tabIndex = on ? 0 : -1;
+        if (on) panels[j].removeAttribute('hidden');
+        else panels[j].setAttribute('hidden', '');
+      }
+      if (moveFocus) tabs[i].focus();
+    }
+    tabs.forEach(function(t, i){
+      t.addEventListener('click', function(){ select(i, false); });
+      t.addEventListener('keydown', function(e){
+        var n = null, k = e.key;
+        if (k === 'ArrowRight' || k === 'ArrowDown') n = (i + 1) % tabs.length;
+        else if (k === 'ArrowLeft' || k === 'ArrowUp') n = (i - 1 + tabs.length) % tabs.length;
+        else if (k === 'Home') n = 0;
+        else if (k === 'End') n = tabs.length - 1;
+        if (n !== null) { e.preventDefault(); select(n, true); }
+      });
+    });
+    select(0, false);
+  }
+
+  /* ---- the compact index closes once you pick something ---- */
+  var menu = document.getElementById('menu');
+  if (menu) {
+    menu.addEventListener('click', function(e){
+      if (e.target.tagName === 'A') menu.removeAttribute('open');
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && menu.hasAttribute('open')) {
+        menu.removeAttribute('open');
+        var sum = menu.querySelector('summary');
+        if (sum) sum.focus();
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
